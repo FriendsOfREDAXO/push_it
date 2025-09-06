@@ -98,7 +98,7 @@ class Subscribe extends rex_api_function
             exit;
             
         } catch (\Throwable $e) {
-            error_log('PushiIt Subscribe Error: ' . $e->getMessage());
+            error_log('PushIt Subscribe Error: ' . $e->getMessage());
             http_response_code(500);
             echo json_encode(['success' => false, 'error' => 'server_error']);
             exit;

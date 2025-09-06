@@ -9,7 +9,10 @@ requires:
     redaxo: '^5.15'
     php:
         version: '^8.0'
-
+        
+conflicts:
+    url: '<2.2.0'  # URL-AddOn < 2.2.0 verwendet inkompatible Riimu\Kit\UrlParser\Uri ohne PSR-7 Return-Types
+    
 page:
     title: 'PushIt'
     perm: push_it[]

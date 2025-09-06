@@ -1,6 +1,6 @@
 # PushIt - Web Push Notifications für REDAXO 5
 
-Ein leistungsstarkes AddOn für Web Push Notifications in REDAXO 5, das sowohl Frontend- als auch Backend-Benachrichtigungen unterstützt.
+Moin. Keine Lust mehr auf Newsletter? Jo denn hier ist Web-Push für REDAXO 🤘
 
 ## Features
 

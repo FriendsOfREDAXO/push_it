@@ -1,4 +1,4 @@
-// Backend-spezifisches JavaScript für Pushi It
+// Backend-spezifisches JavaScript für Push It
 (function() {
   'use strict';
   
@@ -7,11 +7,11 @@
     
     // Backend-Benachrichtigungen automatisch aktivieren wenn konfiguriert
     if (window.rex && window.rex.push_it_backend_enabled && window.rex.push_it_public_key) {
-      // Public Key setzen (sowohl für PushiIt als auch PushiItPublicKey)
-      window.PushiItPublicKey = window.rex.push_it_public_key;
+      // Public Key setzen (sowohl für PushIt als auch PushItPublicKey)
+      window.PushItPublicKey = window.rex.push_it_public_key;
       
-      // Warten bis PushiIt verfügbar ist
-      waitForPushiIt().then(() => {
+      // Warten bis PushIt verfügbar ist
+      waitForPushIt().then(() => {
         checkBackendSubscription();
       });
     }
@@ -20,29 +20,29 @@
     addBackendNotificationButton();
   });
   
-  function waitForPushiIt() {
+  function waitForPushIt() {
     return new Promise((resolve) => {
-      if (window.PushiIt) {
+      if (window.PushIt) {
         resolve();
         return;
       }
       
-      const checkPushiIt = () => {
-        if (window.PushiIt) {
+      const checkPushIt = () => {
+        if (window.PushIt) {
           resolve();
         } else {
-          setTimeout(checkPushiIt, 100);
+          setTimeout(checkPushIt, 100);
         }
       };
       
-      checkPushiIt();
+      checkPushIt();
     });
   }
   
   async function checkBackendSubscription() {
     try {
       // Prüfen ob bereits eine Subscription existiert
-      const status = await window.PushiIt.getStatus();
+      const status = await window.PushIt.getStatus();
       
       // Prüfen ob der Benutzer bereits geantwortet hat (localStorage)
       const hasAnswered = localStorage.getItem('push_it_backend_asked');
@@ -83,7 +83,7 @@
   // Globale Funktionen für die Buttons
   window.activateBackendNotifications = async function() {
     try {
-      await window.PushiIt.subscribe('backend', 'system,admin');
+      await window.PushIt.subscribe('backend', 'system,admin');
       localStorage.setItem('push_it_backend_asked', 'accepted');
       showBackendMessage('Backend-Benachrichtigungen wurden aktiviert!', 'success');
     } catch (error) {
@@ -114,10 +114,10 @@
           <span class="sr-only">Push-Benachrichtigungen</span>
         </a>
         <ul class="dropdown-menu dropdown-menu-right">
-          <li><a href="#" onclick="PushiIt.requestBackend('system,admin'); return false;" class="dropdown-item">
+          <li><a href="#" onclick="PushIt.requestBackend('system,admin'); return false;" class="dropdown-item">
             <i class="rex-icon fa-bell-o"></i> Backend aktivieren
           </a></li>
-          <li><a href="#" onclick="PushiIt.disable(); return false;" class="dropdown-item">
+          <li><a href="#" onclick="PushIt.disable(); return false;" class="dropdown-item">
             <i class="rex-icon fa-bell-slash"></i> Deaktivieren
           </a></li>
           <li role="separator" class="dropdown-divider"></li>
@@ -161,7 +161,7 @@
   }
   
   // Test-Benachrichtigung senden (für Admin-Bereich)
-  window.PushiItBackend = {
+  window.PushItBackend = {
     sendTestNotification: function() {
       fetch('/index.php?page=push_it&func=test_notification', {
         method: 'POST',
@@ -189,7 +189,7 @@
   };
   
   // Zusätzliche Funktionen für localStorage-Reset
-  window.PushiItReset = function() {
+  window.PushItReset = function() {
     localStorage.removeItem('push_it_backend_asked');
     alert('Backend-Subscription Status wurde zurückgesetzt.');
     // Banner erneut anzeigen

@@ -93,9 +93,9 @@
     const reg = await ensureServiceWorker();
     await requestNotificationPermission();
     
-    const publicKey = window.PushiItPublicKey || '';
+    const publicKey = window.PushItPublicKey || '';
     if (!publicKey) {
-      throw new Error('VAPID Public Key nicht konfiguriert (window.PushiItPublicKey)');
+      throw new Error('VAPID Public Key nicht konfiguriert (window.PushItPublicKey)');
     }
     
     // VAPID Key validieren
@@ -119,8 +119,8 @@
       }
       
       // User-ID für Backend-Subscriptions hinzufügen
-      if (userType === 'backend' && window.PushiItUserId) {
-        params.append('user_id', window.PushiItUserId);
+      if (userType === 'backend' && window.PushItUserId) {
+        params.append('user_id', window.PushItUserId);
       }
       
       const response = await fetch('/index.php?' + params.toString(), {
@@ -200,7 +200,7 @@
   }
   
   // Öffentliche API
-  window.PushiIt = {
+  window.PushIt = {
     subscribe: function(userType = 'frontend', topics = '') {
       return subscribe(userType, topics)
         .then(result => {
@@ -229,14 +229,14 @@
     
     // Einfache UI-Funktionen
     requestFrontend: function(topics = '') {
-      const topicsToUse = topics || window.PushiItTopics || '';
+      const topicsToUse = topics || window.PushItTopics || '';
       subscribe('frontend', topicsToUse)
         .then(() => alert('Frontend-Benachrichtigungen aktiviert!'))
         .catch(err => alert('Fehler: ' + err.message));
     },
     
     requestBackend: function(topics = '') {
-      const topicsToUse = topics || window.PushiItTopics || '';
+      const topicsToUse = topics || window.PushItTopics || '';
       subscribe('backend', topicsToUse)
         .then(() => alert('Backend-Benachrichtigungen aktiviert!'))
         .catch(err => alert('Fehler: ' + err.message));

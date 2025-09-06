@@ -1,0 +1,46 @@
+package: pushi_it
+version: '1.0.0'
+author: 'Thomas Skerbis, Friends Of REDAXO'
+supportpage: 'https://github.com/FriendsOfREDAXO/pushi_it'
+title: 'PushIt - Web Push Notifications'
+description: 'Web Push Notifications für Frontend und Backend'
+
+requires:
+    redaxo: '^5.15'
+    php:
+        version: '^8.0'
+
+page:
+    title: 'PushIt'
+    perm: pushi_it[]
+    icon: rex-icon fa-bell
+    subpages:
+        settings:
+            title: 'Einstellungen'
+            perm: admin
+        subscriptions:
+            title: 'Subscriptions'
+            perm: pushi_it[]
+        send:
+            title: 'Senden'
+            perm: pushi_it[]
+        history:
+            title: 'Verlauf'
+            perm: pushi_it[]
+        backend_notify:
+            title: 'Backend Benachrichtigungen'
+            perm: pushi_it[]
+        help:
+            title: 'Hilfe'
+            icon: rex-icon fa-question-circle
+            subPath: README.md
+            itemClass: 'pull-right'
+            perm: pushi_it[]
+
+default_config:
+    subject: 'mailto:info@example.com'
+    publicKey: ''
+    privateKey: ''
+    backend_enabled: true
+    frontend_enabled: true
+    admin_notifications: true

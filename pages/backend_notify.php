@@ -6,7 +6,7 @@ $addon = rex_addon::get('push_it');
 // Admin-Berechtigung prüfen
 $isAdmin = rex::getUser()->isAdmin();
 
-// Sicherstellen dass PushiIt JS verfügbar ist
+// Sicherstellen dass PushIt JS verfügbar ist
 $publicKey = $addon->getConfig('publicKey');
 $currentUser = rex::getUser();
 $userId = $currentUser ? $currentUser->getId() : null;
@@ -14,8 +14,8 @@ $userId = $currentUser ? $currentUser->getId() : null;
 if ($publicKey) {
     echo '<script src="' . $addon->getAssetsUrl('frontend.js') . '"></script>';
     echo '<script>
-        window.PushiItPublicKey = ' . json_encode($publicKey) . ';
-        window.PushiItUserId = ' . json_encode($userId) . ';
+        window.PushItPublicKey = ' . json_encode($publicKey) . ';
+        window.PushItUserId = ' . json_encode($userId) . ';
     </script>';
 } else {
     echo rex_view::warning('
@@ -37,17 +37,17 @@ $backendSubContent = '
 <div class="well">
     <h4>Backend-Benachrichtigungen aktivieren</h4>
     <p>Aktivieren Sie Push-Benachrichtigungen für Ihr Backend-Konto:</p>
-    <button class="btn btn-success" onclick="PushiIt.requestBackend(\'' . ($isAdmin ? 'system,admin,critical,editorial' : 'editorial') . '\')">
+    <button class="btn btn-success" onclick="PushIt.requestBackend(\'' . ($isAdmin ? 'system,admin,critical,editorial' : 'editorial') . '\')">
         <i class="rex-icon fa-bell"></i> Backend-Benachrichtigungen aktivieren
     </button>
-    <button class="btn btn-default" onclick="PushiIt.getStatus().then(s => alert(s.isSubscribed ? \'Aktiv\' : \'Nicht aktiv\'))">
+    <button class="btn btn-default" onclick="PushIt.getStatus().then(s => alert(s.isSubscribed ? \'Aktiv\' : \'Nicht aktiv\'))">
         <i class="rex-icon fa-info"></i> Status prüfen
     </button>
-    <button class="btn btn-warning" onclick="PushiIt.disable()">
+    <button class="btn btn-warning" onclick="PushIt.disable()">
         <i class="rex-icon fa-bell-slash"></i> Deaktivieren
     </button>
     <br><br>
-    <button class="btn btn-xs btn-default" onclick="PushiItReset()">
+    <button class="btn btn-xs btn-default" onclick="PushItReset()">
         <i class="rex-icon fa-refresh"></i> Abfrage zurücksetzen
     </button>
     <small class="help-block">Zurücksetzen: Sie werden beim nächsten Seitenaufruf wieder gefragt, ob Sie Backend-Benachrichtigungen aktivieren möchten.</small>

@@ -233,13 +233,13 @@ mkcert localhost 127.0.0.1 ::1
 
 ```php
 // Custom Notification Handling
-rex_extension::register('PUSHI_IT_BEFORE_SEND', function(rex_extension_point $ep) {
+rex_extension::register('PUSH_IT_BEFORE_SEND', function(rex_extension_point $ep) {
     $notification = $ep->getParam('notification');
     // Modify notification before sending
     return $notification;
 });
 
-rex_extension::register('PUSHI_IT_AFTER_SEND', function(rex_extension_point $ep) {
+rex_extension::register('PUSH_IT_AFTER_SEND', function(rex_extension_point $ep) {
     $result = $ep->getParam('result');
     $notification = $ep->getParam('notification');
     // Log or process send result

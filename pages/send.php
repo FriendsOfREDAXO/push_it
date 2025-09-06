@@ -12,11 +12,11 @@ if (!rex::getUser()->hasPerm('push_it[]')) {
 // Prüfen ob User Admin ist (für erweiterte Features)
 $isAdmin = rex::getUser()->isAdmin();
 
-// PushiIt JavaScript für Test-Funktion laden
+// PushIt JavaScript für Test-Funktion laden
 $publicKey = $addon->getConfig('publicKey');
 if ($publicKey) {
     echo '<script src="' . $addon->getAssetsUrl('frontend.js') . '"></script>';
-    echo '<script>window.PushiItPublicKey = ' . json_encode($publicKey) . ';</script>';
+    echo '<script>window.PushItPublicKey = ' . json_encode($publicKey) . ';</script>';
 }
 
 $title = rex_request('title', 'string');
@@ -177,7 +177,7 @@ $content .= '
 
 <script>
 function sendTestNotification() {
-    // Direkte Test-Benachrichtigung ohne PushiIt JS
+    // Direkte Test-Benachrichtigung ohne PushIt JS
     if (confirm("Test-Benachrichtigung an alle Backend-User senden?")) {
         fetch("' . rex_url::currentBackendPage() . '", {
             method: "POST",
@@ -186,7 +186,7 @@ function sendTestNotification() {
             },
             body: new URLSearchParams({
                 title: "🧪 Test-Benachrichtigung",
-                body: "Dies ist eine Test-Nachricht von Pushi It. Wenn Sie diese Nachricht sehen, funktioniert das System korrekt!",
+                body: "Dies ist eine Test-Nachricht von Push It. Wenn Sie diese Nachricht sehen, funktioniert das System korrekt!",
                 url: "' . rex_url::backendPage('push_it') . '",
                 user_type: "backend",
                 topics: "test,admin",

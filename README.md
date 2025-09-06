@@ -263,7 +263,7 @@ rex_extension::register('PUSHI_IT_AFTER_SEND', function(rex_extension_point $ep)
 MIT License - Siehe LICENSE.md
 
 ## Support
-- **Issues**: [GitHub Issues](https://github.com/FriendsOfREDAXO/pushi_it/issues)
+- **Issues**: [GitHub Issues](https://github.com/FriendsOfREDAXO/push_it/issues)
 
 ## Credits
 

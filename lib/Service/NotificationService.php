@@ -68,7 +68,7 @@ class NotificationService
         $subscriptions = $this->getSubscriptions($userType, $topics);
         
         // Debug-Ausgabe
-        error_log('PushiIt: Found ' . count($subscriptions) . ' subscriptions for userType: ' . $userType . ', topics: ' . implode(',', $topics));
+        error_log('PushIt: Found ' . count($subscriptions) . ' subscriptions for userType: ' . $userType . ', topics: ' . implode(',', $topics));
         
         if (empty($subscriptions)) {
             return [
@@ -136,22 +136,22 @@ class NotificationService
                 
                 $result = $webPush->sendOneNotification($subscription, $payloadJson);
                 
-                error_log('PushiIt: Sending to subscription ' . $sub['id'] . ', endpoint: ' . substr($sub['endpoint'], 0, 50) . '...');
+                error_log('PushIt: Sending to subscription ' . $sub['id'] . ', endpoint: ' . substr($sub['endpoint'], 0, 50) . '...');
                 
                 if ($result->isSuccess()) {
                     $sent++;
-                    error_log('PushiIt: Successfully sent to subscription ' . $sub['id']);
+                    error_log('PushIt: Successfully sent to subscription ' . $sub['id']);
                     $this->updateSubscriptionSuccess($sub['id']);
                 } else {
                     $errors++;
                     $errorMsg = $result->getReason();
-                    error_log('PushiIt: Failed to send to subscription ' . $sub['id'] . ': ' . $errorMsg);
+                    error_log('PushIt: Failed to send to subscription ' . $sub['id'] . ': ' . $errorMsg);
                     $this->updateSubscriptionError($sub['id'], $errorMsg);
                 }
                 
             } catch (\Exception $e) {
                 $errors++;
-                error_log('PushiIt: Exception sending to subscription ' . $sub['id'] . ': ' . $e->getMessage());
+                error_log('PushIt: Exception sending to subscription ' . $sub['id'] . ': ' . $e->getMessage());
                 $this->updateSubscriptionError($sub['id'], $e->getMessage());
             }
         }

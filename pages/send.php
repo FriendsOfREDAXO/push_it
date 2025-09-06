@@ -1,10 +1,10 @@
 <?php
 use FriendsOfREDAXO\PushIt\Service\NotificationService;
 
-$addon = rex_addon::get('pushi_it');
+$addon = rex_addon::get('push_it');
 
 // Berechtigung prüfen
-if (!rex::getUser()->hasPerm('pushi_it[]')) {
+if (!rex::getUser()->hasPerm('push_it[]')) {
     echo rex_view::error('Sie haben keine Berechtigung für diesen Bereich.');
     return;
 }
@@ -65,7 +65,7 @@ if ($doSend && $title && $body) {
 $sql = rex_sql::factory();
 $sql->setQuery("
     SELECT user_type, COUNT(*) as count 
-    FROM rex_pushi_it_subscriptions 
+    FROM rex_push_it_subscriptions 
     WHERE active = 1 
     GROUP BY user_type
 ");
@@ -109,10 +109,10 @@ if ($isAdmin) {
             
             <div class="rex-form-group form-group">
                 <label class="control-label" for="icon">Icon</label>
-                <input class="form-control" id="icon" name="icon" value="' . rex_escape($icon) . '" placeholder="/assets/addons/pushi_it/icon.png" />
+                <input class="form-control" id="icon" name="icon" value="' . rex_escape($icon) . '" placeholder="/assets/addons/push_it/icon.png" />
                 <p class="help-block"><strong>Icon-URL Formate:</strong><br>
                 • <code>/media/icon.png</code> - Lokale Datei im REDAXO Media-Ordner<br>
-                • <code>/assets/addons/pushi_it/icon.png</code> - AddOn-Assets<br>
+                • <code>/assets/addons/push_it/icon.png</code> - AddOn-Assets<br>
                 • <code>https://example.com/icon.png</code> - Externe URL (HTTPS erforderlich!)<br>
                 <em>Empfohlen: 192x192px, PNG/JPG</em></p>
             </div>
@@ -187,7 +187,7 @@ function sendTestNotification() {
             body: new URLSearchParams({
                 title: "🧪 Test-Benachrichtigung",
                 body: "Dies ist eine Test-Nachricht von Pushi It. Wenn Sie diese Nachricht sehen, funktioniert das System korrekt!",
-                url: "' . rex_url::backendPage('pushi_it') . '",
+                url: "' . rex_url::backendPage('push_it') . '",
                 user_type: "backend",
                 topics: "test,admin",
                 send: "1"
@@ -214,7 +214,7 @@ echo $fragment->parse('core/page/section.php');
 // Letzte gesendete Nachrichten anzeigen
 $sql = rex_sql::factory();
 $sql->setQuery("
-    SELECT * FROM rex_pushi_it_notifications 
+    SELECT * FROM rex_push_it_notifications 
     ORDER BY created DESC 
     LIMIT 10
 ");

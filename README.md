@@ -111,12 +111,12 @@ $service->sendNotification(
 
 ```bash
 # Subscription erstellen
-curl -X POST "https://domain.com/redaxo/index.php?rex-api-call=pushi_it_subscribe&user_type=frontend&topics=news" \
+curl -X POST "https://domain.com/redaxo/index.php?rex-api-call=push_it_subscribe&user_type=frontend&topics=news" \
   -H "Content-Type: application/json" \
   -d '{"endpoint":"...","keys":{"p256dh":"...","auth":"..."}}'
 
 # Subscription löschen  
-curl -X POST "https://domain.com/redaxo/index.php?rex-api-call=pushi_it_unsubscribe" \
+curl -X POST "https://domain.com/redaxo/index.php?rex-api-call=push_it_unsubscribe" \
   -H "Content-Type: application/json" \
   -d '{"endpoint":"..."}'
 ```
@@ -268,7 +268,7 @@ MIT License - Siehe LICENSE.md
 
 - **Dokumentation**: [REDAXO AddOn Doku](https://redaxo.org/doku/master/addons)
 - **Forum**: [REDAXO Community](https://redaxo.org/forum)  
-- **Issues**: [GitHub Issues](https://github.com/FriendsOfREDAXO/pushi_it/issues)
+- **Issues**: [GitHub Issues](https://github.com/FriendsOfREDAXO/push_it/issues)
 
 ## Credits
 

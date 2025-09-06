@@ -1,10 +1,31 @@
 <?php
 /** @var rex_addon $this */
 
-// Datenbank-Tabelle für Subscriptions erstellen
+// Update Script: Umbenennung von pushi_it zu push_it
+
 $sql = rex_sql::factory();
 
-// Tabelle für Push-Subscriptions
+// Tabellen umbenennen falls sie noch die alten Namen haben
+try {
+    // Prüfen ob alte Tabellen existieren
+    $oldSubsExists = $sql->setQuery("SHOW TABLES LIKE 'rex_pushi_it_subscriptions'")->getRows() > 0;
+    $oldNotifExists = $sql->setQuery("SHOW TABLES LIKE 'rex_pushi_it_notifications'")->getRows() > 0;
+    
+    if ($oldSubsExists) {
+        $sql->setQuery("RENAME TABLE `rex_pushi_it_subscriptions` TO `rex_push_it_subscriptions`");
+        echo "Tabelle rex_pushi_it_subscriptions zu rex_push_it_subscriptions umbenannt.\n";
+    }
+    
+    if ($oldNotifExists) {
+        $sql->setQuery("RENAME TABLE `rex_pushi_it_notifications` TO `rex_push_it_notifications`");
+        echo "Tabelle rex_pushi_it_notifications zu rex_push_it_notifications umbenannt.\n";
+    }
+    
+} catch (rex_sql_exception $e) {
+    // Tabellen existieren vermutlich nicht oder sind bereits umbenannt
+}
+
+// Sicherstellen dass die neuen Tabellen existieren (falls noch nicht erstellt)
 $sql->setQuery("
 CREATE TABLE IF NOT EXISTS `rex_push_it_subscriptions` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -29,7 +50,6 @@ CREATE TABLE IF NOT EXISTS `rex_push_it_subscriptions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ");
 
-// Tabelle für Notifications-Log
 $sql->setQuery("
 CREATE TABLE IF NOT EXISTS `rex_push_it_notifications` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -49,9 +69,15 @@ CREATE TABLE IF NOT EXISTS `rex_push_it_notifications` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ");
 
-// Berechtigungen registrieren
+// Berechtigungen aktualisieren
 if (rex::isBackend()) {
     rex_perm::register('push_it[]');
-    rex_perm::register('push_it[subscriptions]');
-    rex_perm::register('push_it[send]');
+    
+    // Alte Berechtigung entfernen falls sie existiert
+    try {
+        $sql->setQuery("DELETE FROM rex_user_role_perms WHERE perm = 'pushi_it[]'");
+        $sql->setQuery("DELETE FROM rex_user_perms WHERE perm = 'pushi_it[]'");
+    } catch (Exception $e) {
+        // Ignorieren falls Tabellen nicht existieren
+    }
 }

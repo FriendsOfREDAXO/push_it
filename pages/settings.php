@@ -1,5 +1,5 @@
 <?php
-$addon = rex_addon::get('pushi_it');
+$addon = rex_addon::get('push_it');
 
 $subject = rex_request('subject', 'string');
 $publicKey = rex_request('publicKey', 'string');
@@ -114,7 +114,7 @@ echo $fragment->parse('core/page/section.php');
 if ($publicKey && $frontendEnabled) {
     $frontendSnippet = '
 <!-- Pushi It Frontend Integration -->
-<script src="/assets/addons/pushi_it/frontend.js"></script>
+<script src="/assets/addons/push_it/frontend.js"></script>
 <script>
 window.PushiItPublicKey = \'' . rex_escape($publicKey, 'js') . '\';
 // Optional: Topics für Frontend-Nutzer

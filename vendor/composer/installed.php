@@ -1,6 +1,6 @@
 <?php return array(
     'root' => array(
-        'name' => 'redaxo/pushi_it',
+        'name' => 'redaxo/push_it',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
         'reference' => '7bc8552a43850597d268eb128732e18aaa949c03',
@@ -118,7 +118,7 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
-        'redaxo/pushi_it' => array(
+        'redaxo/push_it' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
             'reference' => '7bc8552a43850597d268eb128732e18aaa949c03',

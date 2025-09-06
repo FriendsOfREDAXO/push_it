@@ -1,5 +1,5 @@
 <?php
-$addon = rex_addon::get('pushi_it');
+$addon = rex_addon::get('push_it');
 
 // Composer Autoloader laden
 if (file_exists($addon->getPath('vendor/autoload.php'))) {
@@ -16,7 +16,7 @@ if (!$addon->hasConfig('admin_notifications')) $addon->setConfig('admin_notifica
 
 // Berechtigungen registrieren
 if (rex::isBackend()) {
-    rex_perm::register('pushi_it[]', 'PushIt - Grundberechtigung');
+    rex_perm::register('push_it[]', 'PushIt - Grundberechtigung');
 }
 
 // API-Funktionen registrieren
@@ -24,8 +24,8 @@ if (rex::isBackend()) {
 require_once $addon->getPath('lib/Api/Subscribe.php');
 require_once $addon->getPath('lib/Api/Unsubscribe.php');
 
-rex_api_function::register('pushi_it_subscribe', \FriendsOfREDAXO\PushIt\Api\Subscribe::class);
-rex_api_function::register('pushi_it_unsubscribe', \FriendsOfREDAXO\PushIt\Api\Unsubscribe::class);
+rex_api_function::register('push_it_subscribe', \FriendsOfREDAXO\PushIt\Api\Subscribe::class);
+rex_api_function::register('push_it_unsubscribe', \FriendsOfREDAXO\PushIt\Api\Unsubscribe::class);
 
 // Backend Assets hinzufügen wenn Backend aktiviert ist
 if (rex::isBackend() && $addon->getConfig('backend_enabled')) {
@@ -36,8 +36,8 @@ if (rex::isBackend() && $addon->getConfig('backend_enabled')) {
     // Public Key für Backend verfügbar machen
     $publicKey = $addon->getConfig('publicKey');
     if ($publicKey) {
-        rex_view::setJsProperty('pushi_it_public_key', $publicKey);
-        rex_view::setJsProperty('pushi_it_backend_enabled', true);
+        rex_view::setJsProperty('push_it_public_key', $publicKey);
+        rex_view::setJsProperty('push_it_backend_enabled', true);
     }
 }
 
@@ -45,7 +45,7 @@ if (rex::isBackend() && $addon->getConfig('backend_enabled')) {
 if (rex::isBackend() && $addon->getConfig('admin_notifications')) {
     // System-Fehler abfangen
     rex_extension::register('SYSTEM_ERROR', function(rex_extension_point $ep) {
-        $addon = rex_addon::get('pushi_it');
+        $addon = rex_addon::get('push_it');
         $service = new \FriendsOfREDAXO\PushIt\Service\NotificationService();
         
         $title = 'System-Fehler aufgetreten';
@@ -61,7 +61,7 @@ if (rex::isBackend() && $addon->getConfig('admin_notifications')) {
         $current_packages = array_keys(rex_addon::getRegisteredAddons());
         
         if ($last_packages !== null && $current_packages !== $last_packages) {
-            $addon = rex_addon::get('pushi_it');
+            $addon = rex_addon::get('push_it');
             $service = new \FriendsOfREDAXO\PushIt\Service\NotificationService();
             
             $title = 'AddOn-Änderung erkannt';

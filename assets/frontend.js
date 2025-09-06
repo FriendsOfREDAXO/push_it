@@ -18,10 +18,10 @@
     }
     
     // Service Worker registrieren oder vorhandenen abrufen
-    let reg = await navigator.serviceWorker.getRegistration('/assets/addons/pushi_it/sw.js');
+    let reg = await navigator.serviceWorker.getRegistration('/assets/addons/push_it/sw.js');
     if (!reg) {
-      reg = await navigator.serviceWorker.register('/assets/addons/pushi_it/sw.js', {
-        scope: '/assets/addons/pushi_it/'
+      reg = await navigator.serviceWorker.register('/assets/addons/push_it/sw.js', {
+        scope: '/assets/addons/push_it/'
       });
     }
     
@@ -110,7 +110,7 @@
       });
       
       const params = new URLSearchParams({
-        'rex-api-call': 'pushi_it_subscribe',
+        'rex-api-call': 'push_it_subscribe',
         user_type: userType
       });
       
@@ -150,14 +150,14 @@
   
   async function unsubscribe() {
     try {
-      const reg = await navigator.serviceWorker.getRegistration('/assets/addons/pushi_it/');
+      const reg = await navigator.serviceWorker.getRegistration('/assets/addons/push_it/');
       const subscription = await reg?.pushManager.getSubscription();
       
       if (!subscription) {
         return { success: true, info: 'no_subscription' };
       }
       
-      const response = await fetch('/index.php?rex-api-call=pushi_it_unsubscribe', {
+      const response = await fetch('/index.php?rex-api-call=push_it_unsubscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -185,7 +185,7 @@
   
   async function getSubscriptionStatus() {
     try {
-      const reg = await navigator.serviceWorker.getRegistration('/assets/addons/pushi_it/');
+      const reg = await navigator.serviceWorker.getRegistration('/assets/addons/push_it/');
       const subscription = await reg?.pushManager.getSubscription();
       return {
         isSubscribed: !!subscription,

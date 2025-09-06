@@ -1,5 +1,5 @@
 {
-  "name": "friendsofredaxo/pushi_it",
+  "name": "friendsofredaxo/push_it",
   "description": "Web Push Notifications für REDAXO 5 - Frontend und Backend",
   "type": "redaxo-addon",
   "license": "MIT",
@@ -13,7 +13,7 @@
       "homepage": "https://github.com/FriendsOfREDAXO"
     }
   ],
-  "homepage": "https://github.com/FriendsOfREDAXO/pushi_it",
+  "homepage": "https://github.com/FriendsOfREDAXO/push_it",
   "require": {
     "php": "^8.0",
     "minishlink/web-push": "^9.0"

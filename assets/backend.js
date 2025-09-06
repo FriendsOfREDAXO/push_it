@@ -6,9 +6,9 @@
   document.addEventListener('DOMContentLoaded', function() {
     
     // Backend-Benachrichtigungen automatisch aktivieren wenn konfiguriert
-    if (window.rex && window.rex.pushi_it_backend_enabled && window.rex.pushi_it_public_key) {
+    if (window.rex && window.rex.push_it_backend_enabled && window.rex.push_it_public_key) {
       // Public Key setzen (sowohl für PushiIt als auch PushiItPublicKey)
-      window.PushiItPublicKey = window.rex.pushi_it_public_key;
+      window.PushiItPublicKey = window.rex.push_it_public_key;
       
       // Warten bis PushiIt verfügbar ist
       waitForPushiIt().then(() => {
@@ -45,7 +45,7 @@
       const status = await window.PushiIt.getStatus();
       
       // Prüfen ob der Benutzer bereits geantwortet hat (localStorage)
-      const hasAnswered = localStorage.getItem('pushi_it_backend_asked');
+      const hasAnswered = localStorage.getItem('push_it_backend_asked');
       
       if (!status.isSubscribed && !hasAnswered) {
         // Zeige eine Info-Nachricht anstatt automatisch zu fragen
@@ -84,7 +84,7 @@
   window.activateBackendNotifications = async function() {
     try {
       await window.PushiIt.subscribe('backend', 'system,admin');
-      localStorage.setItem('pushi_it_backend_asked', 'accepted');
+      localStorage.setItem('push_it_backend_asked', 'accepted');
       showBackendMessage('Backend-Benachrichtigungen wurden aktiviert!', 'success');
     } catch (error) {
       console.error('Backend subscription error:', error);
@@ -93,7 +93,7 @@
   };
   
   window.declineBackendNotifications = function() {
-    localStorage.setItem('pushi_it_backend_asked', 'declined');
+    localStorage.setItem('push_it_backend_asked', 'declined');
     // Alert schließen
     const alert = document.querySelector('#rex-message-container .alert');
     if (alert) {
@@ -121,7 +121,7 @@
             <i class="rex-icon fa-bell-slash"></i> Deaktivieren
           </a></li>
           <li role="separator" class="dropdown-divider"></li>
-          <li><a href="index.php?page=pushi_it" class="dropdown-item">
+          <li><a href="index.php?page=push_it" class="dropdown-item">
             <i class="rex-icon fa-cog"></i> Einstellungen
           </a></li>
         </ul>
@@ -163,12 +163,12 @@
   // Test-Benachrichtigung senden (für Admin-Bereich)
   window.PushiItBackend = {
     sendTestNotification: function() {
-      fetch('/index.php?page=pushi_it&func=test_notification', {
+      fetch('/index.php?page=push_it&func=test_notification', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: 'rex-api-call=pushi_it_test'
+        body: 'rex-api-call=push_it_test'
       }).then(response => {
         if (response.ok) {
           showBackendMessage('Test-Benachrichtigung wurde gesendet!', 'success');
@@ -183,14 +183,14 @@
     
     // Reset-Funktion um erneut nach Backend-Subscription zu fragen
     resetBackendAsk: function() {
-      localStorage.removeItem('pushi_it_backend_asked');
+      localStorage.removeItem('push_it_backend_asked');
       checkBackendSubscription();
     }
   };
   
   // Zusätzliche Funktionen für localStorage-Reset
   window.PushiItReset = function() {
-    localStorage.removeItem('pushi_it_backend_asked');
+    localStorage.removeItem('push_it_backend_asked');
     alert('Backend-Subscription Status wurde zurückgesetzt.');
     // Banner erneut anzeigen
     showBackendNotificationPrompt();

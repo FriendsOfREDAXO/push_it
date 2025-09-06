@@ -9,8 +9,8 @@ self.addEventListener('push', event => {
   const title = data.title || 'Benachrichtigung';
   const options = {
     body: data.body || '',
-    icon: data.icon || '/assets/addons/pushi_it/icon.png',
-    badge: '/assets/addons/pushi_it/badge.png',
+    icon: data.icon || '/assets/addons/push_it/icon.png',
+    badge: '/assets/addons/push_it/badge.png',
     data: { 
       url: data.url || '/',
       timestamp: data.timestamp || Date.now()
@@ -20,12 +20,12 @@ self.addEventListener('push', event => {
       {
         action: 'open',
         title: 'Öffnen',
-        icon: '/assets/addons/pushi_it/action-open.png'
+        icon: '/assets/addons/push_it/action-open.png'
       },
       {
         action: 'dismiss',
         title: 'Schließen',
-        icon: '/assets/addons/pushi_it/action-close.png'
+        icon: '/assets/addons/push_it/action-close.png'
       }
     ]
   };

@@ -123,14 +123,14 @@ class Subscribe extends rex_api_function
         
         // Prüfen ob Subscription bereits existiert
         $sql->setQuery(
-            "SELECT id FROM rex_pushi_it_subscriptions WHERE endpoint = ?",
+            "SELECT id FROM rex_push_it_subscriptions WHERE endpoint = ?",
             [$data['endpoint']]
         );
         
         if ($sql->getRows() > 0) {
             // Update existierende Subscription
             $sql->setQuery("
-                UPDATE rex_pushi_it_subscriptions 
+                UPDATE rex_push_it_subscriptions 
                 SET active = 1, user_type = ?, user_id = ?, topics = ?, 
                     ua = ?, lang = ?, domain = ?, updated = NOW(), last_error = NULL
                 WHERE endpoint = ?
@@ -146,7 +146,7 @@ class Subscribe extends rex_api_function
         } else {
             // Neue Subscription erstellen
             $sql->setQuery("
-                INSERT INTO rex_pushi_it_subscriptions 
+                INSERT INTO rex_push_it_subscriptions 
                 (user_id, user_type, endpoint, p256dh, auth, topics, ua, lang, domain, active, created, updated)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())
             ", [

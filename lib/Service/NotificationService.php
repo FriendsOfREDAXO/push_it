@@ -15,7 +15,7 @@ class NotificationService
     
     public function __construct()
     {
-        $this->addon = rex_addon::get('pushi_it');
+        $this->addon = rex_addon::get('push_it');
     }
     
     /**
@@ -85,7 +85,7 @@ class NotificationService
             'title' => $title,
             'body' => $body,
             'url' => $url,
-            'icon' => $options['icon'] ?? '/assets/addons/pushi_it/icon.png',
+            'icon' => $options['icon'] ?? '/assets/addons/push_it/icon.png',
             'timestamp' => time()
         ];
         
@@ -197,7 +197,7 @@ class NotificationService
             }
         }
         
-        $query = "SELECT id, endpoint, p256dh, auth FROM rex_pushi_it_subscriptions WHERE " . implode(' AND ', $where);
+        $query = "SELECT id, endpoint, p256dh, auth FROM rex_push_it_subscriptions WHERE " . implode(' AND ', $where);
         
         $sql->setQuery($query, $params);
         
@@ -221,7 +221,7 @@ class NotificationService
     private function updateSubscriptionSuccess(int $subscriptionId): void
     {
         $sql = rex_sql::factory();
-        $sql->setQuery("UPDATE rex_pushi_it_subscriptions SET last_error = NULL, updated = NOW() WHERE id = ?", [$subscriptionId]);
+        $sql->setQuery("UPDATE rex_push_it_subscriptions SET last_error = NULL, updated = NOW() WHERE id = ?", [$subscriptionId]);
     }
     
     /**
@@ -230,7 +230,7 @@ class NotificationService
     private function updateSubscriptionError(int $subscriptionId, string $error): void
     {
         $sql = rex_sql::factory();
-        $sql->setQuery("UPDATE rex_pushi_it_subscriptions SET last_error = ?, updated = NOW() WHERE id = ?", [$error, $subscriptionId]);
+        $sql->setQuery("UPDATE rex_push_it_subscriptions SET last_error = ?, updated = NOW() WHERE id = ?", [$error, $subscriptionId]);
     }
     
     /**
@@ -240,13 +240,13 @@ class NotificationService
     {
         $sql = rex_sql::factory();
         $sql->setQuery("
-            INSERT INTO rex_pushi_it_notifications (title, body, url, icon, badge, image, notification_options, topics, user_type, sent_to, delivery_errors, created_by, created)
+            INSERT INTO rex_push_it_notifications (title, body, url, icon, badge, image, notification_options, topics, user_type, sent_to, delivery_errors, created_by, created)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
         ", [
             $title,
             $body,
             $url,
-            $options['icon'] ?? '/assets/addons/pushi_it/icon.png',
+            $options['icon'] ?? '/assets/addons/push_it/icon.png',
             $options['badge'] ?? null,
             $options['image'] ?? null,
             !empty($options) ? json_encode($options) : null,

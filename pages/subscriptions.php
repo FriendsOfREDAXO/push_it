@@ -1,5 +1,5 @@
 <?php
-$addon = rex_addon::get('pushi_it');
+$addon = rex_addon::get('push_it');
 
 // Admin-Berechtigung prüfen
 $isAdmin = rex::getUser()->isAdmin();
@@ -11,7 +11,7 @@ $sql->setQuery("
         id, user_id, user_type, endpoint, topics, ua, lang, domain, 
         created, updated, last_error, active,
         SUBSTRING(endpoint, 1, 50) as endpoint_short
-    FROM rex_pushi_it_subscriptions 
+    FROM rex_push_it_subscriptions 
     ORDER BY created DESC
 ");
 
@@ -43,7 +43,7 @@ $sqlStats->setQuery("
         COUNT(*) as total,
         SUM(CASE WHEN active = 1 THEN 1 ELSE 0 END) as active_count,
         SUM(CASE WHEN last_error IS NOT NULL THEN 1 ELSE 0 END) as error_count
-    FROM rex_pushi_it_subscriptions 
+    FROM rex_push_it_subscriptions 
     GROUP BY user_type
 ");
 
@@ -186,7 +186,7 @@ if ($action === 'delete' && $id > 0) {
         echo rex_view::error('Keine Berechtigung zum Löschen von Subscriptions.');
     } else {
         $deleteSql = rex_sql::factory();
-        $deleteSql->setQuery('DELETE FROM rex_pushi_it_subscriptions WHERE id = ?', [$id]);
+        $deleteSql->setQuery('DELETE FROM rex_push_it_subscriptions WHERE id = ?', [$id]);
         echo rex_view::success('Subscription wurde gelöscht.');
         
         // Reload um aktualisierte Daten zu zeigen

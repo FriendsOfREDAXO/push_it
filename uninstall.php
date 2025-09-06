@@ -8,6 +8,6 @@ if (!$keepData) {
     $sql = rex_sql::factory();
     
     // Tabellen löschen
-    $sql->setQuery('DROP TABLE IF EXISTS `rex_pushi_it_subscriptions`');
-    $sql->setQuery('DROP TABLE IF EXISTS `rex_pushi_it_notifications`');
+    $sql->setQuery('DROP TABLE IF EXISTS `rex_push_it_subscriptions`');
+    $sql->setQuery('DROP TABLE IF EXISTS `rex_push_it_notifications`');
 }

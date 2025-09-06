@@ -1,7 +1,7 @@
 <?php
 use FriendsOfREDAXO\PushIt\Service\NotificationService;
 
-$addon = rex_addon::get('pushi_it');
+$addon = rex_addon::get('push_it');
 
 // Admin-Berechtigung prüfen
 $isAdmin = rex::getUser()->isAdmin();
@@ -20,7 +20,7 @@ if ($publicKey) {
 } else {
     echo rex_view::warning('
         <h4>VAPID-Schlüssel fehlen</h4>
-        <p>Bitte generieren Sie zuerst VAPID-Schlüssel in den <a href="' . rex_url::backendPage('pushi_it') . '">Einstellungen</a>, um Push-Benachrichtigungen verwenden zu können.</p>
+        <p>Bitte generieren Sie zuerst VAPID-Schlüssel in den <a href="' . rex_url::backendPage('push_it') . '">Einstellungen</a>, um Push-Benachrichtigungen verwenden zu können.</p>
     ');
 }
 
@@ -124,7 +124,7 @@ function sendQuickNotification(type, title, body) {
             send: "1"
         });
         
-        fetch("' . rex_url::backendPage('pushi_it/send') . '", {
+        fetch("' . rex_url::backendPage('push_it/send') . '", {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded",
@@ -171,7 +171,7 @@ $autoNotifyContent = '
     </li>
 </ul>
 
-<p><a href="' . rex_url::backendPage('pushi_it') . '" class="btn btn-default">
+<p><a href="' . rex_url::backendPage('push_it') . '" class="btn btn-default">
     <i class="rex-icon fa-cog"></i> Einstellungen ändern
 </a></p>';
 
@@ -190,7 +190,7 @@ $sql->setQuery("
         SUM(CASE WHEN topics LIKE '%admin%' THEN 1 ELSE 0 END) as admin_subscribers,
         SUM(CASE WHEN topics LIKE '%editorial%' THEN 1 ELSE 0 END) as editorial_subscribers,
         SUM(CASE WHEN topics LIKE '%critical%' THEN 1 ELSE 0 END) as critical_subscribers
-    FROM rex_pushi_it_subscriptions 
+    FROM rex_push_it_subscriptions 
     WHERE user_type = 'backend'
 ");
 

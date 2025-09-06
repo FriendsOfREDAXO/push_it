@@ -7,7 +7,7 @@
 #### **1. Lokale REDAXO-Dateien:**
 ```
 /media/notification-icon.png          ← Media-Pool Datei
-/assets/addons/pushi_it/icon.png      ← AddOn-Assets
+/assets/addons/push_it/icon.png      ← AddOn-Assets
 /assets/core/logo.png                 ← Core-Assets
 ```
 
@@ -81,7 +81,7 @@ $options = [
 ### **Mix aus lokal und extern:**
 ```php
 $options = [
-    'icon' => '/assets/addons/pushi_it/icon.png',      // Lokal
+    'icon' => '/assets/addons/push_it/icon.png',      // Lokal
     'badge' => '/media/custom-badge.png',              // Media-Pool
     'image' => 'https://cdn.example.com/hero.jpg'     // Extern
 ];
@@ -113,7 +113,7 @@ $options = [
 
 1. **Fallback immer definieren:**
    ```php
-   'icon' => $customIcon ?: '/assets/addons/pushi_it/icon.png'
+   'icon' => $customIcon ?: '/assets/addons/push_it/icon.png'
    ```
 
 2. **Bilder vorab testen:**

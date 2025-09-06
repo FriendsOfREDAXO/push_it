@@ -1,5 +1,5 @@
 <?php
-$addon = rex_addon::get('pushi_it');
+$addon = rex_addon::get('push_it');
 
 // Aktionen zuerst verarbeiten
 $action = rex_request('action', 'string');
@@ -10,7 +10,7 @@ if ($action && $id > 0) {
         case 'resend':
             // Nachricht erneut senden
             $resendSql = rex_sql::factory();
-            $resendSql->setQuery("SELECT * FROM rex_pushi_it_notifications WHERE id = ?", [$id]);
+            $resendSql->setQuery("SELECT * FROM rex_push_it_notifications WHERE id = ?", [$id]);
             
             if ($resendSql->getRows() > 0) {
                 try {
@@ -45,10 +45,10 @@ if ($action && $id > 0) {
             $id = rex_get('id', 'int');
             if ($id) {
                 $sql = rex_sql::factory();
-                $sql->setQuery('DELETE FROM ' . rex::getTable('pushi_it_notifications') . ' WHERE id = ?', [$id]);
+                $sql->setQuery('DELETE FROM ' . rex::getTable('push_it_notifications') . ' WHERE id = ?', [$id]);
                 echo '<div class="alert alert-success">Benachrichtigung wurde gelöscht.</div>';
             }
-            echo '<script>window.location.href = "' . rex_url::backendPage('pushi_it/history') . '";</script>';
+            echo '<script>window.location.href = "' . rex_url::backendPage('push_it/history') . '";</script>';
         }
             break;
     }
@@ -84,13 +84,13 @@ $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereCond
 
 // Gesamt-Anzahl für Pagination
 $sqlCount = rex_sql::factory();
-$sqlCount->setQuery("SELECT COUNT(*) as total FROM rex_pushi_it_notifications $whereClause", $params);
+$sqlCount->setQuery("SELECT COUNT(*) as total FROM rex_push_it_notifications $whereClause", $params);
 $totalNotifications = $sqlCount->getValue('total');
 
 // Nachrichten mit Pagination abrufen
 $sql = rex_sql::factory();
 $sql->setQuery("
-    SELECT * FROM rex_pushi_it_notifications 
+    SELECT * FROM rex_push_it_notifications 
     $whereClause
     ORDER BY created DESC 
     LIMIT $limit OFFSET $offset
@@ -121,7 +121,7 @@ $sqlStats->setQuery("
         SUM(sent_to) as total_sent,
         SUM(delivery_errors) as total_errors,
         AVG(sent_to) as avg_recipients
-    FROM rex_pushi_it_notifications
+    FROM rex_push_it_notifications
 ");
 
 $stats = [];
@@ -147,7 +147,7 @@ $stats = array_merge([
 // Filter-Formular
 $filterForm = '
 <form method="get" class="form-inline" style="margin-bottom: 20px;">
-    <input type="hidden" name="page" value="pushi_it/history">
+    <input type="hidden" name="page" value="push_it/history">
     
     <div class="form-group">
         <label for="filter_user_type">User-Typ:</label>
@@ -184,7 +184,7 @@ $filterForm = '
         <i class="rex-icon fa-search"></i> Filtern
     </button>
     
-    <a href="' . rex_url::backendPage('pushi_it/history') . '" class="btn btn-default">
+    <a href="' . rex_url::backendPage('push_it/history') . '" class="btn btn-default">
         <i class="rex-icon fa-refresh"></i> Zurücksetzen
     </a>
 </form>';
@@ -328,12 +328,12 @@ if (!empty($notifications)) {
             </td>
             <td>
                 <div class="btn-group btn-group-xs">
-                    <a href="' . rex_url::backendPage('pushi_it/history', ['action' => 'resend', 'id' => $notificationId]) . '" 
+                    <a href="' . rex_url::backendPage('push_it/history', ['action' => 'resend', 'id' => $notificationId]) . '" 
                        class="btn btn-primary" title="Erneut senden"
                        onclick="return confirm(\'Nachricht erneut senden?\')">
                         <i class="rex-icon fa-repeat"></i>
                     </a>
-                    <a href="' . rex_url::backendPage('pushi_it/history', ['action' => 'delete', 'id' => $notificationId]) . '" 
+                    <a href="' . rex_url::backendPage('push_it/history', ['action' => 'delete', 'id' => $notificationId]) . '" 
                        class="btn btn-danger" title="Löschen"
                        onclick="return confirm(\'Nachricht aus Historie löschen?\')">
                         <i class="rex-icon fa-trash"></i>
@@ -358,20 +358,20 @@ if (!empty($notifications)) {
         // Vorherige Seite
         if ($currentPage > 1) {
             $prevOffset = ($currentPage - 2) * $limit;
-            $tableContent .= '<li><a href="' . rex_url::backendPage('pushi_it/history', array_merge($_GET, ['offset' => $prevOffset])) . '">&laquo; Vorherige</a></li>';
+            $tableContent .= '<li><a href="' . rex_url::backendPage('push_it/history', array_merge($_GET, ['offset' => $prevOffset])) . '">&laquo; Vorherige</a></li>';
         }
         
         // Seitenzahlen
         for ($i = max(1, $currentPage - 2); $i <= min($totalPages, $currentPage + 2); $i++) {
             $pageOffset = ($i - 1) * $limit;
             $active = $i === $currentPage ? ' class="active"' : '';
-            $tableContent .= '<li' . $active . '><a href="' . rex_url::backendPage('pushi_it/history', array_merge($_GET, ['offset' => $pageOffset])) . '">' . $i . '</a></li>';
+            $tableContent .= '<li' . $active . '><a href="' . rex_url::backendPage('push_it/history', array_merge($_GET, ['offset' => $pageOffset])) . '">' . $i . '</a></li>';
         }
         
         // Nächste Seite
         if ($currentPage < $totalPages) {
             $nextOffset = $currentPage * $limit;
-            $tableContent .= '<li><a href="' . rex_url::backendPage('pushi_it/history', array_merge($_GET, ['offset' => $nextOffset])) . '">Nächste &raquo;</a></li>';
+            $tableContent .= '<li><a href="' . rex_url::backendPage('push_it/history', array_merge($_GET, ['offset' => $nextOffset])) . '">Nächste &raquo;</a></li>';
         }
         
         $tableContent .= '</ul></nav>';
@@ -470,7 +470,7 @@ if (!empty($notifications)) {
     <div class="alert alert-info text-center">
         <h4><i class="rex-icon fa-info-circle"></i> Keine Nachrichten gefunden</h4>
         <p>Es wurden noch keine Push-Nachrichten gesendet oder Ihre Filter-Kriterien treffen nicht zu.</p>
-        <a href="' . rex_url::backendPage('pushi_it/send') . '" class="btn btn-primary">
+        <a href="' . rex_url::backendPage('push_it/send') . '" class="btn btn-primary">
             <i class="rex-icon fa-paper-plane"></i> Erste Nachricht senden
         </a>
     </div>';

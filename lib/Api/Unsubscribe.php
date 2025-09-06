@@ -102,7 +102,7 @@ class Unsubscribe extends rex_api_function
         
         // Subscription suchen
         $sql->setQuery(
-            "SELECT id FROM rex_pushi_it_subscriptions WHERE endpoint = ? AND active = 1",
+            "SELECT id FROM rex_push_it_subscriptions WHERE endpoint = ? AND active = 1",
             [$endpoint]
         );
         
@@ -115,7 +115,7 @@ class Unsubscribe extends rex_api_function
         // Subscription deaktivieren (nicht löschen für History)
         $updateSql = rex_sql::factory();
         $updateSql->setQuery(
-            "UPDATE rex_pushi_it_subscriptions 
+            "UPDATE rex_push_it_subscriptions 
              SET active = 0, updated = NOW(), last_error = NULL 
              WHERE id = ?",
             [$subscriptionId]

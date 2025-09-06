@@ -1,5 +1,5 @@
 <?php
-/rex_sql_table::get(rex::getTable('pushi_it_notifications'))
+rex_sql_table::get(rex::getTable('push_it_notifications'))
     ->ensurePrimaryIdColumn()
     ->ensureColumn(new rex_sql_column('title', 'varchar(255)'))
     ->ensureColumn(new rex_sql_column('body', 'text', true))
@@ -18,7 +18,7 @@
     ->ensureIndex(new rex_sql_index('user_type', ['user_type']))
     ->ensure();
 
-rex_sql_table::get(rex::getTable('pushi_it_subscriptions'))
+rex_sql_table::get(rex::getTable('push_it_subscriptions'))
     ->ensurePrimaryIdColumn()
     ->ensureColumn(new rex_sql_column('user_id', 'int(10) unsigned', true))
     ->ensureColumn(new rex_sql_column('user_type', 'enum(\'backend\',\'frontend\')', false, 'frontend'))

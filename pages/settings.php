@@ -113,17 +113,17 @@ echo $fragment->parse('core/page/section.php');
 // Frontend-Integration-Snippet
 if ($publicKey && $frontendEnabled) {
     $frontendSnippet = '
-<!-- Pushi It Frontend Integration -->
+<!-- Push It Frontend Integration -->
 <script src="/assets/addons/push_it/frontend.js"></script>
 <script>
-window.PushiItPublicKey = \'' . rex_escape($publicKey, 'js') . '\';
+window.PushItPublicKey = \'' . rex_escape($publicKey, 'js') . '\';
 // Optional: Topics für Frontend-Nutzer
-window.PushiItTopics = \'news,updates\';
+window.PushItTopics = \'news,updates\';
 </script>
 
 <!-- Buttons für Nutzer -->
-<button onclick="PushiIt.requestFrontend()">Benachrichtigungen aktivieren</button>
-<button onclick="PushiIt.disable()">Benachrichtigungen deaktivieren</button>';
+<button onclick="PushIt.requestFrontend()">Benachrichtigungen aktivieren</button>
+<button onclick="PushIt.disable()">Benachrichtigungen deaktivieren</button>';
     
     $content2 = '<p>Fügen Sie diesen Code in Ihr Frontend-Template ein:</p><pre>' . rex_escape(trim($frontendSnippet)) . '</pre>';
     

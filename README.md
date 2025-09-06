@@ -265,18 +265,14 @@ rex_extension::register('PUSHI_IT_AFTER_SEND', function(rex_extension_point $ep)
 MIT License - Siehe LICENSE.md
 
 ## Support
-
-- **Dokumentation**: [REDAXO AddOn Doku](https://redaxo.org/doku/master/addons)
-- **Forum**: [REDAXO Community](https://redaxo.org/forum)  
 - **Issues**: [GitHub Issues](https://github.com/FriendsOfREDAXO/push_it/issues)
 
 ## Credits
 
-- **Lead Developer**: Thomas Skerbis
+- **Lead Developer**: [Thomas Skerbis](https://github.com/skerbis)
 - **Organization**: Friends Of REDAXO
 - **Based on**: [Web Push Protocol](https://tools.ietf.org/html/rfc8030)
 - **Library**: [Minishlink/WebPush](https://github.com/Minishlink/web-push)
-
 ---
 
 **PushIt** - Moderne Web Push Notifications für REDAXO 5 🚀

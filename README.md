@@ -11,8 +11,6 @@ Ein leistungsstarkes AddOn für Web Push Notifications in REDAXO 5, das sowohl F
 - 📊 **Admin-Interface** mit Subscription-Verwaltung und Versendungshistorie
 - 🔧 **REST API** für externe Integrationen
 - 📱 **Bilder-Support** (Icon, Badge, Hero-Images)
-- 🎨 **Responsive Design** für alle Geräte
-- ⚡ **PHP 8.3 optimiert** mit strict typing
 
 ## Installation
 

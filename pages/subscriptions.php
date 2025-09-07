@@ -15,12 +15,12 @@ $id = rex_request('id', 'int');
 
 if ($action === 'delete' && $id > 0) {
     if (!$isAdmin) {
-        echo rex_view::error(rex_i18n::msg('no_permission_delete'));
+        echo rex_view::error(rex_i18n::msg('pushit_no_permission_delete'));
     } else {
         if ($subscriptionManager->deleteSubscription($id)) {
-            echo rex_view::success(rex_i18n::msg('subscription_deleted'));
+            echo rex_view::success(rex_i18n::msg('pushit_subscription_deleted'));
         } else {
-            echo rex_view::error(rex_i18n::msg('subscription_delete_error'));
+            echo rex_view::error(rex_i18n::msg('pushit_subscription_delete_error'));
         }
         
         // Reload um aktualisierte Daten zu zeigen
@@ -34,9 +34,9 @@ if ($action === 'repair' && $isAdmin) {
     if ($currentUser) {
         $repairedCount = $subscriptionManager->repairBackendSubscriptionsWithoutUserId($currentUser->getId());
         if ($repairedCount > 0) {
-            echo rex_view::success(rex_i18n::msg('backend_subscriptions_repaired', '', $repairedCount));
+            echo rex_view::success(rex_i18n::msg('pushit_backend_subscriptions_repaired', '', $repairedCount));
         } else {
-            echo rex_view::info(rex_i18n::msg('no_backend_subscriptions_found'));
+            echo rex_view::info(rex_i18n::msg('pushit_no_backend_subscriptions_found'));
         }
         
         // Reload um aktualisierte Daten zu zeigen
@@ -52,7 +52,7 @@ $stats = $subscriptionManager->getSubscriptionStats();
 $statsContent = $subscriptionManager->renderStatsHtml($stats);
 
 $fragment = new rex_fragment();
-$fragment->setVar('title', rex_i18n::msg('subscription_statistics_title'), false);
+$fragment->setVar('title', rex_i18n::msg('pushit_subscription_statistics_title'), false);
 $fragment->setVar('body', $statsContent, false);
 echo $fragment->parse('core/page/section.php');
 
@@ -78,7 +78,7 @@ if ($isAdmin) {
         </div>';
         
         $fragment = new rex_fragment();
-        $fragment->setVar('title', rex_i18n::msg('maintenance_title'), false);
+        $fragment->setVar('title', rex_i18n::msg('pushit_maintenance_title'), false);
         $fragment->setVar('body', $repairContent, false);
         echo $fragment->parse('core/page/section.php');
     }
@@ -89,10 +89,10 @@ if (!empty($subscriptions)) {
     $tableContent = $subscriptionManager->renderTableHtml($subscriptions, $isAdmin);
     
     $fragment2 = new rex_fragment();
-    $fragment2->setVar('title', rex_i18n::msg('all_subscriptions_title') . ' (' . count($subscriptions) . ')', false);
+    $fragment2->setVar('title', rex_i18n::msg('pushit_all_subscriptions_title') . ' (' . count($subscriptions) . ')', false);
     $fragment2->setVar('body', $tableContent, false);
     echo $fragment2->parse('core/page/section.php');
     
 } else {
-    echo rex_view::info(rex_i18n::msg('no_subscriptions'));
+    echo rex_view::info(rex_i18n::msg('pushit_no_subscriptions'));
 }

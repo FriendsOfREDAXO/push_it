@@ -65,7 +65,7 @@ class SettingsManager
         if (!$this->isLibraryAvailable()) {
             return [
                 'success' => false,
-                'message' => rex_i18n::msg('webpush_library_warning'),
+                'message' => rex_i18n::msg('pushit_webpush_library_warning'),
                 'keys' => null
             ];
         }
@@ -78,13 +78,13 @@ class SettingsManager
             
             return [
                 'success' => true,
-                'message' => rex_i18n::msg('vapid_keys_generated'),
+                'message' => rex_i18n::msg('pushit_vapid_keys_generated'),
                 'keys' => $keys
             ];
         } catch (Exception $e) {
             return [
                 'success' => false,
-                'message' => rex_i18n::msg('vapid_generate_error', '', $e->getMessage()),
+                'message' => rex_i18n::msg('pushit_vapid_generate_error', '', $e->getMessage()),
                 'keys' => null
             ];
         }
@@ -118,10 +118,10 @@ class SettingsManager
                 
                 $affectedRows = $sql->getRows();
                 $message = $affectedRows > 0 
-                    ? rex_i18n::msg('backend_token_regenerated', '', $affectedRows)
-                    : rex_i18n::msg('backend_token_regenerated_simple');
+                    ? rex_i18n::msg('pushit_backend_token_regenerated', '', $affectedRows)
+                    : rex_i18n::msg('pushit_backend_token_regenerated_simple');
             } else {
-                $message = rex_i18n::msg('backend_token_generated');
+                $message = rex_i18n::msg('pushit_backend_token_generated');
             }
             
             return [
@@ -132,7 +132,7 @@ class SettingsManager
         } catch (Exception $e) {
             return [
                 'success' => false,
-                'message' => rex_i18n::msg('backend_token_generate_error', '', $e->getMessage()),
+                'message' => rex_i18n::msg('pushit_backend_token_generate_error', '', $e->getMessage()),
                 'token' => null
             ];
         }
@@ -192,28 +192,28 @@ class SettingsManager
         
         return '
         <div class="rex-form-group form-group">
-            <label class="control-label" for="subject">' . rex_i18n::msg('subject_label') . '</label>
+            <label class="control-label" for="subject">' . rex_i18n::msg('pushit_subject_label') . '</label>
             <input class="form-control" id="subject" name="subject" value="' . rex_escape($settings['subject']) . '" />
-            <p class="help-block">' . rex_i18n::msg('subject_help') . '</p>
+            <p class="help-block">' . rex_i18n::msg('pushit_subject_help') . '</p>
         </div>
         
         <div class="rex-form-group form-group">
-            <label class="control-label" for="publicKey">' . rex_i18n::msg('vapid_public_key_label') . '</label>
+            <label class="control-label" for="publicKey">' . rex_i18n::msg('pushit_vapid_public_key_label') . '</label>
             <div class="input-group">
                 <textarea class="form-control" id="publicKey" name="publicKey" rows="3">' . rex_escape($settings['publicKey']) . '</textarea>
                 <span class="input-group-btn">
                     <button class="btn btn-' . ($libAvailable ? 'success' : 'warning') . '" name="generate" value="1" type="submit" ' . ($libAvailable ? '' : 'disabled') . '>
-                        <i class="rex-icon fa-key"></i> ' . ($hasKeys ? rex_i18n::msg('regenerate_button') : rex_i18n::msg('generate_button')) . '
+                        <i class="rex-icon fa-key"></i> ' . ($hasKeys ? rex_i18n::msg('pushit_regenerate_button') : rex_i18n::msg('pushit_generate_button')) . '
                     </button>
                 </span>
             </div>
-            ' . (!$libAvailable ? '<p class="help-block text-warning">' . rex_i18n::msg('webpush_library_warning') . '</p>' : '') . '
+            ' . (!$libAvailable ? '<p class="help-block text-warning">' . rex_i18n::msg('pushit_webpush_library_warning') . '</p>' : '') . '
         </div>
         
         <div class="rex-form-group form-group">
-            <label class="control-label" for="privateKey">' . rex_i18n::msg('vapid_private_key_label') . '</label>
+            <label class="control-label" for="privateKey">' . rex_i18n::msg('pushit_vapid_private_key_label') . '</label>
             <textarea class="form-control" id="privateKey" name="privateKey" rows="3">' . rex_escape($settings['privateKey']) . '</textarea>
-            <p class="help-block">' . rex_i18n::msg('vapid_private_key_help') . '</p>
+            <p class="help-block">' . rex_i18n::msg('pushit_vapid_private_key_help') . '</p>
         </div>
         
         <hr>';
@@ -230,20 +230,20 @@ class SettingsManager
     {
         $tokenPreview = $hasToken ? substr($settings['backend_token'], 0, 16) . '...' : '';
         $statusClass = $hasToken ? 'success' : 'warning';
-        $statusText = $hasToken ? rex_i18n::msg('token_present') : rex_i18n::msg('no_token_generated');
+        $statusText = $hasToken ? rex_i18n::msg('pushit_token_present') : rex_i18n::msg('pushit_no_token_generated');
         
-        $action = $hasToken ? rex_i18n::msg('regenerate_button') : rex_i18n::msg('generate_button');
-        $confirmMsg = rex_i18n::msg('backend_token_confirm', '', $action);
-        $warningMsg = $hasToken ? '\\n\\n' . rex_i18n::msg('backend_token_confirm_warning') : '';
+        $action = $hasToken ? rex_i18n::msg('pushit_regenerate_button') : rex_i18n::msg('pushit_generate_button');
+        $confirmMsg = rex_i18n::msg('pushit_backend_token_confirm', '', $action);
+        $warningMsg = $hasToken ? '\\n\\n' . rex_i18n::msg('pushit_backend_token_confirm_warning') : '';
         
         $warningText = $hasToken ? 
             '<div class="alert alert-warning" style="margin-top: 10px;">
-                <strong>⚠️ ' . rex_i18n::msg('backend_token_warning_text') . '</strong>
+                <strong>⚠️ ' . rex_i18n::msg('pushit_backend_token_warning_text') . '</strong>
             </div>' : '';
         
         return '
         <div class="rex-form-group form-group">
-            <label class="control-label" for="backend_token">' . rex_i18n::msg('backend_token_label') . '</label>
+            <label class="control-label" for="backend_token">' . rex_i18n::msg('pushit_backend_token_label') . '</label>
             <div class="input-group">
                 <input class="form-control" id="backend_token" name="backend_token" value="' . rex_escape($settings['backend_token']) . '" readonly />
                 <span class="input-group-btn">
@@ -254,7 +254,7 @@ class SettingsManager
                 </span>
             </div>
             <p class="help-block">
-                ' . rex_i18n::msg('backend_token_help') . '
+                ' . rex_i18n::msg('pushit_backend_token_help') . '
                 <br><span class="label label-' . $statusClass . '">' . $statusText . '</span>
                 ' . ($hasToken ? '<br><small class="text-muted">Vorschau: ' . $tokenPreview . '</small>' : '') . '
             </p>
@@ -277,9 +277,9 @@ class SettingsManager
             <div class="checkbox">
                 <label>
                     <input type="checkbox" name="backend_enabled" value="1" ' . ($settings['backend_enabled'] ? 'checked' : '') . ' />
-                    ' . rex_i18n::msg('backend_notifications_enable') . '
+                    ' . rex_i18n::msg('pushit_backend_notifications_enable') . '
                 </label>
-                <p class="help-block">' . rex_i18n::msg('backend_notifications_help') . '</p>
+                <p class="help-block">' . rex_i18n::msg('pushit_backend_notifications_help') . '</p>
             </div>
         </div>
         
@@ -287,9 +287,9 @@ class SettingsManager
             <div class="checkbox">
                 <label>
                     <input type="checkbox" name="frontend_enabled" value="1" ' . ($settings['frontend_enabled'] ? 'checked' : '') . ' />
-                    ' . rex_i18n::msg('frontend_notifications_enable') . '
+                    ' . rex_i18n::msg('pushit_frontend_notifications_enable') . '
                 </label>
-                <p class="help-block">' . rex_i18n::msg('frontend_notifications_help') . '</p>
+                <p class="help-block">' . rex_i18n::msg('pushit_frontend_notifications_help') . '</p>
             </div>
         </div>
         
@@ -297,9 +297,9 @@ class SettingsManager
             <div class="checkbox">
                 <label>
                     <input type="checkbox" name="admin_notifications" value="1" ' . ($settings['admin_notifications'] ? 'checked' : '') . ' />
-                    ' . rex_i18n::msg('admin_notifications_enable') . '
+                    ' . rex_i18n::msg('pushit_admin_notifications_enable') . '
                 </label>
-                <p class="help-block">' . rex_i18n::msg('admin_notifications_help') . '</p>
+                <p class="help-block">' . rex_i18n::msg('pushit_admin_notifications_help') . '</p>
             </div>
         </div>
         
@@ -325,7 +325,7 @@ class SettingsManager
         return '
         <div class="rex-form-group form-group">
             <button class="btn btn-primary" name="save" value="1" type="submit">
-                <i class="rex-icon fa-save"></i> ' . rex_i18n::msg('save_settings_button') . '
+                <i class="rex-icon fa-save"></i> ' . rex_i18n::msg('pushit_save_settings_button') . '
             </button>
         </div>';
     }

@@ -1,152 +1,152 @@
 # PushIt - English translations
 
 # General
-push_it_title = PushIt - Web Push Notifications
-push_it_description = Web Push Notifications for Frontend and Backend
+pushit_title = PushIt - Web Push Notifications
+pushit_description = Web Push Notifications for Frontend and Backend
 
 # Page titles
-push_it_settings = Settings
-push_it_subscriptions = Subscriptions
-push_it_send = Send  
-push_it_history = History
-push_it_backend_notify = Backend Notifications
-push_it_help = Help
+pushit_settings = Settings
+pushit_subscriptions = Subscriptions
+pushit_send = Send  
+pushit_history = History
+pushit_backend_notify = Backend Notifications
+pushit_help = Help
 
 # Settings page
-settings_saved = Settings have been saved.
-settings_save_error = Error saving settings.
-no_permission_settings = No permission for this page.
-vapid_keys_info = Please generate VAPID keys first to use push notifications.
-backend_token_warning = Backend notifications are enabled, but no backend token has been generated yet. Click "Regenerate" to create a secure token.
+pushit_settings_saved = Settings have been saved.
+pushit_settings_save_error = Error saving settings.
+pushit_no_permission_settings = No permission for this page.
+pushit_vapid_keys_info = Please generate VAPID keys first to use push notifications.
+pushit_backend_token_warning = Backend notifications are enabled, but no backend token has been generated yet. Click "Regenerate" to create a secure token.
 
 # Form labels and help texts
-subject_label = Subject (mailto: or URL)
-subject_help = Required for VAPID. Use a mailto: address or a URL of your domain.
-vapid_public_key_label = VAPID Public Key
-vapid_private_key_label = VAPID Private Key
-vapid_private_key_help = ⚠️ Private key - never make publicly accessible!
-webpush_library_warning = ⚠️ WebPush library not available. Please run "composer install" in the addon directory.
-generate_button = Generate
-regenerate_button = Regenerate
+pushit_subject_label = Subject (mailto: or URL)
+pushit_subject_help = Required for VAPID. Use a mailto: address or a URL of your domain.
+pushit_vapid_public_key_label = VAPID Public Key
+pushit_vapid_private_key_label = VAPID Private Key
+pushit_vapid_private_key_help = ⚠️ Private key - never make publicly accessible!
+pushit_webpush_library_warning = ⚠️ WebPush library not available. Please run "composer install" in the addon directory.
+pushit_generate_button = Generate
+pushit_regenerate_button = Regenerate
 
 # Backend token section
-backend_token_label = Backend Token
-backend_token_help = Secure token for authenticating backend subscriptions. Automatically transferred to backend JavaScript.
-token_present = Token present
-no_token_generated = No token generated
-backend_token_warning_text = ⚠️ Important note: Regenerating the backend token will invalidate all existing backend subscriptions. All backend users must re-subscribe for push notifications after the token change.
-backend_token_confirm = {action} backend token?
-backend_token_confirm_warning = ⚠️ WARNING: All backend users must re-subscribe for push notifications after the token change!
-backend_token_generated = Backend token has been successfully generated.
-backend_token_regenerated = Backend token has been regenerated. {count} existing backend subscriptions have been deactivated.
-backend_token_regenerated_simple = Backend token has been regenerated.
-backend_token_generate_error = Error generating backend token: {error}
+pushit_backend_token_label = Backend Token
+pushit_backend_token_help = Secure token for authenticating backend subscriptions. Automatically transferred to backend JavaScript.
+pushit_token_present = Token present
+pushit_no_token_generated = No token generated
+pushit_backend_token_warning_text = ⚠️ Important note: Regenerating the backend token will invalidate all existing backend subscriptions. All backend users must re-subscribe for push notifications after the token change.
+pushit_backend_token_confirm = {action} backend token?
+pushit_backend_token_confirm_warning = ⚠️ WARNING: All backend users must re-subscribe for push notifications after the token change!
+pushit_backend_token_generated = Backend token has been successfully generated.
+pushit_backend_token_regenerated = Backend token has been regenerated. {count} existing backend subscriptions have been deactivated.
+pushit_backend_token_regenerated_simple = Backend token has been regenerated.
+pushit_backend_token_generate_error = Error generating backend token: {error}
 
 # Feature toggles
-backend_notifications_enable = Enable backend notifications
-backend_notifications_help = Enables push notifications for REDAXO backend users.
-frontend_notifications_enable = Enable frontend notifications
-frontend_notifications_help = Enables push notifications for website visitors.
-admin_notifications_enable = Automatic admin notifications
-admin_notifications_help = Automatically sends notifications for system events (errors, updates, etc.).
+pushit_backend_notifications_enable = Enable backend notifications
+pushit_backend_notifications_help = Enables push notifications for REDAXO backend users.
+pushit_frontend_notifications_enable = Enable frontend notifications
+pushit_frontend_notifications_help = Enables push notifications for website visitors.
+pushit_admin_notifications_enable = Automatic admin notifications
+pushit_admin_notifications_help = Automatically sends notifications for system events (errors, updates, etc.).
 
 # Send page
-no_permission_send = You do not have permission for this area.
-admin_images_only = Images can only be sent by administrators. Message was sent without images.
-send_notification_title = Send Push Notification
-current_subscribers_title = Current Subscribers
-preview_title = Preview
-notification_preview = 📱 Notification Preview
+pushit_no_permission_send = You do not have permission for this area.
+pushit_admin_images_only = Images can only be sent by administrators. Message was sent without images.
+pushit_send_notification_title = Send Push Notification
+pushit_current_subscribers_title = Current Subscribers
+pushit_preview_title = Preview
+pushit_notification_preview = 📱 Notification Preview
 
 # Send form
-title_label = Title
-title_required = Title *
-body_label = Message
-body_required = Message *
-url_label = Link URL
-url_help = Optional: URL to open when clicking on the notification
-user_type_label = Target Group
-user_type_frontend = Frontend Users
-user_type_backend = Backend Users
-topics_label = Topics
-topics_help = Comma-separated list of topics for targeted notifications (optional)
+pushit_title_label = Title
+pushit_title_required = Title *
+pushit_body_label = Message
+pushit_body_required = Message *
+pushit_url_label = Link URL
+pushit_url_help = Optional: URL to open when clicking on the notification
+pushit_user_type_label = Target Group
+pushit_user_type_frontend = Frontend Users
+pushit_user_type_backend = Backend Users
+pushit_topics_label = Topics
+pushit_topics_help = Comma-separated list of topics for targeted notifications (optional)
 
 # Advanced options
-advanced_options = Advanced Options
-admin_only = (administrators only)
-icon_url_label = Icon URL
-icon_url_help = URL to notification icon (192x192px recommended)
-badge_url_label = Badge URL
-badge_url_help = URL to badge (72x72px, monochrome recommended)
-hero_image_url_label = Hero Image URL
-hero_image_url_help = URL to large image in notification
+pushit_advanced_options = Advanced Options
+pushit_admin_only = (administrators only)
+pushit_icon_url_label = Icon URL
+pushit_icon_url_help = URL to notification icon (192x192px recommended)
+pushit_badge_url_label = Badge URL
+pushit_badge_url_help = URL to badge (72x72px, monochrome recommended)
+pushit_hero_image_url_label = Hero Image URL
+pushit_hero_image_url_help = URL to large image in notification
 
 # Buttons
-send_notification_button = Send Notification
-reset_form_button = Reset Form
-test_functions = Test Functions
-test_functions_help = You can test push notifications for yourself:
-test_subscription_button = Create Test Subscription
+pushit_send_notification_button = Send Notification
+pushit_reset_form_button = Reset Form
+pushit_test_functions = Test Functions
+pushit_test_functions_help = You can test push notifications for yourself:
+pushit_test_subscription_button = Create Test Subscription
 
 # Subscriptions page
-no_permission_delete = No permission to delete subscriptions.
-subscription_deleted = Subscription has been deleted.
-subscription_delete_error = Error deleting subscription.
-backend_subscriptions_repaired = {count} backend subscriptions have been linked to your user ID.
-no_backend_subscriptions_found = No backend subscriptions without user ID found.
-no_subscriptions = No push subscriptions available yet.
+pushit_no_permission_delete = No permission to delete subscriptions.
+pushit_subscription_deleted = Subscription has been deleted.
+pushit_subscription_delete_error = Error deleting subscription.
+pushit_backend_subscriptions_repaired = {count} backend subscriptions have been linked to your user ID.
+pushit_no_backend_subscriptions_found = No backend subscriptions without user ID found.
+pushit_no_subscriptions = No push subscriptions available yet.
 
 # Status and configuration
-status_title = Status
-frontend_integration_title = Frontend Integration
-backend_integration_title = Backend Integration
-topic_security_title = Topic Security
+pushit_status_title = Status
+pushit_frontend_integration_title = Frontend Integration
+pushit_backend_integration_title = Backend Integration
+pushit_topic_security_title = Topic Security
 
 # Backend integration info
-backend_info_active = Backend notifications are enabled. Backend users will be automatically asked if they want to receive notifications.
-backend_info_auto_load = Backend JavaScript is automatically loaded and a notification button is added to the navigation.
-backend_token_active_title = Backend Token Active
-backend_token_active_info = Backend subscriptions are authenticated via the configured token.
-no_backend_token_title = No Backend Token
-no_backend_token_info = Please generate a backend token for secure backend subscriptions.
+pushit_backend_info_active = Backend notifications are enabled. Backend users will be automatically asked if they want to receive notifications.
+pushit_backend_info_auto_load = Backend JavaScript is automatically loaded and a notification button is added to the navigation.
+pushit_backend_token_active_title = Backend Token Active
+pushit_backend_token_active_info = Backend subscriptions are authenticated via the configured token.
+pushit_no_backend_token_title = No Backend Token
+pushit_no_backend_token_info = Please generate a backend token for secure backend subscriptions.
 
 # Frontend integration
-frontend_integration_info = Add this code to your frontend template:
+pushit_frontend_integration_info = Add this code to your frontend template:
 
 # VAPID generation messages
-vapid_keys_generated = VAPID keys have been successfully generated.
-vapid_keys_regenerated = VAPID keys have been regenerated. Old subscriptions are invalid.
-vapid_generate_error = Error generating VAPID keys: {error}
+pushit_vapid_keys_generated = VAPID keys have been successfully generated.
+pushit_vapid_keys_regenerated = VAPID keys have been regenerated. Old subscriptions are invalid.
+pushit_vapid_generate_error = Error generating VAPID keys: {error}
 
 # Action buttons
-save_button = Save
-save_settings_button = Save Settings
+pushit_save_button = Save
+pushit_save_settings_button = Save Settings
 
 # Missing keys for replacements
-backend_token_confirm_generate = generate
-backend_token_confirm_regenerate = regenerate
+pushit_backend_token_confirm_generate = generate
+pushit_backend_token_confirm_regenerate = regenerate
 
 # Keys with placeholders that need proper parsing
-backend_token_regenerated = Backend token has been regenerated. {count} existing backend subscriptions have been deactivated.
-backend_subscriptions_repaired = {count} backend subscriptions have been linked to your user ID.
-vapid_generate_error = Error generating VAPID keys: {error}
-backend_token_generate_error = Error generating backend token: {error}
-backend_token_confirm = {action} backend token?
+pushit_backend_token_regenerated = Backend token has been regenerated. {count} existing backend subscriptions have been deactivated.
+pushit_backend_subscriptions_repaired = {count} backend subscriptions have been linked to your user ID.
+pushit_vapid_generate_error = Error generating VAPID keys: {error}
+pushit_backend_token_generate_error = Error generating backend token: {error}
+pushit_backend_token_confirm = {action} backend token?
 
 # History page  
-history_statistics_title = Sending Statistics
-history_messages_title = Sent Messages
+pushit_history_statistics_title = Sending Statistics
+pushit_history_messages_title = Sent Messages
 
 # Backend notify page
-backend_subscription_title = Backend Subscription
-quick_notifications_title = Quick System Notifications  
-automatic_notifications_title = Automatic Notifications
-backend_statistics_title = Backend Subscription Statistics
+pushit_backend_subscription_title = Backend Subscription
+pushit_quick_notifications_title = Quick System Notifications  
+pushit_automatic_notifications_title = Automatic Notifications
+pushit_backend_statistics_title = Backend Subscription Statistics
 
 # Subscriptions page
-subscription_statistics_title = Subscription Statistics
-maintenance_title = Maintenance
-all_subscriptions_title = All Subscriptions
+pushit_subscription_statistics_title = Subscription Statistics
+pushit_maintenance_title = Maintenance
+pushit_all_subscriptions_title = All Subscriptions
 
 # Validation messages
-title_and_body_required = Title and message are required.
+pushit_title_and_body_required = Title and message are required.

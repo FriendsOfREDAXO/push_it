@@ -2,8 +2,8 @@ package: push_it
 version: '1.0.0-alpha2'
 author: 'Thomas Skerbis, Friends Of REDAXO'
 supportpage: 'https://github.com/FriendsOfREDAXO/push_it'
-title: translate:push_it_title
-description: translate:push_it_description
+title: translate:pushit_title
+description: translate:pushit_description
 
 requires:
     redaxo: '^5.15'
@@ -14,27 +14,27 @@ conflicts:
     url: '<2.2.0'  # URL-AddOn < 2.2.0 verwendet inkompatible Riimu\Kit\UrlParser\Uri ohne PSR-7 Return-Types
     
 page:
-    title: translate:push_it_title
+    title: translate:pushit_title
     perm: push_it[]
     icon: rex-icon fa-bell
     subpages:
         settings:
-            title: translate:push_it_settings
+            title: translate:pushit_settings
             perm: admin
         subscriptions:
-            title: translate:push_it_subscriptions
+            title: translate:pushit_subscriptions
             perm: push_it[]
         send:
-            title: translate:push_it_send
+            title: translate:pushit_send
             perm: push_it[]
         history:
-            title: translate:push_it_history
+            title: translate:pushit_history
             perm: push_it[]
         backend_notify:
-            title: translate:push_it_backend_notify
+            title: translate:pushit_backend_notify
             perm: push_it[]
         help:
-            title: translate:push_it_help
+            title: translate:pushit_help
             icon: rex-icon fa-question-circle
             subPath: README.md
             itemClass: 'pull-right'

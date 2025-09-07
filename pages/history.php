@@ -5,7 +5,7 @@ $addon = rex_addon::get('push_it');
 
 // Berechtigung prüfen
 if (!rex::getUser()->hasPerm('push_it[]')) {
-    echo rex_view::error(rex_i18n::msg('no_permission_send'));
+    echo rex_view::error(rex_i18n::msg('pushit_no_permission_send'));
     return;
 }
 
@@ -43,7 +43,7 @@ $offset = rex_request('offset', 'int', 0);
 
 // Statistiken anzeigen
 $statsFragment = new rex_fragment();
-$statsFragment->setVar('title', rex_i18n::msg('history_statistics_title'), false);
+$statsFragment->setVar('title', rex_i18n::msg('pushit_history_statistics_title'), false);
 $statsFragment->setVar('body', $historyManager->renderStatisticsPanel(), false);
 echo $statsFragment->parse('core/page/section.php');
 
@@ -51,7 +51,7 @@ echo $statsFragment->parse('core/page/section.php');
 $notificationsData = $historyManager->getNotifications($filters, $limit, $offset);
 
 $tableFragment = new rex_fragment();
-$tableFragment->setVar('title', rex_i18n::msg('history_messages_title') . ' (' . $notificationsData['total'] . ')', false);
+$tableFragment->setVar('title', rex_i18n::msg('pushit_history_messages_title') . ' (' . $notificationsData['total'] . ')', false);
 $tableFragment->setVar('body', $historyManager->renderNotificationsTable(
     $notificationsData['notifications'],
     $notificationsData['total'],

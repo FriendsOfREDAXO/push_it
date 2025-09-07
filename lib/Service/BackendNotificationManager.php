@@ -5,6 +5,7 @@ use rex_sql;
 use rex_fragment;
 use rex_url;
 use rex_addon;
+use rex_i18n;
 use rex;
 
 class BackendNotificationManager

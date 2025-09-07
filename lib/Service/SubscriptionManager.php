@@ -6,6 +6,7 @@ use rex_sql;
 use rex_user;
 use rex_formatter;
 use rex_escape;
+use rex_i18n;
 use Exception;
 
 /**

@@ -69,6 +69,44 @@ CREATE TABLE IF NOT EXISTS `rex_push_it_notifications` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ");
 
+// Security-Update: User-Token Tabelle erstellen
+$sql->setQuery("
+CREATE TABLE IF NOT EXISTS `rex_push_it_user_tokens` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` INT UNSIGNED NOT NULL,
+  `token` VARCHAR(64) NOT NULL,
+  `created` DATETIME NOT NULL,
+  `expires_at` DATETIME NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `token` (`token`),
+  KEY `expires_at` (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+");
+
+// Security-Update: Weitere neue Spalten in bestehenden Tabellen hinzufügen falls nicht vorhanden
+try {
+    // Prüfen ob notification_options Spalte existiert
+    $checkColumns = $sql->setQuery("SHOW COLUMNS FROM rex_push_it_notifications LIKE 'notification_options'")->getRows();
+    if ($checkColumns === 0) {
+        $sql->setQuery("ALTER TABLE rex_push_it_notifications ADD COLUMN notification_options LONGTEXT NULL AFTER image");
+    }
+    
+    // Prüfen ob badge Spalte existiert
+    $checkBadge = $sql->setQuery("SHOW COLUMNS FROM rex_push_it_notifications LIKE 'badge'")->getRows();
+    if ($checkBadge === 0) {
+        $sql->setQuery("ALTER TABLE rex_push_it_notifications ADD COLUMN badge VARCHAR(500) NULL AFTER icon");
+    }
+    
+    // Prüfen ob image Spalte existiert
+    $checkImage = $sql->setQuery("SHOW COLUMNS FROM rex_push_it_notifications LIKE 'image'")->getRows();
+    if ($checkImage === 0) {
+        $sql->setQuery("ALTER TABLE rex_push_it_notifications ADD COLUMN image VARCHAR(500) NULL AFTER badge");
+    }
+} catch (Exception $e) {
+    // Bei Fehlern ignorieren - Spalten sind vermutlich bereits vorhanden
+}
+
 // Berechtigungen aktualisieren
 if (rex::isBackend()) {
     rex_perm::register('push_it[]');

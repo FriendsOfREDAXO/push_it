@@ -36,7 +36,7 @@ class SendManager
         if (empty($data['title']) || empty($data['body'])) {
             return [
                 'success' => false,
-                'message' => rex_i18n::msg('title_required') . ' ' . rex_i18n::msg('body_required'),
+                'message' => rex_i18n::msg('title_and_body_required'),
                 'result' => null
             ];
         }

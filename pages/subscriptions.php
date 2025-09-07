@@ -52,7 +52,7 @@ $stats = $subscriptionManager->getSubscriptionStats();
 $statsContent = $subscriptionManager->renderStatsHtml($stats);
 
 $fragment = new rex_fragment();
-$fragment->setVar('title', 'Subscription-Statistiken', false);
+$fragment->setVar('title', rex_i18n::msg('subscription_statistics_title'), false);
 $fragment->setVar('body', $statsContent, false);
 echo $fragment->parse('core/page/section.php');
 
@@ -78,7 +78,7 @@ if ($isAdmin) {
         </div>';
         
         $fragment = new rex_fragment();
-        $fragment->setVar('title', 'Wartung', false);
+        $fragment->setVar('title', rex_i18n::msg('maintenance_title'), false);
         $fragment->setVar('body', $repairContent, false);
         echo $fragment->parse('core/page/section.php');
     }
@@ -89,7 +89,7 @@ if (!empty($subscriptions)) {
     $tableContent = $subscriptionManager->renderTableHtml($subscriptions, $isAdmin);
     
     $fragment2 = new rex_fragment();
-    $fragment2->setVar('title', 'Alle Subscriptions (' . count($subscriptions) . ')', false);
+    $fragment2->setVar('title', rex_i18n::msg('all_subscriptions_title') . ' (' . count($subscriptions) . ')', false);
     $fragment2->setVar('body', $tableContent, false);
     echo $fragment2->parse('core/page/section.php');
     

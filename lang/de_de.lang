@@ -132,3 +132,21 @@ backend_subscriptions_repaired = {count} Backend-Subscriptions wurden mit Ihrer 
 vapid_generate_error = Fehler beim Generieren der VAPID-Schlüssel: {error}
 backend_token_generate_error = Fehler beim Generieren des Backend-Tokens: {error}
 backend_token_confirm = Backend-Token {action}?
+
+# History page  
+history_statistics_title = Versand-Statistiken
+history_messages_title = Gesendete Nachrichten
+
+# Backend notify page
+backend_subscription_title = Backend-Subscription
+quick_notifications_title = Schnelle System-Benachrichtigungen  
+automatic_notifications_title = Automatische Benachrichtigungen
+backend_statistics_title = Backend-Subscription Statistik
+
+# Subscriptions page
+subscription_statistics_title = Subscription-Statistiken
+maintenance_title = Wartung
+all_subscriptions_title = Alle Subscriptions
+
+# Validation messages
+title_and_body_required = Titel und Nachricht sind erforderlich.

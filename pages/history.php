@@ -1,5 +1,6 @@
 <?php
 $addon = rex_addon::get('push_it');
+use FriendsOfREDAXO\PushIt\Service\SecurityService;
 
 // Aktionen zuerst verarbeiten
 $action = rex_request('action', 'string');
@@ -330,12 +331,12 @@ if (!empty($notifications)) {
                 <div class="btn-group btn-group-xs">
                     <a href="' . rex_url::backendPage('push_it/history', ['action' => 'resend', 'id' => $notificationId]) . '" 
                        class="btn btn-primary" title="Erneut senden"
-                       onclick="return confirm(\'Nachricht erneut senden?\')">
+                       data-confirm-resend="' . $notificationId . '" data-confirm-message="Nachricht erneut senden?">
                         <i class="rex-icon fa-repeat"></i>
                     </a>
                     <a href="' . rex_url::backendPage('push_it/history', ['action' => 'delete', 'id' => $notificationId]) . '" 
                        class="btn btn-danger" title="Löschen"
-                       onclick="return confirm(\'Nachricht aus Historie löschen?\')">
+                       data-confirm-delete="' . $notificationId . '" data-confirm-message="Nachricht aus Historie löschen?">
                         <i class="rex-icon fa-trash"></i>
                     </a>
                 </div>
@@ -377,7 +378,8 @@ if (!empty($notifications)) {
         $tableContent .= '</ul></nav>';
     }
     
-    // JavaScript für Tabellen-Sortierung
+    // JavaScript für Tabellen-Sortierung und Event Delegation
+    $nonce = SecurityService::getCurrentNonce();
     $tableContent .= '
     <style>
     .sortable {
@@ -395,9 +397,22 @@ if (!empty($notifications)) {
         opacity: 1;
     }
     </style>
-    <script>
+    <script nonce="' . rex_escape($nonce) . '">
     document.addEventListener("DOMContentLoaded", function() {
+        // Event delegation für Confirm-Dialoge
+        document.addEventListener("click", function(e) {
+            if (e.target.hasAttribute("data-confirm-resend") || e.target.hasAttribute("data-confirm-delete")) {
+                e.preventDefault();
+                const message = e.target.getAttribute("data-confirm-message") || "Wirklich fortfahren?";
+                if (confirm(message)) {
+                    window.location.href = e.target.href;
+                }
+            }
+        });
+        
         const table = document.getElementById("notificationTable");
+        if (!table) return;
+        
         const headers = table.querySelectorAll("th.sortable");
         let currentSort = { column: "date", direction: "desc" };
         

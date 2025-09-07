@@ -118,9 +118,9 @@
         params.append('topics', topics);
       }
       
-      // User-ID für Backend-Subscriptions hinzufügen
-      if (userType === 'backend' && window.PushItUserId) {
-        params.append('user_id', window.PushItUserId);
+      // User-Token für Backend-Subscriptions hinzufügen
+      if (userType === 'backend' && window.PushItUserToken) {
+        params.append('user_token', window.PushItUserToken);
       }
       
       const response = await fetch('/index.php?' + params.toString(), {

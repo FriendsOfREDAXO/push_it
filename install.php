@@ -39,6 +39,17 @@ rex_sql_table::get(rex::getTable('push_it_subscriptions'))
     ->ensureIndex(new rex_sql_index('active', ['active']))
     ->ensure();
 
+rex_sql_table::get(rex::getTable('push_it_user_tokens'))
+    ->ensurePrimaryIdColumn()
+    ->ensureColumn(new rex_sql_column('user_id', 'int(10) unsigned'))
+    ->ensureColumn(new rex_sql_column('token', 'varchar(64)'))
+    ->ensureColumn(new rex_sql_column('created', 'datetime'))
+    ->ensureColumn(new rex_sql_column('expires_at', 'datetime'))
+    ->ensureIndex(new rex_sql_index('user_id', ['user_id']))
+    ->ensureIndex(new rex_sql_index('token', ['token']))
+    ->ensureIndex(new rex_sql_index('expires_at', ['expires_at']))
+    ->ensure();
+
 // Berechtigungen registrieren
 if (rex::isBackend()) {
     rex_perm::register('push_it[]');

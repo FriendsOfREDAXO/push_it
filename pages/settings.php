@@ -1,5 +1,8 @@
 <?php
+use FriendsOfREDAXO\PushIt\Service\SecurityService;
+
 $addon = rex_addon::get('push_it');
+$nonce = SecurityService::getCurrentNonce();
 
 $subject = rex_request('subject', 'string');
 $publicKey = rex_request('publicKey', 'string');
@@ -115,15 +118,15 @@ if ($publicKey && $frontendEnabled) {
     $frontendSnippet = '
 <!-- Push It Frontend Integration -->
 <script src="/assets/addons/push_it/frontend.js"></script>
-<script>
+<script nonce="' . rex_escape($nonce) . '">
 window.PushItPublicKey = \'' . rex_escape($publicKey, 'js') . '\';
 // Optional: Topics für Frontend-Nutzer
 window.PushItTopics = \'news,updates\';
 </script>
 
 <!-- Buttons für Nutzer -->
-<button onclick="PushIt.requestFrontend()">Benachrichtigungen aktivieren</button>
-<button onclick="PushIt.disable()">Benachrichtigungen deaktivieren</button>';
+<button data-push-frontend="true">Benachrichtigungen aktivieren</button>
+<button data-push-disable="true">Benachrichtigungen deaktivieren</button>';
     
     $content2 = '<p>Fügen Sie diesen Code in Ihr Frontend-Template ein:</p><pre>' . rex_escape(trim($frontendSnippet)) . '</pre>';
     
@@ -152,3 +155,23 @@ if (!$publicKey) {
 if (!$libAvailable) {
     echo rex_view::warning('Die Composer-Abhängigkeiten sind nicht installiert. Führen Sie "composer install" im AddOn-Verzeichnis aus.');
 }
+
+// Event delegation für Push-Buttons
+echo '<script nonce="' . rex_escape($nonce) . '">
+document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("click", function(e) {
+        if (e.target.hasAttribute("data-push-frontend")) {
+            e.preventDefault();
+            if (window.PushIt) {
+                PushIt.requestFrontend();
+            }
+        }
+        if (e.target.hasAttribute("data-push-disable")) {
+            e.preventDefault();
+            if (window.PushIt) {
+                PushIt.disable();
+            }
+        }
+    });
+});
+</script>';

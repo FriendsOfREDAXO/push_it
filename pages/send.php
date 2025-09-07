@@ -1,5 +1,6 @@
 <?php
 use FriendsOfREDAXO\PushIt\Service\NotificationService;
+use FriendsOfREDAXO\PushIt\Service\SecurityService;
 
 $addon = rex_addon::get('push_it');
 
@@ -14,9 +15,10 @@ $isAdmin = rex::getUser()->isAdmin();
 
 // PushIt JavaScript für Test-Funktion laden
 $publicKey = $addon->getConfig('publicKey');
+$nonce = SecurityService::getCurrentNonce();
 if ($publicKey) {
     echo '<script src="' . $addon->getAssetsUrl('frontend.js') . '"></script>';
-    echo '<script>window.PushItPublicKey = ' . json_encode($publicKey) . ';</script>';
+    echo '<script nonce="' . rex_escape($nonce) . '">window.PushItPublicKey = ' . json_encode($publicKey) . ';</script>';
 }
 
 $title = rex_request('title', 'string');
@@ -168,14 +170,24 @@ $content .= '
             <button class="btn btn-primary" name="send" value="1" type="submit">
                 <i class="rex-icon fa-paper-plane"></i> Benachrichtigung senden
             </button>
-            <button class="btn btn-default" type="button" onclick="sendTestNotification()">
+            <button class="btn btn-default" type="button" data-test-notification="true">
                 <i class="rex-icon fa-flask"></i> Test senden
             </button>
         </div>
     </fieldset>
 </form>
 
-<script>
+<script nonce="<?php echo rex_escape($nonce); ?>">
+// Event delegation für Test-Button
+document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("click", function(e) {
+        if (e.target.hasAttribute("data-test-notification")) {
+            e.preventDefault();
+            sendTestNotification();
+        }
+    });
+});
+
 function sendTestNotification() {
     // Direkte Test-Benachrichtigung ohne PushIt JS
     if (confirm("Test-Benachrichtigung an alle Backend-User senden?")) {

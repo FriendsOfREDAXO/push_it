@@ -1,5 +1,6 @@
 <?php
 $addon = rex_addon::get('push_it');
+use FriendsOfREDAXO\PushIt\Service\SecurityService;
 
 // Admin-Berechtigung prüfen
 $isAdmin = rex::getUser()->isAdmin();
@@ -156,7 +157,8 @@ if (!empty($subscriptions)) {
                 ' . ($isAdmin ? '
                 <a href="' . rex_url::currentBackendPage(['action' => 'delete', 'id' => $subscription['id']]) . '" 
                    class="btn btn-xs btn-danger" 
-                   onclick="return confirm(\'Subscription wirklich löschen?\')">
+                   data-confirm-delete="' . $subscription['id'] . '" 
+                   data-confirm-message="Subscription wirklich löschen?">
                     <i class="rex-icon fa-trash"></i> Löschen
                 </a>
                 ' : '<span class="text-muted"><i class="rex-icon fa-lock"></i> Nur Admin</span>') . '
@@ -190,6 +192,22 @@ if ($action === 'delete' && $id > 0) {
         echo rex_view::success('Subscription wurde gelöscht.');
         
         // Reload um aktualisierte Daten zu zeigen
-        echo '<script>window.location.href = "' . rex_url::currentBackendPage() . '";</script>';
+        echo '<script nonce="' . rex_escape(SecurityService::getCurrentNonce()) . '">window.location.href = "' . rex_url::currentBackendPage() . '";</script>';
     }
 }
+
+// Event delegation für Confirm-Dialoge
+$nonce = SecurityService::getCurrentNonce();
+echo '<script nonce="' . rex_escape($nonce) . '">
+document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("click", function(e) {
+        if (e.target.hasAttribute("data-confirm-delete")) {
+            e.preventDefault();
+            const message = e.target.getAttribute("data-confirm-message") || "Wirklich löschen?";
+            if (confirm(message)) {
+                window.location.href = e.target.href;
+            }
+        }
+    });
+});
+</script>';

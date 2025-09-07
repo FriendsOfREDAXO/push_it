@@ -23,12 +23,17 @@ if (rex::isBackend()) {
 // Sicherstellen dass die Klassen verfügbar sind
 require_once $addon->getPath('lib/Api/Subscribe.php');
 require_once $addon->getPath('lib/Api/Unsubscribe.php');
+require_once $addon->getPath('lib/Service/SecurityService.php');
 
 rex_api_function::register('push_it_subscribe', \FriendsOfREDAXO\PushIt\Api\Subscribe::class);
 rex_api_function::register('push_it_unsubscribe', \FriendsOfREDAXO\PushIt\Api\Unsubscribe::class);
 
 // Backend Assets hinzufügen wenn Backend aktiviert ist
 if (rex::isBackend() && $addon->getConfig('backend_enabled')) {
+    // CSP Nonce für Inline JavaScript generieren
+    $nonce = \FriendsOfREDAXO\PushIt\Service\SecurityService::generateNonce();
+    rex_view::setJsProperty('push_it_nonce', $nonce);
+    
     // Sowohl frontend.js als auch backend.js laden für vollständige Funktionalität
     rex_view::addJsFile($addon->getAssetsUrl('frontend.js'));
     rex_view::addJsFile($addon->getAssetsUrl('backend.js'));
@@ -38,6 +43,13 @@ if (rex::isBackend() && $addon->getConfig('backend_enabled')) {
     if ($publicKey) {
         rex_view::setJsProperty('push_it_public_key', $publicKey);
         rex_view::setJsProperty('push_it_backend_enabled', true);
+        
+        // Für Backend-Benutzer: Sicheren Token generieren
+        $currentUser = rex::getUser();
+        if ($currentUser) {
+            $secureToken = \FriendsOfREDAXO\PushIt\Service\SecurityService::generateUserToken($currentUser->getId());
+            rex_view::setJsProperty('push_it_user_token', $secureToken);
+        }
     }
 }
 
@@ -72,4 +84,22 @@ if (rex::isBackend() && $addon->getConfig('admin_notifications')) {
         
         $last_packages = $current_packages;
     });
+}
+
+// Token-Cleanup: Abgelaufene Tokens täglich bereinigen
+if (rex::isBackend()) {
+    $lastCleanup = $addon->getConfig('last_token_cleanup', 0);
+    $now = time();
+    // Cleanup alle 24 Stunden
+    if ($now - $lastCleanup > 86400) {
+        try {
+            $deletedTokens = \FriendsOfREDAXO\PushIt\Service\SecurityService::cleanupExpiredTokens();
+            $addon->setConfig('last_token_cleanup', $now);
+            if ($deletedTokens > 0) {
+                error_log("Push It: $deletedTokens abgelaufene Tokens bereinigt");
+            }
+        } catch (Exception $e) {
+            error_log("Push It Token Cleanup Fehler: " . $e->getMessage());
+        }
+    }
 }

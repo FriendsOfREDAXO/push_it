@@ -10,6 +10,11 @@
       // Public Key setzen (sowohl für PushIt als auch PushItPublicKey)
       window.PushItPublicKey = window.rex.push_it_public_key;
       
+      // Sicheren Token für Backend-Subscriptions setzen
+      if (window.rex.push_it_user_token) {
+        window.PushItUserToken = window.rex.push_it_user_token;
+      }
+      
       // Warten bis PushIt verfügbar ist
       waitForPushIt().then(() => {
         checkBackendSubscription();

@@ -7,6 +7,7 @@ namespace FriendsOfREDAXO\PushIt\Api;
 use rex_api_function;
 use rex_sql;
 use rex;
+use FriendsOfREDAXO\PushIt\Service\SecurityService;
 
 /**
  * API-Endpunkt für Push-Notification Subscriptions
@@ -68,14 +69,62 @@ class Subscribe extends rex_api_function
             // User-ID für Backend-Subscriptions
             $userId = null;
             if ($userType === 'backend') {
-                // Zuerst versuchen User-ID aus Parameter zu holen
-                if (!empty($_GET['user_id'])) {
-                    $userId = (int) $_GET['user_id'];
+                // Backend-Subscriptions nur für authentifizierte Benutzer
+                if (!rex::isBackend()) {
+                    http_response_code(403);
+                    echo json_encode(['success' => false, 'error' => 'backend_access_denied']);
+                    exit;
+                }
+                
+                $currentUser = rex::getUser();
+                if (!$currentUser) {
+                    http_response_code(401);
+                    echo json_encode(['success' => false, 'error' => 'authentication_required']);
+                    exit;
+                }
+                
+                // Prüfen ob ein sicherer Token verwendet wird
+                $userToken = $_GET['user_token'] ?? '';
+                if (!empty($userToken)) {
+                    // Token-basierte Authentifizierung
+                    $tokenUserId = SecurityService::getUserIdFromToken($userToken);
+                    if (!$tokenUserId) {
+                        http_response_code(400);
+                        echo json_encode(['success' => false, 'error' => 'invalid_user_token']);
+                        exit;
+                    }
+                    
+                    // Prüfen ob der authentifizierte Benutzer berechtigt ist
+                    $actualUserId = $currentUser->getId();
+                    if ($tokenUserId !== $actualUserId && !$currentUser->isAdmin()) {
+                        http_response_code(403);
+                        echo json_encode(['success' => false, 'error' => 'token_user_mismatch']);
+                        exit;
+                    }
+                    
+                    $userId = $tokenUserId;
                 } else {
-                    // Fallback: REDAXO-User ermitteln
-                    $currentUser = rex::getUser();
-                    if ($currentUser) {
-                        $userId = $currentUser->getId();
+                    // Fallback für direkte User-ID (nur für den eigenen Account)
+                    $requestedUserId = !empty($_GET['user_id']) ? (int) $_GET['user_id'] : null;
+                    $actualUserId = $currentUser->getId();
+                    
+                    if ($requestedUserId && $requestedUserId !== $actualUserId) {
+                        // Prüfen ob User Admin ist und andere Benutzer anmelden darf
+                        if (!$currentUser->isAdmin()) {
+                            http_response_code(403);
+                            echo json_encode(['success' => false, 'error' => 'insufficient_permissions']);
+                            exit;
+                        }
+                        // Prüfen ob die angeforderte User-ID tatsächlich existiert
+                        $targetUser = rex_user::get($requestedUserId);
+                        if (!$targetUser) {
+                            http_response_code(400);
+                            echo json_encode(['success' => false, 'error' => 'invalid_user_id']);
+                            exit;
+                        }
+                        $userId = $requestedUserId;
+                    } else {
+                        $userId = $actualUserId;
                     }
                 }
             }
@@ -89,12 +138,19 @@ class Subscribe extends rex_api_function
             $this->saveSubscription($data, $userType, $userId, $topics, $ua, $lang, $domain);
             
             // Erfolgs-Response
-            echo json_encode([
+            $responseData = [
                 'success' => true, 
                 'user_type' => $userType,
-                'user_id' => $userId,
                 'timestamp' => time()
-            ]);
+            ];
+            
+            // Für Backend-Subscriptions einen sicheren Token generieren
+            if ($userType === 'backend' && $userId) {
+                $responseData['user_token'] = SecurityService::generateUserToken($userId);
+                $responseData['user_id'] = $userId; // Für Debugging/Logging
+            }
+            
+            echo json_encode($responseData);
             exit;
             
         } catch (\Throwable $e) {

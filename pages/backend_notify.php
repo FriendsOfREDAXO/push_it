@@ -1,5 +1,6 @@
 <?php
 use FriendsOfREDAXO\PushIt\Service\NotificationService;
+use FriendsOfREDAXO\PushIt\Service\SecurityService;
 
 $addon = rex_addon::get('push_it');
 
@@ -10,12 +11,13 @@ $isAdmin = rex::getUser()->isAdmin();
 $publicKey = $addon->getConfig('publicKey');
 $currentUser = rex::getUser();
 $userId = $currentUser ? $currentUser->getId() : null;
+$nonce = SecurityService::getCurrentNonce();
 
 if ($publicKey) {
     echo '<script src="' . $addon->getAssetsUrl('frontend.js') . '"></script>';
-    echo '<script>
+    echo '<script nonce="' . rex_escape($nonce) . '">
         window.PushItPublicKey = ' . json_encode($publicKey) . ';
-        window.PushItUserId = ' . json_encode($userId) . ';
+        window.PushItUserToken = "' . SecurityService::generateUserToken($userId) . '";
     </script>';
 } else {
     echo rex_view::warning('
@@ -37,17 +39,17 @@ $backendSubContent = '
 <div class="well">
     <h4>Backend-Benachrichtigungen aktivieren</h4>
     <p>Aktivieren Sie Push-Benachrichtigungen für Ihr Backend-Konto:</p>
-    <button class="btn btn-success" onclick="PushIt.requestBackend(\'' . ($isAdmin ? 'system,admin,critical,editorial' : 'editorial') . '\')">
+    <button class="btn btn-success" data-backend-subscribe="' . rex_escape($isAdmin ? 'system,admin,critical,editorial' : 'editorial') . '">
         <i class="rex-icon fa-bell"></i> Backend-Benachrichtigungen aktivieren
     </button>
-    <button class="btn btn-default" onclick="PushIt.getStatus().then(s => alert(s.isSubscribed ? \'Aktiv\' : \'Nicht aktiv\'))">
+    <button class="btn btn-default" data-status-check="true">
         <i class="rex-icon fa-info"></i> Status prüfen
     </button>
-    <button class="btn btn-warning" onclick="PushIt.disable()">
+    <button class="btn btn-warning" data-push-disable="true">
         <i class="rex-icon fa-bell-slash"></i> Deaktivieren
     </button>
     <br><br>
-    <button class="btn btn-xs btn-default" onclick="PushItReset()">
+    <button class="btn btn-xs btn-default" data-push-reset="true">
         <i class="rex-icon fa-refresh"></i> Abfrage zurücksetzen
     </button>
     <small class="help-block">Zurücksetzen: Sie werden beim nächsten Seitenaufruf wieder gefragt, ob Sie Backend-Benachrichtigungen aktivieren möchten.</small>
@@ -93,28 +95,80 @@ if ($isAdmin) {
 $quickNotifyContent = '
 <div class="row">
     <div class="col-md-4">
-        <button class="btn btn-danger btn-block" onclick="sendQuickNotification(\'critical\', \'Kritischer Systemfehler\', \'Ein kritischer Fehler wurde im System erkannt. Sofortige Überprüfung erforderlich.\')">
+        <button class="btn btn-danger btn-block" data-quick-notify="critical" data-title="Kritischer Systemfehler" data-body="Ein kritischer Fehler wurde im System erkannt. Sofortige Überprüfung erforderlich.">
             <i class="rex-icon fa-exclamation-triangle"></i><br>
             Kritischer Fehler
         </button>
     </div>
     <div class="col-md-4">
-        <button class="btn btn-warning btn-block" onclick="sendQuickNotification(\'warning\', \'System-Warnung\', \'Eine Warnung wurde im System registriert. Bitte prüfen Sie die Logs.\')">
+        <button class="btn btn-warning btn-block" data-quick-notify="warning" data-title="System-Warnung" data-body="Eine Warnung wurde im System registriert. Bitte prüfen Sie die Logs.">
             <i class="rex-icon fa-warning"></i><br>
             System-Warnung
         </button>
     </div>
     <div class="col-md-4">
-        <button class="btn btn-info btn-block" onclick="sendQuickNotification(\'info\', \'System-Information\', \'Eine wichtige Information über den Systemstatus.\')">
+        <button class="btn btn-info btn-block" data-quick-notify="info" data-title="System-Information" data-body="Eine wichtige Information über den Systemstatus.">
             <i class="rex-icon fa-info-circle"></i><br>
             Information
         </button>
     </div>
-</div>
+</div>';
+$fragment2 = new rex_fragment();
+$fragment2->setVar('title', 'Schnelle System-Benachrichtigungen', false);
+$fragment2->setVar('body', $quickNotifyContent, false);
+echo $fragment2->parse('core/page/section.php');
 
-<script>
+// JavaScript für Event Delegation
+echo '<script nonce="' . rex_escape($nonce) . '">
+// Event delegation für alle Push It Buttons
+document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("click", function(e) {
+        // Backend subscribe button
+        if (e.target.hasAttribute("data-backend-subscribe")) {
+            e.preventDefault();
+            const topics = e.target.getAttribute("data-backend-subscribe");
+            if (window.PushIt) {
+                PushIt.requestBackend(topics);
+            }
+        }
+        
+        // Status check button
+        if (e.target.hasAttribute("data-status-check")) {
+            e.preventDefault();
+            if (window.PushIt) {
+                PushIt.getStatus().then(s => alert(s.isSubscribed ? "Aktiv" : "Nicht aktiv"));
+            }
+        }
+        
+        // Disable button
+        if (e.target.hasAttribute("data-push-disable")) {
+            e.preventDefault();
+            if (window.PushIt) {
+                PushIt.disable();
+            }
+        }
+        
+        // Reset button
+        if (e.target.hasAttribute("data-push-reset")) {
+            e.preventDefault();
+            if (window.PushItReset) {
+                PushItReset();
+            }
+        }
+        
+        // Quick notification buttons
+        if (e.target.hasAttribute("data-quick-notify")) {
+            e.preventDefault();
+            const type = e.target.getAttribute("data-quick-notify");
+            const title = e.target.getAttribute("data-title");
+            const body = e.target.getAttribute("data-body");
+            sendQuickNotification(type, title, body);
+        }
+    });
+});
+
 function sendQuickNotification(type, title, body) {
-    if (confirm("Schnelle " + type.toUpperCase() + "-Benachrichtigung senden?\n\n" + title + "\n" + body)) {
+    if (confirm("Schnelle " + type.toUpperCase() + "-Benachrichtigung senden?\\n\\n" + title + "\\n" + body)) {
         const urlParams = new URLSearchParams({
             title: title,
             body: body,
@@ -143,11 +197,6 @@ function sendQuickNotification(type, title, body) {
     }
 }
 </script>';
-
-$fragment2 = new rex_fragment();
-$fragment2->setVar('title', 'Schnelle System-Benachrichtigungen', false);
-$fragment2->setVar('body', $quickNotifyContent, false);
-echo $fragment2->parse('core/page/section.php');
 
 // Automatische Benachrichtigungen konfigurieren (Admin-only)
 $autoNotifyContent = '

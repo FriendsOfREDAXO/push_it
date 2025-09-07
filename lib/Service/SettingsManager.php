@@ -6,6 +6,7 @@ use rex_addon;
 use rex_view;
 use rex_escape;
 use rex_url;
+use rex_i18n;
 use Exception;
 
 /**
@@ -64,7 +65,7 @@ class SettingsManager
         if (!$this->isLibraryAvailable()) {
             return [
                 'success' => false,
-                'message' => 'Composer-Abhängigkeiten fehlen. Bitte im AddOn-Verzeichnis "composer install" ausführen.',
+                'message' => rex_i18n::msg('webpush_library_warning'),
                 'keys' => null
             ];
         }
@@ -77,13 +78,13 @@ class SettingsManager
             
             return [
                 'success' => true,
-                'message' => 'VAPID-Schlüssel wurden erfolgreich generiert.',
+                'message' => rex_i18n::msg('vapid_keys_generated'),
                 'keys' => $keys
             ];
         } catch (Exception $e) {
             return [
                 'success' => false,
-                'message' => 'Fehler beim Generieren der VAPID-Schlüssel: ' . $e->getMessage(),
+                'message' => rex_i18n::msg('vapid_generate_error', '', $e->getMessage()),
                 'keys' => null
             ];
         }
@@ -117,10 +118,10 @@ class SettingsManager
                 
                 $affectedRows = $sql->getRows();
                 $message = $affectedRows > 0 
-                    ? "Backend-Token wurde neu generiert. {$affectedRows} bestehende Backend-Subscriptions wurden deaktiviert."
-                    : 'Backend-Token wurde neu generiert.';
+                    ? rex_i18n::msg('backend_token_regenerated', '', $affectedRows)
+                    : rex_i18n::msg('backend_token_regenerated_simple');
             } else {
-                $message = 'Backend-Token wurde erfolgreich generiert.';
+                $message = rex_i18n::msg('backend_token_generated');
             }
             
             return [
@@ -131,7 +132,7 @@ class SettingsManager
         } catch (Exception $e) {
             return [
                 'success' => false,
-                'message' => 'Fehler beim Generieren des Backend-Tokens: ' . $e->getMessage(),
+                'message' => rex_i18n::msg('backend_token_generate_error', '', $e->getMessage()),
                 'token' => null
             ];
         }
@@ -191,28 +192,28 @@ class SettingsManager
         
         return '
         <div class="rex-form-group form-group">
-            <label class="control-label" for="subject">Subject (mailto: oder URL)</label>
+            <label class="control-label" for="subject">' . rex_i18n::msg('subject_label') . '</label>
             <input class="form-control" id="subject" name="subject" value="' . rex_escape($settings['subject']) . '" />
-            <p class="help-block">Erforderlich für VAPID. Verwenden Sie eine mailto:-Adresse oder eine URL Ihrer Domain.</p>
+            <p class="help-block">' . rex_i18n::msg('subject_help') . '</p>
         </div>
         
         <div class="rex-form-group form-group">
-            <label class="control-label" for="publicKey">VAPID Public Key</label>
+            <label class="control-label" for="publicKey">' . rex_i18n::msg('vapid_public_key_label') . '</label>
             <div class="input-group">
                 <textarea class="form-control" id="publicKey" name="publicKey" rows="3">' . rex_escape($settings['publicKey']) . '</textarea>
                 <span class="input-group-btn">
                     <button class="btn btn-' . ($libAvailable ? 'success' : 'warning') . '" name="generate" value="1" type="submit" ' . ($libAvailable ? '' : 'disabled') . '>
-                        <i class="rex-icon fa-key"></i> ' . ($hasKeys ? 'Neu generieren' : 'Generieren') . '
+                        <i class="rex-icon fa-key"></i> ' . ($hasKeys ? rex_i18n::msg('regenerate_button') : rex_i18n::msg('generate_button')) . '
                     </button>
                 </span>
             </div>
-            ' . (!$libAvailable ? '<p class="help-block text-warning">⚠️ WebPush-Library nicht verfügbar. Bitte "composer install" im AddOn-Verzeichnis ausführen.</p>' : '') . '
+            ' . (!$libAvailable ? '<p class="help-block text-warning">' . rex_i18n::msg('webpush_library_warning') . '</p>' : '') . '
         </div>
         
         <div class="rex-form-group form-group">
-            <label class="control-label" for="privateKey">VAPID Private Key</label>
+            <label class="control-label" for="privateKey">' . rex_i18n::msg('vapid_private_key_label') . '</label>
             <textarea class="form-control" id="privateKey" name="privateKey" rows="3">' . rex_escape($settings['privateKey']) . '</textarea>
-            <p class="help-block">⚠️ Privater Schlüssel - niemals öffentlich zugänglich machen!</p>
+            <p class="help-block">' . rex_i18n::msg('vapid_private_key_help') . '</p>
         </div>
         
         <hr>';
@@ -229,28 +230,31 @@ class SettingsManager
     {
         $tokenPreview = $hasToken ? substr($settings['backend_token'], 0, 16) . '...' : '';
         $statusClass = $hasToken ? 'success' : 'warning';
-        $statusText = $hasToken ? 'Token vorhanden' : 'Kein Token generiert';
+        $statusText = $hasToken ? rex_i18n::msg('token_present') : rex_i18n::msg('no_token_generated');
+        
+        $action = $hasToken ? rex_i18n::msg('regenerate_button') : rex_i18n::msg('generate_button');
+        $confirmMsg = rex_i18n::msg('backend_token_confirm', '', $action);
+        $warningMsg = $hasToken ? '\\n\\n' . rex_i18n::msg('backend_token_confirm_warning') : '';
         
         $warningText = $hasToken ? 
             '<div class="alert alert-warning" style="margin-top: 10px;">
-                <strong>⚠️ Wichtiger Hinweis:</strong> Bei der Neu-Generierung des Backend-Tokens werden alle bestehenden Backend-Subscriptions ungültig. 
-                Alle Backend-Nutzer müssen sich nach der Token-Änderung erneut für Push-Benachrichtigungen anmelden.
+                <strong>⚠️ ' . rex_i18n::msg('backend_token_warning_text') . '</strong>
             </div>' : '';
         
         return '
         <div class="rex-form-group form-group">
-            <label class="control-label" for="backend_token">Backend-Token</label>
+            <label class="control-label" for="backend_token">' . rex_i18n::msg('backend_token_label') . '</label>
             <div class="input-group">
                 <input class="form-control" id="backend_token" name="backend_token" value="' . rex_escape($settings['backend_token']) . '" readonly />
                 <span class="input-group-btn">
                     <button class="btn btn-warning" name="generate_token" value="1" type="submit"
-                            onclick="return confirm(\'Backend-Token ' . ($hasToken ? 'neu generieren' : 'generieren') . '?' . ($hasToken ? '\\n\\n⚠️ ACHTUNG: Alle Backend-Nutzer müssen sich nach der Token-Änderung erneut für Push-Benachrichtigungen anmelden!' : '') . '\')">
-                        <i class="rex-icon fa-refresh"></i> ' . ($hasToken ? 'Neu generieren' : 'Generieren') . '
+                            onclick="return confirm(\'' . $confirmMsg . $warningMsg . '\')">
+                        <i class="rex-icon fa-refresh"></i> ' . $action . '
                     </button>
                 </span>
             </div>
             <p class="help-block">
-                Sicherer Token zur Authentifizierung von Backend-Subscriptions. Wird automatisch an Backend-JavaScript übertragen.
+                ' . rex_i18n::msg('backend_token_help') . '
                 <br><span class="label label-' . $statusClass . '">' . $statusText . '</span>
                 ' . ($hasToken ? '<br><small class="text-muted">Vorschau: ' . $tokenPreview . '</small>' : '') . '
             </p>
@@ -273,9 +277,9 @@ class SettingsManager
             <div class="checkbox">
                 <label>
                     <input type="checkbox" name="backend_enabled" value="1" ' . ($settings['backend_enabled'] ? 'checked' : '') . ' />
-                    Backend-Benachrichtigungen aktivieren
+                    ' . rex_i18n::msg('backend_notifications_enable') . '
                 </label>
-                <p class="help-block">Ermöglicht Push-Notifications für REDAXO-Backend-Benutzer.</p>
+                <p class="help-block">' . rex_i18n::msg('backend_notifications_help') . '</p>
             </div>
         </div>
         
@@ -283,9 +287,9 @@ class SettingsManager
             <div class="checkbox">
                 <label>
                     <input type="checkbox" name="frontend_enabled" value="1" ' . ($settings['frontend_enabled'] ? 'checked' : '') . ' />
-                    Frontend-Benachrichtigungen aktivieren
+                    ' . rex_i18n::msg('frontend_notifications_enable') . '
                 </label>
-                <p class="help-block">Ermöglicht Push-Notifications für Website-Besucher.</p>
+                <p class="help-block">' . rex_i18n::msg('frontend_notifications_help') . '</p>
             </div>
         </div>
         
@@ -293,9 +297,9 @@ class SettingsManager
             <div class="checkbox">
                 <label>
                     <input type="checkbox" name="admin_notifications" value="1" ' . ($settings['admin_notifications'] ? 'checked' : '') . ' />
-                    Automatische Admin-Benachrichtigungen
+                    ' . rex_i18n::msg('admin_notifications_enable') . '
                 </label>
-                <p class="help-block">Sendet automatisch Benachrichtigungen bei System-Events (Fehler, Updates, etc.).</p>
+                <p class="help-block">' . rex_i18n::msg('admin_notifications_help') . '</p>
             </div>
         </div>
         
@@ -321,7 +325,7 @@ class SettingsManager
         return '
         <div class="rex-form-group form-group">
             <button class="btn btn-primary" name="save" value="1" type="submit">
-                <i class="rex-icon fa-save"></i> Einstellungen speichern
+                <i class="rex-icon fa-save"></i> ' . rex_i18n::msg('save_settings_button') . '
             </button>
         </div>';
     }

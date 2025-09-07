@@ -15,12 +15,12 @@ $id = rex_request('id', 'int');
 
 if ($action === 'delete' && $id > 0) {
     if (!$isAdmin) {
-        echo rex_view::error('Keine Berechtigung zum Löschen von Subscriptions.');
+        echo rex_view::error(rex_i18n::msg('no_permission_delete'));
     } else {
         if ($subscriptionManager->deleteSubscription($id)) {
-            echo rex_view::success('Subscription wurde gelöscht.');
+            echo rex_view::success(rex_i18n::msg('subscription_deleted'));
         } else {
-            echo rex_view::error('Fehler beim Löschen der Subscription.');
+            echo rex_view::error(rex_i18n::msg('subscription_delete_error'));
         }
         
         // Reload um aktualisierte Daten zu zeigen
@@ -34,9 +34,9 @@ if ($action === 'repair' && $isAdmin) {
     if ($currentUser) {
         $repairedCount = $subscriptionManager->repairBackendSubscriptionsWithoutUserId($currentUser->getId());
         if ($repairedCount > 0) {
-            echo rex_view::success("$repairedCount Backend-Subscriptions wurden mit Ihrer User-ID verknüpft.");
+            echo rex_view::success(rex_i18n::msg('backend_subscriptions_repaired', '', $repairedCount));
         } else {
-            echo rex_view::info('Keine Backend-Subscriptions ohne User-ID gefunden.');
+            echo rex_view::info(rex_i18n::msg('no_backend_subscriptions_found'));
         }
         
         // Reload um aktualisierte Daten zu zeigen
@@ -94,5 +94,5 @@ if (!empty($subscriptions)) {
     echo $fragment2->parse('core/page/section.php');
     
 } else {
-    echo rex_view::info('Noch keine Push-Subscriptions vorhanden.');
+    echo rex_view::info(rex_i18n::msg('no_subscriptions'));
 }

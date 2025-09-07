@@ -2,8 +2,8 @@ package: push_it
 version: '1.0.0-alpha2'
 author: 'Thomas Skerbis, Friends Of REDAXO'
 supportpage: 'https://github.com/FriendsOfREDAXO/push_it'
-title: 'PushIt - Web Push Notifications'
-description: 'Web Push Notifications für Frontend und Backend'
+title: translate:push_it_title
+description: translate:push_it_description
 
 requires:
     redaxo: '^5.15'
@@ -14,31 +14,35 @@ conflicts:
     url: '<2.2.0'  # URL-AddOn < 2.2.0 verwendet inkompatible Riimu\Kit\UrlParser\Uri ohne PSR-7 Return-Types
     
 page:
-    title: 'PushIt'
+    title: translate:push_it_title
     perm: push_it[]
     icon: rex-icon fa-bell
     subpages:
         settings:
-            title: 'Einstellungen'
+            title: translate:push_it_settings
             perm: admin
         subscriptions:
-            title: 'Subscriptions'
+            title: translate:push_it_subscriptions
             perm: push_it[]
         send:
-            title: 'Senden'
+            title: translate:push_it_send
             perm: push_it[]
         history:
-            title: 'Verlauf'
+            title: translate:push_it_history
             perm: push_it[]
         backend_notify:
-            title: 'Backend Benachrichtigungen'
+            title: translate:push_it_backend_notify
             perm: push_it[]
         help:
-            title: 'Hilfe'
+            title: translate:push_it_help
             icon: rex-icon fa-question-circle
             subPath: README.md
             itemClass: 'pull-right'
             perm: push_it[]
+
+translate:
+    - de_de
+    - en_gb
 
 default_config:
     subject: 'mailto:info@example.com'

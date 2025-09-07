@@ -52,14 +52,15 @@ class HistoryManager
             
             return [
                 'success' => true,
-                'message' => rex_i18n::msg('pushit_message_resent_success', [
-                    'sent' => $result['sent'],
-                    'failed' => $result['errors']
-                ])
+                'message' => sprintf(
+                    rex_i18n::msg('pushit_message_resent_success'),
+                    $result['sent'],
+                    $result['errors']
+                )
             ];
             
         } catch (\Exception $e) {
-            return ['success' => false, 'message' => rex_i18n::msg('pushit_resend_error', ['error' => $e->getMessage()])];
+            return ['success' => false, 'message' => sprintf(rex_i18n::msg('pushit_resend_error'), $e->getMessage())];
         }
     }
     
@@ -270,14 +271,16 @@ class HistoryManager
         // Pagination Info
         $content .= '
         <div class="alert alert-info">
-            <strong>' . rex_i18n::msg('pushit_showing_messages', [
-                'count' => count($notifications),
-                'total' => $totalNotifications
-            ]) . '</strong>
-            ' . ($totalNotifications > $limit ? rex_i18n::msg('pushit_page_info', [
-                'current' => (floor($offset / $limit) + 1),
-                'total' => ceil($totalNotifications / $limit)
-            ]) : '') . '
+            <strong>' . sprintf(
+                rex_i18n::msg('pushit_showing_messages'),
+                count($notifications),
+                $totalNotifications
+            ) . '</strong>
+            ' . ($totalNotifications > $limit ? sprintf(
+                rex_i18n::msg('pushit_page_info'),
+                (floor($offset / $limit) + 1),
+                ceil($totalNotifications / $limit)
+            ) : '') . '
         </div>';
         
         $content .= '

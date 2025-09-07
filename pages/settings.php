@@ -94,8 +94,8 @@ window.PushItTopics = \'news,updates\';
 </script>
 
 <!-- Buttons für Nutzer -->
-<button onclick="PushIt.requestFrontend()">Benachrichtigungen aktivieren</button>
-<button onclick="PushIt.disable()">Benachrichtigungen deaktivieren</button>';
+<button onclick="PushIt.requestFrontend()">' . rex_i18n::msg('pushit_activate_notifications_button') . '</button>
+<button onclick="PushIt.disable()">' . rex_i18n::msg('pushit_deactivate_notifications_button') . '</button>';
     
     $content2 = '<p>' . rex_i18n::msg('pushit_frontend_integration_info') . '</p><pre>' . rex_escape(trim($frontendSnippet)) . '</pre>';
     

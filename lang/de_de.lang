@@ -35,12 +35,12 @@ pushit_backend_token_help = Sicherer Token zur Authentifizierung von Backend-Sub
 pushit_token_present = Token vorhanden
 pushit_no_token_generated = Kein Token generiert
 pushit_backend_token_warning_text = ⚠️ Wichtiger Hinweis: Bei der Neu-Generierung des Backend-Tokens werden alle bestehenden Backend-Subscriptions ungültig. Alle Backend-Nutzer müssen sich nach der Token-Änderung erneut für Push-Benachrichtigungen anmelden.
-pushit_backend_token_confirm = Backend-Token {action}?
+pushit_backend_token_confirm = Backend-Token %s?
 pushit_backend_token_confirm_warning = ⚠️ ACHTUNG: Alle Backend-Nutzer müssen sich nach der Token-Änderung erneut für Push-Benachrichtigungen anmelden!
 pushit_backend_token_generated = Backend-Token wurde erfolgreich generiert.
-pushit_backend_token_regenerated = Backend-Token wurde neu generiert. {count} bestehende Backend-Subscriptions wurden deaktiviert.
+pushit_backend_token_regenerated = Backend-Token wurde neu generiert. %d bestehende Backend-Subscriptions wurden deaktiviert.
 pushit_backend_token_regenerated_simple = Backend-Token wurde neu generiert.
-pushit_backend_token_generate_error = Fehler beim Generieren des Backend-Tokens: {error}
+pushit_backend_token_generate_error = Fehler beim Generieren des Backend-Tokens: %s
 
 # Feature toggles
 pushit_backend_notifications_enable = Backend-Benachrichtigungen aktivieren
@@ -92,7 +92,7 @@ pushit_test_subscription_button = Test-Subscription erstellen
 pushit_no_permission_delete = Keine Berechtigung zum Löschen von Subscriptions.
 pushit_subscription_deleted = Subscription wurde gelöscht.
 pushit_subscription_delete_error = Fehler beim Löschen der Subscription.
-pushit_backend_subscriptions_repaired = {count} Backend-Subscriptions wurden mit Ihrer User-ID verknüpft.
+pushit_backend_subscriptions_repaired = %d Backend-Subscriptions wurden mit Ihrer User-ID verknüpft.
 pushit_no_backend_subscriptions_found = Keine Backend-Subscriptions ohne User-ID gefunden.
 pushit_no_subscriptions = Noch keine Push-Subscriptions vorhanden.
 
@@ -116,7 +116,7 @@ pushit_frontend_integration_info = Fügen Sie diesen Code in Ihr Frontend-Templa
 # VAPID generation messages
 pushit_vapid_keys_generated = VAPID-Schlüssel wurden erfolgreich generiert.
 pushit_vapid_keys_regenerated = VAPID-Schlüssel wurden neu generiert. Alte Subscriptions sind ungültig.
-pushit_vapid_generate_error = Fehler beim Generieren der VAPID-Schlüssel: {error}
+pushit_vapid_generate_error = Fehler beim Generieren der VAPID-Schlüssel: %s
 
 # Action buttons
 pushit_save_button = Speichern
@@ -125,13 +125,6 @@ pushit_save_settings_button = Einstellungen speichern
 # Missing keys for replacements
 pushit_backend_token_confirm_generate = generieren
 pushit_backend_token_confirm_regenerate = neu generieren
-
-# Keys with placeholders that need proper parsing
-pushit_backend_token_regenerated = Backend-Token wurde neu generiert. {count} bestehende Backend-Subscriptions wurden deaktiviert.
-pushit_backend_subscriptions_repaired = {count} Backend-Subscriptions wurden mit Ihrer User-ID verknüpft.
-pushit_vapid_generate_error = Fehler beim Generieren der VAPID-Schlüssel: {error}
-pushit_backend_token_generate_error = Fehler beim Generieren des Backend-Tokens: {error}
-pushit_backend_token_confirm = Backend-Token {action}?
 
 # History page  
 pushit_history_statistics_title = Versand-Statistiken
@@ -243,9 +236,9 @@ pushit_vapid_keys_missing = VAPID-Schlüssel fehlen
 pushit_generate_vapid_keys = VAPID-Schlüssel generieren
 
 # Send page additional strings
-pushit_notification_sent_success = Benachrichtigung wurde erfolgreich gesendet! Gesendet: {sent}, Fehler: {failed}, Gesamt: {total}
-pushit_send_error = Fehler beim Senden: {error}
-pushit_send_notification_error = Fehler beim Senden der Benachrichtigung: {error}
+pushit_notification_sent_success = Benachrichtigung wurde erfolgreich gesendet! Gesendet: %d, Fehler: %d, Gesamt: %d
+pushit_send_error = Fehler beim Senden: %s
+pushit_send_notification_error = Fehler beim Senden der Benachrichtigung: %s
 pushit_title_help = Haupt-Überschrift der Benachrichtigung
 pushit_body_help = Text der Benachrichtigung
 pushit_recipient_type_label = Empfänger-Typ
@@ -259,8 +252,8 @@ pushit_last_30_days = Letzte 30 Tage
 # History page strings
 pushit_invalid_action = Ungültige Aktion
 pushit_message_not_found = Nachricht nicht gefunden
-pushit_message_resent_success = Nachricht wurde erneut gesendet! Empfänger: {sent}, Fehler: {failed}
-pushit_resend_error = Fehler beim erneuten Senden: {error}
+pushit_message_resent_success = Nachricht wurde erneut gesendet! Empfänger: %d, Fehler: %d
+pushit_resend_error = Fehler beim erneuten Senden: %s
 pushit_notification_deleted_success = Benachrichtigung wurde gelöscht.
 pushit_user_type_filter = User-Typ:
 pushit_all_filter = Alle
@@ -277,8 +270,8 @@ pushit_avg_recipients_per_message = ⌀ Empfänger pro Nachricht
 pushit_no_messages_found = Keine Nachrichten gefunden
 pushit_no_messages_sent_yet = Es wurden noch keine Push-Nachrichten gesendet oder Ihre Filter-Kriterien treffen nicht zu.
 pushit_send_first_message = Erste Nachricht senden
-pushit_showing_messages = Zeige {count} von {total} Nachrichten
-pushit_page_info = (Seite {current} von {total})
+pushit_showing_messages = Zeige %d von %d Nachrichten
+pushit_page_info = (Seite %d von %d)
 pushit_title_and_message = Titel & Nachricht
 pushit_type_column = Typ
 pushit_delivery_column = Versand
@@ -298,3 +291,12 @@ pushit_next_page = Nächste
 pushit_not_available = PushIt ist nicht verfügbar
 pushit_test_subscription_success = Test-Subscription erfolgreich erstellt
 pushit_error_prefix = Fehler
+pushit_server_error = Server-Fehler: %s
+
+# Automatic system notifications
+pushit_system_error_title = System-Fehler aufgetreten
+pushit_system_error_body = Ein Fehler wurde im System registriert. Bitte prüfen Sie das Error-Log.
+
+# Frontend integration buttons
+pushit_activate_notifications_button = Benachrichtigungen aktivieren
+pushit_deactivate_notifications_button = Benachrichtigungen deaktivieren

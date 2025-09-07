@@ -55,11 +55,12 @@ class SendManager
             );
             
             if ($result['success']) {
-                $message = rex_i18n::msg('pushit_notification_sent_success', [
-                    'sent' => $result['sent'],
-                    'failed' => $result['failed'],
-                    'total' => $result['total']
-                ]);
+                $message = sprintf(
+                    rex_i18n::msg('pushit_notification_sent_success'),
+                    $result['sent'],
+                    $result['failed'],
+                    $result['total']
+                );
                 
                 return [
                     'success' => true,
@@ -69,14 +70,14 @@ class SendManager
             } else {
                 return [
                     'success' => false,
-                    'message' => rex_i18n::msg('pushit_send_error', ['error' => $result['error'] ?? 'Unknown error']),
+                    'message' => sprintf(rex_i18n::msg('pushit_send_error'), $result['error'] ?? 'Unknown error'),
                     'result' => $result
                 ];
             }
         } catch (\Exception $e) {
             return [
                 'success' => false,
-                'message' => rex_i18n::msg('pushit_send_notification_error', ['error' => $e->getMessage()]),
+                'message' => sprintf(rex_i18n::msg('pushit_send_notification_error'), $e->getMessage()),
                 'result' => null
             ];
         }

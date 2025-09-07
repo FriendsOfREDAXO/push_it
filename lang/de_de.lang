@@ -150,3 +150,94 @@ pushit_all_subscriptions_title = Alle Subscriptions
 
 # Validation messages
 pushit_title_and_body_required = Titel und Nachricht sind erforderlich.
+
+# Configuration status
+pushit_configuration_status = Konfigurations-Status
+pushit_vapid_correctly_configured = VAPID korrekt konfiguriert
+pushit_vapid_incomplete = VAPID unvollständig
+pushit_backend_token_available = Backend-Token verfügbar
+pushit_backend_token_not_generated = Backend-Token nicht generiert
+pushit_backend_enabled = Backend: Aktiviert
+pushit_backend_disabled = Backend: Deaktiviert
+pushit_frontend_enabled = Frontend: Aktiviert
+pushit_frontend_disabled = Frontend: Deaktiviert
+pushit_problems = Probleme
+pushit_subject_not_configured = Subject ist nicht konfiguriert
+pushit_subject_invalid = Subject muss eine gültige E-Mail-Adresse oder URL sein
+pushit_vapid_public_key_not_configured = VAPID Public Key ist nicht konfiguriert
+pushit_vapid_private_key_not_configured = VAPID Private Key ist nicht konfiguriert
+
+# Topic security
+pushit_backend_only_topics_label = Backend-Only Topics
+pushit_topic_security_description = Sicherheitseinstellung: Diese Topics können nur von Backend-Benutzern abonniert werden und sind für Frontend-Benutzer nicht verfügbar.
+pushit_topics_comma_separated = Topics mit Komma trennen (z.B. system,admin,critical). Default: system,admin,critical
+pushit_no_backend_only_topics = Aktuell sind keine Backend-Only Topics konfiguriert. Alle Topics können von Frontend- und Backend-Benutzern abonniert werden.
+pushit_backend_only_topics_info = Diese Topics können nur von Backend-Benutzern abonniert werden und sind für Frontend-Benutzer gesperrt.
+
+# Statistics
+pushit_total = Gesamt
+pushit_active = Aktiv
+pushit_errors = Fehler
+pushit_frontend_subscriptions = Frontend Subscriptions
+pushit_backend_subscriptions = Backend Subscriptions
+
+# Table headers
+pushit_id = ID
+pushit_type = Typ
+pushit_user = Benutzer
+pushit_endpoint = Endpoint
+pushit_topics = Topics
+pushit_browser = Browser
+pushit_created = Erstellt
+pushit_status = Status
+pushit_actions = Aktionen
+pushit_active_status = Aktiv
+pushit_inactive_status = Inaktiv
+pushit_error_status = Fehler
+
+# Backend notifications
+pushit_backend_notifications_info = Hier können Sie Backend-Benachrichtigungen für Ihr Konto aktivieren.
+pushit_admin_additional_access = Als Administrator haben Sie zusätzlich Zugriff auf System-Benachrichtigungen.
+pushit_activate_backend_notifications = Backend-Benachrichtigungen aktivieren
+pushit_activate_push_notifications = Aktivieren Sie Push-Benachrichtigungen für Ihr Backend-Konto:
+pushit_activate_backend_notifications_button = Backend-Benachrichtigungen aktivieren
+pushit_reset_query = Abfrage zurücksetzen
+pushit_reset_query_info = Zurücksetzen: Sie werden beim nächsten Seitenaufruf wieder gefragt, ob Sie Backend-Benachrichtigungen aktivieren möchten.
+pushit_editor_notifications = Redakteur-Benachrichtigungen: Sie erhalten Benachrichtigungen zu redaktionellen Inhalten und Updates.
+pushit_notifications_blocked_help = Benachrichtigungen blockiert? Hilfe für Browser-Einstellungen
+pushit_allow_notifications = Benachrichtigungen
+pushit_desktop_notifications = Desktop-Benachrichtigungen
+pushit_critical_error = Kritischer Fehler
+pushit_system_errors = System-Fehler: Bei kritischen PHP-Fehlern oder Exceptions
+pushit_active_subscriptions = Aktive Subscriptions
+pushit_vapid_keys_required = Um Backend-Benachrichtigungen zu verwenden, müssen erst VAPID-Schlüssel generiert werden.
+
+# User display
+pushit_user_deleted = (gelöscht)
+pushit_user_error = (Fehler)
+
+# Backend notification panel
+pushit_backend_notifications_title = Backend-Benachrichtigungen
+pushit_status_check = Status prüfen
+pushit_disable = Deaktivieren
+pushit_deactivate = Deaktivieren
+
+# Additional backend notification strings
+pushit_editor_notifications_info = Sie erhalten Benachrichtigungen zu redaktionellen Inhalten und Updates.
+pushit_notifications_blocked_help_title = Benachrichtigungen blockiert? Hilfe für Browser-Einstellungen
+pushit_desktop_notifications_setting = Desktop-Benachrichtigungen
+pushit_allow_setting = Erlauben
+pushit_enabled = Aktiviert
+pushit_disabled = Deaktiviert
+
+# Quick notification buttons
+pushit_system_warning = System-Warnung
+pushit_information = Information
+
+# Automatic notifications
+pushit_automatic_events_info = Die folgenden Ereignisse lösen automatisch Benachrichtigungen an Backend-Nutzer aus:
+pushit_addon_changes = AddOn-Änderungen: Installation/Deinstallation von AddOns
+
+# VAPID warnings
+pushit_vapid_keys_missing = VAPID-Schlüssel fehlen
+pushit_generate_vapid_keys = VAPID-Schlüssel generieren

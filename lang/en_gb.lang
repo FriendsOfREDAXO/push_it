@@ -150,3 +150,94 @@ pushit_all_subscriptions_title = All Subscriptions
 
 # Validation messages
 pushit_title_and_body_required = Title and message are required.
+
+# Configuration status
+pushit_configuration_status = Configuration Status
+pushit_vapid_correctly_configured = VAPID correctly configured
+pushit_vapid_incomplete = VAPID incomplete
+pushit_backend_token_available = Backend token available
+pushit_backend_token_not_generated = Backend token not generated
+pushit_backend_enabled = Backend: Enabled
+pushit_backend_disabled = Backend: Disabled
+pushit_frontend_enabled = Frontend: Enabled
+pushit_frontend_disabled = Frontend: Disabled
+pushit_problems = Problems
+pushit_subject_not_configured = Subject is not configured
+pushit_subject_invalid = Subject must be a valid email address or URL
+pushit_vapid_public_key_not_configured = VAPID Public Key is not configured
+pushit_vapid_private_key_not_configured = VAPID Private Key is not configured
+
+# Topic security
+pushit_backend_only_topics_label = Backend-Only Topics
+pushit_topic_security_description = Security setting: These topics can only be subscribed to by backend users and are not available to frontend users.
+pushit_topics_comma_separated = Separate topics with commas (e.g. system,admin,critical). Default: system,admin,critical
+pushit_no_backend_only_topics = Currently no backend-only topics are configured. All topics can be subscribed to by frontend and backend users.
+pushit_backend_only_topics_info = These topics can only be subscribed to by backend users and are blocked for frontend users.
+
+# Statistics
+pushit_total = Total
+pushit_active = Active
+pushit_errors = Errors
+pushit_frontend_subscriptions = Frontend Subscriptions
+pushit_backend_subscriptions = Backend Subscriptions
+
+# Table headers
+pushit_id = ID
+pushit_type = Type
+pushit_user = User
+pushit_endpoint = Endpoint
+pushit_topics = Topics
+pushit_browser = Browser
+pushit_created = Created
+pushit_status = Status
+pushit_actions = Actions
+pushit_active_status = Active
+pushit_inactive_status = Inactive
+pushit_error_status = Error
+
+# Backend notifications
+pushit_backend_notifications_info = Here you can activate backend notifications for your account.
+pushit_admin_additional_access = As an administrator, you also have access to system notifications.
+pushit_activate_backend_notifications = Activate Backend Notifications
+pushit_activate_push_notifications = Activate push notifications for your backend account:
+pushit_activate_backend_notifications_button = Activate Backend Notifications
+pushit_reset_query = Reset Query
+pushit_reset_query_info = Reset: You will be asked again on the next page visit if you want to activate backend notifications.
+pushit_editor_notifications = Editor notifications: You receive notifications about editorial content and updates.
+pushit_notifications_blocked_help = Notifications blocked? Help for browser settings
+pushit_allow_notifications = Allow notifications
+pushit_desktop_notifications = Desktop notifications
+pushit_critical_error = Critical Error
+pushit_system_errors = System errors: For critical PHP errors or exceptions
+pushit_active_subscriptions = Active Subscriptions
+pushit_vapid_keys_required = To use backend notifications, VAPID keys must first be generated.
+
+# User display
+pushit_user_deleted = (deleted)
+pushit_user_error = (error)
+
+# Backend notification panel
+pushit_backend_notifications_title = Backend Notifications
+pushit_status_check = Check Status
+pushit_disable = Disable
+pushit_deactivate = Deactivate
+
+# Additional backend notification strings
+pushit_editor_notifications_info = You receive notifications about editorial content and updates.
+pushit_notifications_blocked_help_title = Notifications blocked? Help for browser settings
+pushit_desktop_notifications_setting = Desktop notifications
+pushit_allow_setting = Allow
+pushit_enabled = Enabled
+pushit_disabled = Disabled
+
+# Quick notification buttons  
+pushit_system_warning = System Warning
+pushit_information = Information
+
+# Automatic notifications
+pushit_automatic_events_info = The following events automatically trigger notifications to backend users:
+pushit_addon_changes = Addon changes: Installation/uninstallation of addons
+
+# VAPID warnings
+pushit_vapid_keys_missing = VAPID Keys Missing
+pushit_generate_vapid_keys = Generate VAPID Keys

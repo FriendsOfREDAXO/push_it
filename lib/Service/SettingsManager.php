@@ -304,13 +304,13 @@ class SettingsManager
         </div>
         
         <div class="rex-form-group form-group">
-            <label class="control-label" for="backend_only_topics">Backend-Only Topics</label>
+            <label class="control-label" for="backend_only_topics">' . rex_i18n::msg('pushit_backend_only_topics_label') . '</label>
             <input class="form-control" id="backend_only_topics" name="backend_only_topics" 
                    value="' . rex_escape($settings['backend_only_topics']) . '" 
                    placeholder="system,admin,critical" />
             <p class="help-block">
-                <strong>Sicherheitseinstellung:</strong> Diese Topics können nur von Backend-Benutzern abonniert werden und sind für Frontend-Benutzer nicht verfügbar.<br>
-                Topics mit Komma trennen (z.B. system,admin,critical). Default: system,admin,critical
+                <strong>' . rex_i18n::msg('pushit_topic_security_description') . '</strong><br>
+                ' . rex_i18n::msg('pushit_topics_comma_separated') . '
             </p>
         </div>';
     }
@@ -364,8 +364,8 @@ class SettingsManager
         
         if (empty($backendOnlyTopics)) {
             return '<div class="alert alert-info">
-                <h4><i class="rex-icon fa-info-circle"></i> Topic-Sicherheit</h4>
-                <p>Aktuell sind keine Backend-Only Topics konfiguriert. Alle Topics können von Frontend- und Backend-Benutzern abonniert werden.</p>
+                <h4><i class="rex-icon fa-info-circle"></i> ' . rex_i18n::msg('pushit_topic_security_title') . '</h4>
+                <p>' . rex_i18n::msg('pushit_no_backend_only_topics') . '</p>
             </div>';
         }
         
@@ -375,9 +375,9 @@ class SettingsManager
         }
         
         return '<div class="alert alert-warning">
-            <h4><i class="rex-icon fa-shield"></i> Topic-Sicherheit</h4>
-            <p><strong>Backend-Only Topics:</strong> ' . $topicsList . '</p>
-            <p>Diese Topics können nur von Backend-Benutzern abonniert werden und sind für Frontend-Benutzer gesperrt.</p>
+            <h4><i class="rex-icon fa-shield"></i> ' . rex_i18n::msg('pushit_topic_security_title') . '</h4>
+            <p><strong>' . rex_i18n::msg('pushit_backend_only_topics_label') . ':</strong> ' . $topicsList . '</p>
+            <p>' . rex_i18n::msg('pushit_backend_only_topics_info') . '</p>
         </div>';
     }
     
@@ -425,17 +425,17 @@ class SettingsManager
         $issues = [];
         
         if (empty($settings['subject'])) {
-            $issues[] = 'Subject ist nicht konfiguriert';
+            $issues[] = rex_i18n::msg('pushit_subject_not_configured');
         } elseif (!filter_var($settings['subject'], FILTER_VALIDATE_EMAIL) && !filter_var($settings['subject'], FILTER_VALIDATE_URL)) {
-            $issues[] = 'Subject muss eine gültige E-Mail-Adresse oder URL sein';
+            $issues[] = rex_i18n::msg('pushit_subject_invalid');
         }
         
         if (empty($settings['publicKey'])) {
-            $issues[] = 'VAPID Public Key ist nicht konfiguriert';
+            $issues[] = rex_i18n::msg('pushit_vapid_public_key_not_configured');
         }
         
         if (empty($settings['privateKey'])) {
-            $issues[] = 'VAPID Private Key ist nicht konfiguriert';
+            $issues[] = rex_i18n::msg('pushit_vapid_private_key_not_configured');
         }
         
         return [
@@ -455,23 +455,23 @@ class SettingsManager
         $settings = $this->getSettings();
         
         $vapidStatus = $validation['valid'] ? 'success' : 'danger';
-        $vapidText = $validation['valid'] ? 'VAPID korrekt konfiguriert' : 'VAPID unvollständig';
+        $vapidText = $validation['valid'] ? rex_i18n::msg('pushit_vapid_correctly_configured') : rex_i18n::msg('pushit_vapid_incomplete');
         
         $tokenStatus = !empty($settings['backend_token']) ? 'success' : 'warning';
-        $tokenText = !empty($settings['backend_token']) ? 'Backend-Token verfügbar' : 'Backend-Token nicht generiert';
+        $tokenText = !empty($settings['backend_token']) ? rex_i18n::msg('pushit_backend_token_available') : rex_i18n::msg('pushit_backend_token_not_generated');
         
         $html = '
         <div class="alert alert-info">
-            <h4><i class="rex-icon fa-info-circle"></i> Konfigurations-Status</h4>
+            <h4><i class="rex-icon fa-info-circle"></i> ' . rex_i18n::msg('pushit_configuration_status') . '</h4>
             <ul class="list-unstyled">
                 <li><span class="label label-' . $vapidStatus . '">' . $vapidText . '</span></li>
                 <li><span class="label label-' . $tokenStatus . '">' . $tokenText . '</span></li>
-                <li><span class="label label-' . ($settings['backend_enabled'] ? 'success' : 'default') . '">Backend: ' . ($settings['backend_enabled'] ? 'Aktiviert' : 'Deaktiviert') . '</span></li>
-                <li><span class="label label-' . ($settings['frontend_enabled'] ? 'success' : 'default') . '">Frontend: ' . ($settings['frontend_enabled'] ? 'Aktiviert' : 'Deaktiviert') . '</span></li>
+                <li><span class="label label-' . ($settings['backend_enabled'] ? 'success' : 'default') . '">' . ($settings['backend_enabled'] ? rex_i18n::msg('pushit_backend_enabled') : rex_i18n::msg('pushit_backend_disabled')) . '</span></li>
+                <li><span class="label label-' . ($settings['frontend_enabled'] ? 'success' : 'default') . '">' . ($settings['frontend_enabled'] ? rex_i18n::msg('pushit_frontend_enabled') : rex_i18n::msg('pushit_frontend_disabled')) . '</span></li>
             </ul>';
         
         if (!$validation['valid']) {
-            $html .= '<h5>Probleme:</h5><ul>';
+            $html .= '<h5>' . rex_i18n::msg('pushit_problems') . ':</h5><ul>';
             foreach ($validation['issues'] as $issue) {
                 $html .= '<li class="text-danger">' . rex_escape($issue) . '</li>';
             }

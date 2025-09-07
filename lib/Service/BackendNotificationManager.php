@@ -46,9 +46,9 @@ class BackendNotificationManager
     public function renderInfoPanel(bool $isAdmin): string
     {
         return '<div class="alert alert-info">
-            <h4><i class="rex-icon fa-info-circle"></i> Backend-Benachrichtigungen</h4>
-            <p>Hier können Sie Backend-Benachrichtigungen für Ihr Konto aktivieren.' . 
-            ($isAdmin ? ' Als Administrator haben Sie zusätzlich Zugriff auf System-Benachrichtigungen.' : '') . '</p>
+            <h4><i class="rex-icon fa-info-circle"></i> ' . rex_i18n::msg('pushit_backend_notifications_title') . '</h4>
+            <p>' . rex_i18n::msg('pushit_backend_notifications_info') . 
+            ($isAdmin ? ' ' . rex_i18n::msg('pushit_admin_additional_access') : '') . '</p>
         </div>';
     }
     
@@ -62,22 +62,22 @@ class BackendNotificationManager
         
         $content = '
         <div class="well">
-            <h4>Backend-Benachrichtigungen aktivieren</h4>
-            <p>Aktivieren Sie Push-Benachrichtigungen für Ihr Backend-Konto:</p>
+            <h4>' . rex_i18n::msg('pushit_activate_backend_notifications') . '</h4>
+            <p>' . rex_i18n::msg('pushit_activate_push_notifications') . '</p>
             <button class="btn btn-success" id="pushit-subscribe-backend">
-                <i class="rex-icon fa-bell"></i> Backend-Benachrichtigungen aktivieren
+                <i class="rex-icon fa-bell"></i> ' . rex_i18n::msg('pushit_activate_backend_notifications_button') . '
             </button>
             <button class="btn btn-default" id="pushit-status-check">
-                <i class="rex-icon fa-info"></i> Status prüfen
+                <i class="rex-icon fa-info"></i> ' . rex_i18n::msg('pushit_status_check') . '
             </button>
             <button class="btn btn-warning" id="pushit-disable">
-                <i class="rex-icon fa-bell-slash"></i> Deaktivieren
+                <i class="rex-icon fa-bell-slash"></i> ' . rex_i18n::msg('pushit_deactivate') . '
             </button>
             <br><br>
             <button class="btn btn-xs btn-default" id="pushit-reset">
-                <i class="rex-icon fa-refresh"></i> Abfrage zurücksetzen
+                <i class="rex-icon fa-refresh"></i> ' . rex_i18n::msg('pushit_reset_query') . '
             </button>
-            <small class="help-block">Zurücksetzen: Sie werden beim nächsten Seitenaufruf wieder gefragt, ob Sie Backend-Benachrichtigungen aktivieren möchten.</small>
+            <small class="help-block">' . rex_i18n::msg('pushit_reset_query_info') . '</small>
             
             <script type="text/javascript" nonce="' . $nonce . '">
                 document.getElementById("pushit-subscribe-backend").addEventListener("click", function() {
@@ -97,30 +97,30 @@ class BackendNotificationManager
         if (!$isAdmin) {
             $content .= '
             <div class="alert alert-info" style="margin-top: 15px;">
-                <strong>Redakteur-Benachrichtigungen:</strong> Sie erhalten Benachrichtigungen zu redaktionellen Inhalten und Updates.
+                <strong>' . rex_i18n::msg('pushit_editor_notifications') . ':</strong> ' . rex_i18n::msg('pushit_editor_notifications_info') . '
             </div>';
         }
         
         $content .= '
             <hr>
             <details>
-                <summary><strong>Benachrichtigungen blockiert? Hilfe für Browser-Einstellungen</strong></summary>
+                <summary><strong>' . rex_i18n::msg('pushit_notifications_blocked_help_title') . '</strong></summary>
                 <div class="help-block" style="margin-top: 10px;">
                     <strong>🔧 Safari:</strong><br>
                     1. Klicken Sie auf das <strong>Schloss-Symbol</strong> in der Adressleiste<br>
                     2. Wählen Sie <strong>"Einstellungen für diese Website"</strong><br>
-                    3. Setzen Sie <strong>"Benachrichtigungen" auf "Erlauben"</strong><br>
+                    3. Setzen Sie <strong>"' . rex_i18n::msg('pushit_allow_notifications') . '" auf "' . rex_i18n::msg('pushit_allow_setting') . '"</strong><br>
                     4. Laden Sie die Seite neu<br><br>
                     
                     <strong>🔧 Chrome:</strong><br>
                     1. Klicken Sie auf das <strong>Schloss-Symbol</strong> in der Adressleiste<br>
-                    2. Aktivieren Sie <strong>"Benachrichtigungen"</strong><br>
+                    2. Aktivieren Sie <strong>"' . rex_i18n::msg('pushit_allow_notifications') . '"</strong><br>
                     3. Laden Sie die Seite neu<br><br>
                     
                     <strong>🔧 Firefox:</strong><br>
                     1. Klicken Sie auf das <strong>Schloss-Symbol</strong> in der Adressleiste<br>
                     2. Wählen Sie <strong>"Berechtigung bearbeiten"</strong><br>
-                    3. Setzen Sie <strong>"Desktop-Benachrichtigungen" auf "Erlauben"</strong><br>
+                    3. Setzen Sie <strong>"' . rex_i18n::msg('pushit_desktop_notifications_setting') . '" auf "' . rex_i18n::msg('pushit_allow_setting') . '"</strong><br>
                     4. Laden Sie die Seite neu
                 </div>
             </details>
@@ -141,19 +141,19 @@ class BackendNotificationManager
             <div class="col-md-4">
                 <button class="btn btn-danger btn-block" id="quick-critical">
                     <i class="rex-icon fa-exclamation-triangle"></i><br>
-                    Kritischer Fehler
+                    ' . rex_i18n::msg('pushit_critical_error') . '
                 </button>
             </div>
             <div class="col-md-4">
                 <button class="btn btn-warning btn-block" id="quick-warning">
                     <i class="rex-icon fa-warning"></i><br>
-                    System-Warnung
+                    ' . rex_i18n::msg('pushit_system_warning') . '
                 </button>
             </div>
             <div class="col-md-4">
                 <button class="btn btn-info btn-block" id="quick-info">
                     <i class="rex-icon fa-info-circle"></i><br>
-                    Information
+                    ' . rex_i18n::msg('pushit_information') . '
                 </button>
             </div>
         </div>
@@ -210,21 +210,21 @@ class BackendNotificationManager
         $adminNotificationsEnabled = $this->addon->getConfig('enableAdminNotifications', false);
         
         return '
-        <p>Die folgenden Ereignisse lösen automatisch Benachrichtigungen an Backend-Nutzer aus:</p>
+        <p>' . rex_i18n::msg('pushit_automatic_events_info') . '</p>
         <ul class="list-group">
             <li class="list-group-item">
-                <strong>System-Fehler:</strong> Bei kritischen PHP-Fehlern oder Exceptions
+                <strong>' . rex_i18n::msg('pushit_system_errors') . '</strong>
                 <span class="pull-right">
                     <span class="label label-' . ($adminNotificationsEnabled ? 'success' : 'default') . '">
-                        ' . ($adminNotificationsEnabled ? 'Aktiviert' : 'Deaktiviert') . '
+                        ' . ($adminNotificationsEnabled ? rex_i18n::msg('pushit_enabled') : rex_i18n::msg('pushit_disabled')) . '
                     </span>
                 </span>
             </li>
             <li class="list-group-item">
-                <strong>AddOn-Änderungen:</strong> Installation/Deinstallation von AddOns
+                <strong>' . rex_i18n::msg('pushit_addon_changes') . '</strong>
                 <span class="pull-right">
                     <span class="label label-' . ($adminNotificationsEnabled ? 'success' : 'default') . '">
-                        ' . ($adminNotificationsEnabled ? 'Aktiviert' : 'Deaktiviert') . '
+                        ' . ($adminNotificationsEnabled ? rex_i18n::msg('pushit_enabled') : rex_i18n::msg('pushit_disabled')) . '
                     </span>
                 </span>
             </li>
@@ -318,7 +318,7 @@ class BackendNotificationManager
                 </div>
                 <div class="col-md-3 text-center">
                     <h3 class="text-success">' . $stats['active_backend'] . '</h3>
-                    <p>Aktive Subscriptions</p>
+                    <p>' . rex_i18n::msg('pushit_active_subscriptions') . '</p>
                 </div>
                 <div class="col-md-3 text-center">
                     <h3 class="text-primary">' . $stats['editorial_subscribers'] . '</h3>
@@ -364,10 +364,10 @@ class BackendNotificationManager
     public function renderVapidWarning(): string
     {
         return \rex_view::warning('
-            <h4>VAPID-Schlüssel fehlen</h4>
-            <p>Um Backend-Benachrichtigungen zu verwenden, müssen erst VAPID-Schlüssel generiert werden.</p>
+            <h4>' . rex_i18n::msg('pushit_vapid_keys_missing') . '</h4>
+            <p>' . rex_i18n::msg('pushit_vapid_keys_required') . '</p>
             <p><a href="' . rex_url::backendPage('push_it') . '" class="btn btn-primary">
-                <i class="rex-icon fa-key"></i> VAPID-Schlüssel generieren
+                <i class="rex-icon fa-key"></i> ' . rex_i18n::msg('pushit_generate_vapid_keys') . '
             </a></p>
         ');
     }

@@ -241,3 +241,60 @@ pushit_addon_changes = AddOn-Änderungen: Installation/Deinstallation von AddOns
 # VAPID warnings
 pushit_vapid_keys_missing = VAPID-Schlüssel fehlen
 pushit_generate_vapid_keys = VAPID-Schlüssel generieren
+
+# Send page additional strings
+pushit_notification_sent_success = Benachrichtigung wurde erfolgreich gesendet! Gesendet: {sent}, Fehler: {failed}, Gesamt: {total}
+pushit_send_error = Fehler beim Senden: {error}
+pushit_send_notification_error = Fehler beim Senden der Benachrichtigung: {error}
+pushit_title_help = Haupt-Überschrift der Benachrichtigung
+pushit_body_help = Text der Benachrichtigung
+pushit_recipient_type_label = Empfänger-Typ
+pushit_all_users = Alle Benutzer
+pushit_target_group_help = Wählen Sie die Zielgruppe für die Benachrichtigung
+pushit_frontend_subscribers = Frontend-Abonnenten
+pushit_backend_subscribers = Backend-Abonnenten
+pushit_total_active = Gesamt aktiv
+pushit_last_30_days = Letzte 30 Tage
+
+# History page strings
+pushit_invalid_action = Ungültige Aktion
+pushit_message_not_found = Nachricht nicht gefunden
+pushit_message_resent_success = Nachricht wurde erneut gesendet! Empfänger: {sent}, Fehler: {failed}
+pushit_resend_error = Fehler beim erneuten Senden: {error}
+pushit_notification_deleted_success = Benachrichtigung wurde gelöscht.
+pushit_user_type_filter = User-Typ:
+pushit_all_filter = Alle
+pushit_topics_filter = Topics:
+pushit_topics_placeholder = z.B. system, news
+pushit_date_filter = Datum:
+pushit_count_filter = Anzahl:
+pushit_filter_button = Filtern
+pushit_reset_filter_button = Zurücksetzen
+pushit_sent_messages = Gesendete Nachrichten
+pushit_recipients_reached = Empfänger erreicht
+pushit_delivery_errors = Zustellfehler
+pushit_avg_recipients_per_message = ⌀ Empfänger pro Nachricht
+pushit_no_messages_found = Keine Nachrichten gefunden
+pushit_no_messages_sent_yet = Es wurden noch keine Push-Nachrichten gesendet oder Ihre Filter-Kriterien treffen nicht zu.
+pushit_send_first_message = Erste Nachricht senden
+pushit_showing_messages = Zeige {count} von {total} Nachrichten
+pushit_page_info = (Seite {current} von {total})
+pushit_title_and_message = Titel & Nachricht
+pushit_type_column = Typ
+pushit_delivery_column = Versand
+pushit_sent_on = Gesendet am
+pushit_user_column = Benutzer
+pushit_sent_status = gesendet
+pushit_error_count = Fehler
+pushit_success_rate = % Erfolg
+pushit_resend_button = Erneut senden
+pushit_delete_button = Löschen
+pushit_resend_confirm = Nachricht erneut senden?
+pushit_delete_confirm = Nachricht aus Historie löschen?
+pushit_previous_page = Vorherige
+pushit_next_page = Nächste
+
+# Browser help and additional strings
+pushit_not_available = PushIt ist nicht verfügbar
+pushit_test_subscription_success = Test-Subscription erfolgreich erstellt
+pushit_error_prefix = Fehler

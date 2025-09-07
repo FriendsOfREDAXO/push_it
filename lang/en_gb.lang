@@ -241,3 +241,60 @@ pushit_addon_changes = Addon changes: Installation/uninstallation of addons
 # VAPID warnings
 pushit_vapid_keys_missing = VAPID Keys Missing
 pushit_generate_vapid_keys = Generate VAPID Keys
+
+# Send page additional strings
+pushit_notification_sent_success = Notification sent successfully! Sent: {sent}, Errors: {failed}, Total: {total}
+pushit_send_error = Error sending: {error}
+pushit_send_notification_error = Error sending notification: {error}
+pushit_title_help = Main heading of the notification
+pushit_body_help = Text of the notification
+pushit_recipient_type_label = Recipient Type
+pushit_all_users = All Users
+pushit_target_group_help = Select the target group for the notification
+pushit_frontend_subscribers = Frontend Subscribers
+pushit_backend_subscribers = Backend Subscribers
+pushit_total_active = Total Active
+pushit_last_30_days = Last 30 Days
+
+# History page strings
+pushit_invalid_action = Invalid action
+pushit_message_not_found = Message not found
+pushit_message_resent_success = Message was resent successfully! Recipients: {sent}, Errors: {failed}
+pushit_resend_error = Error resending: {error}
+pushit_notification_deleted_success = Notification has been deleted.
+pushit_user_type_filter = User Type:
+pushit_all_filter = All
+pushit_topics_filter = Topics:
+pushit_topics_placeholder = e.g. system, news
+pushit_date_filter = Date:
+pushit_count_filter = Count:
+pushit_filter_button = Filter
+pushit_reset_filter_button = Reset
+pushit_sent_messages = Sent Messages
+pushit_recipients_reached = Recipients Reached
+pushit_delivery_errors = Delivery Errors
+pushit_avg_recipients_per_message = ⌀ Recipients per Message
+pushit_no_messages_found = No Messages Found
+pushit_no_messages_sent_yet = No push messages have been sent yet or your filter criteria do not match.
+pushit_send_first_message = Send First Message
+pushit_showing_messages = Showing {count} of {total} messages
+pushit_page_info = (Page {current} of {total})
+pushit_title_and_message = Title & Message
+pushit_type_column = Type
+pushit_delivery_column = Delivery
+pushit_sent_on = Sent On
+pushit_user_column = User
+pushit_sent_status = sent
+pushit_error_count = errors
+pushit_success_rate = % success
+pushit_resend_button = Resend
+pushit_delete_button = Delete
+pushit_resend_confirm = Resend message?
+pushit_delete_confirm = Delete message from history?
+pushit_previous_page = Previous
+pushit_next_page = Next
+
+# Browser help and additional strings
+pushit_not_available = PushIt is not available
+pushit_test_subscription_success = Test subscription created successfully
+pushit_error_prefix = Error

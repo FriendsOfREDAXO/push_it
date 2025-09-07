@@ -55,12 +55,11 @@ class SendManager
             );
             
             if ($result['success']) {
-                $message = sprintf(
-                    'Benachrichtigung wurde erfolgreich gesendet! Gesendet: %d, Fehler: %d, Gesamt: %d',
-                    $result['sent'],
-                    $result['failed'],
-                    $result['total']
-                );
+                $message = rex_i18n::msg('pushit_notification_sent_success', [
+                    'sent' => $result['sent'],
+                    'failed' => $result['failed'],
+                    'total' => $result['total']
+                ]);
                 
                 return [
                     'success' => true,
@@ -70,14 +69,14 @@ class SendManager
             } else {
                 return [
                     'success' => false,
-                    'message' => 'Fehler beim Senden: ' . ($result['error'] ?? 'Unbekannter Fehler'),
+                    'message' => rex_i18n::msg('pushit_send_error', ['error' => $result['error'] ?? 'Unknown error']),
                     'result' => $result
                 ];
             }
         } catch (\Exception $e) {
             return [
                 'success' => false,
-                'message' => 'Fehler beim Senden der Benachrichtigung: ' . $e->getMessage(),
+                'message' => rex_i18n::msg('pushit_send_notification_error', ['error' => $e->getMessage()]),
                 'result' => null
             ];
         }
@@ -139,13 +138,13 @@ class SendManager
         
         function testOwnSubscription() {
             if (!window.PushIt) {
-                alert(PushIt.i18n.get("pushit_not_available"));
+                alert("' . rex_i18n::msg('pushit_not_available') . '");
                 return;
             }
             
             PushIt.subscribe("frontend", "test")
-                .then(() => alert(PushIt.i18n.get("test_subscription_success")))
-                .catch(err => alert(PushIt.i18n.get("error_prefix") + ": " + err.message));
+                .then(() => alert("' . rex_i18n::msg('pushit_test_subscription_success') . '"))
+                .catch(err => alert("' . rex_i18n::msg('pushit_error_prefix') . ': " + err.message));
         }
         </script>';
     }
@@ -170,13 +169,13 @@ class SendManager
                 <div class="rex-form-group form-group">
                     <label class="control-label" for="title">' . rex_i18n::msg('pushit_title_required') . '</label>
                     <input class="form-control" id="title" name="title" value="' . rex_escape($title) . '" required />
-                    <p class="help-block">Haupt-Überschrift der Benachrichtigung</p>
+                    <p class="help-block">' . rex_i18n::msg('pushit_title_help') . '</p>
                 </div>
                 
                 <div class="rex-form-group form-group">
                     <label class="control-label" for="body">' . rex_i18n::msg('pushit_body_required') . '</label>
                     <textarea class="form-control" id="body" name="body" rows="3" required>' . rex_escape($body) . '</textarea>
-                    <p class="help-block">Text der Benachrichtigung</p>
+                    <p class="help-block">' . rex_i18n::msg('pushit_body_help') . '</p>
                 </div>
                 
                 <div class="rex-form-group form-group">
@@ -189,13 +188,13 @@ class SendManager
                 <h4>' . rex_i18n::msg('pushit_user_type_label') . '</h4>
                 
                 <div class="rex-form-group form-group">
-                    <label class="control-label" for="user_type">Empfänger-Typ</label>
+                    <label class="control-label" for="user_type">' . rex_i18n::msg('pushit_recipient_type_label') . '</label>
                     <select class="form-control" id="user_type" name="user_type">
                         <option value="frontend"' . ($userType === 'frontend' ? ' selected' : '') . '>' . rex_i18n::msg('pushit_user_type_frontend') . '</option>
                         <option value="backend"' . ($userType === 'backend' ? ' selected' : '') . '>' . rex_i18n::msg('pushit_user_type_backend') . '</option>
-                        <option value="all"' . ($userType === 'all' ? ' selected' : '') . '>Alle Benutzer</option>
+                        <option value="all"' . ($userType === 'all' ? ' selected' : '') . '>' . rex_i18n::msg('pushit_all_users') . '</option>
                     </select>
-                    <p class="help-block">Wählen Sie die Zielgruppe für die Benachrichtigung</p>
+                    <p class="help-block">' . rex_i18n::msg('pushit_target_group_help') . '</p>
                 </div>
                 
                 <div class="rex-form-group form-group">
@@ -340,7 +339,7 @@ class SendManager
                 <div class="panel panel-primary">
                     <div class="panel-body text-center">
                         <h3>' . $subscriptionStats['frontend'] . '</h3>
-                        <p>Frontend-Abonnenten</p>
+                        <p>' . rex_i18n::msg('pushit_frontend_subscribers') . '</p>
                     </div>
                 </div>
             </div>
@@ -348,7 +347,7 @@ class SendManager
                 <div class="panel panel-info">
                     <div class="panel-body text-center">
                         <h3>' . $subscriptionStats['backend'] . '</h3>
-                        <p>Backend-Abonnenten</p>
+                        <p>' . rex_i18n::msg('pushit_backend_subscribers') . '</p>
                     </div>
                 </div>
             </div>
@@ -356,7 +355,7 @@ class SendManager
                 <div class="panel panel-success">
                     <div class="panel-body text-center">
                         <h3>' . ($subscriptionStats['frontend'] + $subscriptionStats['backend']) . '</h3>
-                        <p>Gesamt aktiv</p>
+                        <p>' . rex_i18n::msg('pushit_total_active') . '</p>
                     </div>
                 </div>
             </div>
@@ -364,7 +363,7 @@ class SendManager
                 <div class="panel panel-default">
                     <div class="panel-body text-center">
                         <h3>' . $recentNotifications . '</h3>
-                        <p>Letzte 30 Tage</p>
+                        <p>' . rex_i18n::msg('pushit_last_30_days') . '</p>
                     </div>
                 </div>
             </div>

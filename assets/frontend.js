@@ -1,6 +1,83 @@
 (function() {
   'use strict';
   
+  // i18n-System für Frontend-Texte mit dynamischem Laden
+  let translationsLoaded = false;
+  let currentLang = 'de';
+  
+  // Sprache ermitteln
+  function detectLanguage() {
+    if (window.rex && window.rex.push_it_language) {
+      return window.rex.push_it_language;
+    }
+    if (window.PushItLanguage) {
+      return window.PushItLanguage;
+    }
+    // Fallback auf Browser-Sprache
+    const browserLang = navigator.language.split('-')[0];
+    return ['de', 'en'].includes(browserLang) ? browserLang : 'de';
+  }
+  
+  // Sprachdatei dynamisch laden
+  async function loadTranslations(lang = null) {
+    if (!lang) {
+      lang = detectLanguage();
+    }
+    
+    // Bereits geladen oder aktuell geladen wird
+    if (translationsLoaded && currentLang === lang) {
+      return;
+    }
+    
+    try {
+      // Prüfen ob bereits inline geladen (Fallback)
+      if (window.PushItLang && window.PushItLang[lang]) {
+        currentLang = lang;
+        translationsLoaded = true;
+        return;
+      }
+      
+      // Dynamisch laden via Script-Tag (besser für Browser-Caching)
+      const script = document.createElement('script');
+      script.src = '/assets/addons/push_it/lang/' + lang + '.js';
+      
+      await new Promise((resolve, reject) => {
+        script.onload = () => {
+          currentLang = lang;
+          translationsLoaded = true;
+          resolve();
+        };
+        script.onerror = () => {
+          // Fallback auf Deutsch wenn Sprache nicht verfügbar
+          if (lang !== 'de') {
+            loadTranslations('de').then(resolve).catch(reject);
+          } else {
+            reject(new Error('Could not load language file: ' + lang));
+          }
+        };
+        document.head.appendChild(script);
+      });
+      
+    } catch (error) {
+      console.warn('Could not load translations for', lang, '- using fallback');
+      currentLang = 'de';
+      translationsLoaded = true;
+    }
+  }
+  
+  function t(key, replacements = {}) {
+    const translations = window.PushItLang && window.PushItLang[currentLang] ? window.PushItLang[currentLang] : {};
+    
+    let text = translations[key] || key;
+    
+    // Platzhalter ersetzen {variable} mit Werten
+    for (const [placeholder, value] of Object.entries(replacements)) {
+      text = text.replace(new RegExp(`\\{${placeholder}\\}`, 'g'), value);
+    }
+    
+    return text;
+  }
+  
   function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
     const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -13,8 +90,10 @@
   }
   
   async function ensureServiceWorker() {
+    await loadTranslations(); // Sprache laden
+    
     if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
-      throw new Error('Web Push wird von diesem Browser nicht unterstützt');
+      throw new Error(t('error.browser_not_supported'));
     }
     
     // Service Worker registrieren oder vorhandenen abrufen
@@ -41,6 +120,8 @@
   }
   
   async function requestNotificationPermission() {
+    await loadTranslations(); // Sprache laden
+    
     if (Notification.permission === 'granted') {
       return true;
     }
@@ -50,31 +131,16 @@
       const isChrome = /chrome/i.test(navigator.userAgent);
       const isFirefox = /firefox/i.test(navigator.userAgent);
       
-      let instructions = 'Benachrichtigungen wurden blockiert. Bitte aktivieren Sie diese in den Browser-Einstellungen:\n\n';
+      let instructions = t('instructions.notifications_blocked');
       
       if (isSafari) {
-        instructions += '🔧 Safari:\n' +
-          '1. Klicken Sie auf das Schloss-Symbol in der Adressleiste\n' +
-          '2. Wählen Sie "Einstellungen für diese Website"\n' +
-          '3. Setzen Sie "Benachrichtigungen" auf "Erlauben"\n\n' +
-          'Alternativ: Safari → Einstellungen → Websites → Benachrichtigungen';
+        instructions += t('instructions.safari');
       } else if (isChrome) {
-        instructions += '🔧 Chrome:\n' +
-          '1. Klicken Sie auf das Schloss-Symbol in der Adressleiste\n' +
-          '2. Aktivieren Sie "Benachrichtigungen"\n' +
-          '3. Laden Sie die Seite neu\n\n' +
-          'Alternativ: Chrome → Einstellungen → Datenschutz → Website-Einstellungen → Benachrichtigungen';
+        instructions += t('instructions.chrome');
       } else if (isFirefox) {
-        instructions += '🔧 Firefox:\n' +
-          '1. Klicken Sie auf das Schild-Symbol in der Adressleiste\n' +
-          '2. Aktivieren Sie "Benachrichtigungen"\n' +
-          '3. Laden Sie die Seite neu\n\n' +
-          'Alternativ: Firefox → Einstellungen → Datenschutz → Berechtigungen → Benachrichtigungen';
+        instructions += t('instructions.firefox');
       } else {
-        instructions += '🔧 Browser-Einstellungen:\n' +
-          '1. Suchen Sie nach "Benachrichtigungen" oder "Notifications"\n' +
-          '2. Fügen Sie diese Domain zur Erlaubt-Liste hinzu\n' +
-          '3. Laden Sie die Seite neu';
+        instructions += t('instructions.generic');
       }
       
       throw new Error(instructions);
@@ -83,7 +149,7 @@
     // Nur bei Benutzeraktion anfordern
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
-      throw new Error('Berechtigung für Benachrichtigungen verweigert. Bitte versuchen Sie es erneut oder prüfen Sie die Browser-Einstellungen.');
+      throw new Error(t('error.permission_denied'));
     }
     
     return true;
@@ -95,12 +161,12 @@
     
     const publicKey = window.PushItPublicKey || '';
     if (!publicKey) {
-      throw new Error('VAPID Public Key nicht konfiguriert (window.PushItPublicKey)');
+      throw new Error(t('error.vapid_not_configured'));
     }
     
     // VAPID Key validieren
     if (publicKey.length < 80) {
-      throw new Error('VAPID Public Key scheint ungültig zu sein (zu kurz)');
+      throw new Error(t('error.vapid_invalid'));
     }
     
     try {
@@ -118,9 +184,40 @@
         params.append('topics', topics);
       }
       
+      // Backend-Token für Backend-Subscriptions hinzufügen
+      if (userType === 'backend') {
+        let backendToken = null;
+        
+        // Zuerst aus rex-Objekt versuchen
+        if (window.rex && window.rex.push_it_backend_token) {
+          backendToken = window.rex.push_it_backend_token;
+        }
+        // Fallback auf alte Variable
+        else if (window.PushItBackendToken) {
+          backendToken = window.PushItBackendToken;
+        }
+        
+        if (backendToken) {
+          params.append('backend_token', backendToken);
+        }
+      }
+      
       // User-ID für Backend-Subscriptions hinzufügen
-      if (userType === 'backend' && window.PushItUserId) {
-        params.append('user_id', window.PushItUserId);
+      if (userType === 'backend') {
+        let userId = null;
+        
+        // Zuerst aus rex-Objekt versuchen
+        if (window.rex && window.rex.push_it_user_id) {
+          userId = window.rex.push_it_user_id;
+        }
+        // Fallback auf alte Variable
+        else if (window.PushItUserId) {
+          userId = window.PushItUserId;
+        }
+        
+        if (userId) {
+          params.append('user_id', userId);
+        }
       }
       
       const response = await fetch('/index.php?' + params.toString(), {
@@ -132,18 +229,18 @@
       });
       
       if (!response.ok) {
-        throw new Error('Server-Fehler: ' + response.status);
+        throw new Error(t('error.server_error', { status: response.status }));
       }
       
       const result = await response.json();
       if (!result.success) {
-        throw new Error('Subscription fehlgeschlagen: ' + (result.error || 'Unbekannter Fehler'));
+        throw new Error(t('error.subscription_failed', { error: result.error || t('error.unknown_error') }));
       }
       
       return result;
       
     } catch (error) {
-      console.error('Subscription error:', error);
+      console.error(t('log.subscription_error'), error);
       throw error;
     }
   }
@@ -166,19 +263,19 @@
       });
       
       if (!response.ok) {
-        throw new Error('Server-Fehler: ' + response.status);
+        throw new Error(t('error.server_error', { status: response.status }));
       }
       
       const result = await response.json();
       if (!result.success) {
-        throw new Error('Unsubscribe fehlgeschlagen: ' + (result.error || 'Unbekannter Fehler'));
+        throw new Error(t('error.unsubscribe_failed', { error: result.error || t('error.unknown_error') }));
       }
       
       await subscription.unsubscribe();
       return result;
       
     } catch (error) {
-      console.error('Unsubscribe error:', error);
+      console.error(t('log.unsubscribe_error'), error);
       throw error;
     }
   }
@@ -201,51 +298,72 @@
   
   // Öffentliche API
   window.PushIt = {
-    subscribe: function(userType = 'frontend', topics = '') {
-      return subscribe(userType, topics)
-        .then(result => {
-          console.log('Push-Benachrichtigungen aktiviert:', result);
-          return result;
-        })
-        .catch(error => {
-          console.error('Fehler beim Aktivieren:', error);
-          throw error;
-        });
+    subscribe: async function(userType = 'frontend', topics = '') {
+      try {
+        await loadTranslations(); // Sprache laden
+        const result = await subscribe(userType, topics);
+        console.log(t('success.push_notifications_activated'), result);
+        return result;
+      } catch (error) {
+        console.error(t('log.activate_error'), error);
+        throw error;
+      }
     },
     
-    unsubscribe: function() {
-      return unsubscribe()
-        .then(result => {
-          console.log('Push-Benachrichtigungen deaktiviert:', result);
-          return result;
-        })
-        .catch(error => {
-          console.error('Fehler beim Deaktivieren:', error);
-          throw error;
-        });
+    unsubscribe: async function() {
+      try {
+        await loadTranslations(); // Sprache laden
+        const result = await unsubscribe();
+        console.log(t('success.push_notifications_deactivated'), result);
+        return result;
+      } catch (error) {
+        console.error(t('log.deactivate_error'), error);
+        throw error;
+      }
     },
     
     getStatus: getSubscriptionStatus,
     
     // Einfache UI-Funktionen
-    requestFrontend: function(topics = '') {
+    requestFrontend: async function(topics = '') {
+      await loadTranslations(); // Sprache laden
       const topicsToUse = topics || window.PushItTopics || '';
-      subscribe('frontend', topicsToUse)
-        .then(() => alert('Frontend-Benachrichtigungen aktiviert!'))
-        .catch(err => alert('Fehler: ' + err.message));
+      try {
+        await subscribe('frontend', topicsToUse);
+        alert(t('success.frontend_notifications_activated'));
+      } catch (err) {
+        alert(t('error.generic', { message: err.message }));
+      }
     },
     
-    requestBackend: function(topics = '') {
+    requestBackend: async function(topics = '') {
+      await loadTranslations(); // Sprache laden
       const topicsToUse = topics || window.PushItTopics || '';
-      subscribe('backend', topicsToUse)
-        .then(() => alert('Backend-Benachrichtigungen aktiviert!'))
-        .catch(err => alert('Fehler: ' + err.message));
+      try {
+        await subscribe('backend', topicsToUse);
+        alert(t('success.backend_notifications_activated'));
+      } catch (err) {
+        alert(t('error.generic', { message: err.message }));
+      }
     },
     
-    disable: function() {
-      unsubscribe()
-        .then(() => alert('Benachrichtigungen deaktiviert.'))
-        .catch(err => alert('Fehler: ' + err.message));
+    disable: async function() {
+      await loadTranslations(); // Sprache laden
+      try {
+        await unsubscribe();
+        alert(t('success.notifications_disabled'));
+      } catch (err) {
+        alert(t('error.generic', { message: err.message }));
+      }
+    },
+    
+    // i18n-System öffentlich verfügbar machen
+    i18n: {
+      get: function(key, replacements = {}) {
+        return t(key, replacements);
+      },
+      
+      loadLanguage: loadTranslations
     }
   };
   

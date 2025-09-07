@@ -39,7 +39,7 @@ if ($backendManager->hasVapidKeys()) {
         // Automatische Benachrichtigungen konfigurieren (Admin-only)
         $autoNotifyFragment = new rex_fragment();
         $autoNotifyFragment->setVar('title', 'Automatische Benachrichtigungen', false);
-        $autoNotifyFragment->setVar('body', $backendManager->renderAutomaticNotificationsInfo($isAdmin), false);
+        $autoNotifyFragment->setVar('body', $backendManager->renderAutoNotificationPanel(), false);
         echo $autoNotifyFragment->parse('core/page/section.php');
     }
     

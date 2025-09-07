@@ -68,6 +68,80 @@ PushIt.disable();
 </script>
 ```
 
+### Frontend Integration mit Mehrsprachigkeit
+
+Für mehrsprachige Websites mit benutzerdefinierten Fehlermeldungen und Anleitungen:
+
+```html
+<!-- Push-It Frontend Integration mit Sprachunterstützung -->
+<script>
+<?php
+// Sprache ermitteln - REDAXO Clang verwenden
+$lang = rex_clang::getCurrent()->getCode(); // z.B. 'de', 'en'
+$supportedLangs = ['de', 'en'];
+if (!in_array($lang, $supportedLangs)) {
+    $lang = 'de'; // Fallback auf Deutsch
+}
+echo "window.PushItLanguage = '{$lang}';";
+?>
+</script>
+
+<!-- Sprachdatei laden (WICHTIG: vor frontend.js) -->
+<script src="/assets/addons/push_it/lang/<?php echo $lang; ?>.js"></script>
+
+<!-- Frontend JavaScript -->
+<script src="/assets/addons/push_it/frontend.js"></script>
+
+<!-- Konfiguration -->
+<script>
+window.PushItPublicKey = '<?php echo rex_addon::get('push_it')->getConfig('publicKey'); ?>';
+// Optional: Topics für Frontend-Nutzer
+window.PushItTopics = 'news,updates';
+</script>
+
+<!-- Buttons für Nutzer -->
+<button onclick="PushIt.requestFrontend()">Benachrichtigungen aktivieren</button>
+<button onclick="PushIt.disable()">Benachrichtigungen deaktivieren</button>
+```
+
+#### Statische Sprache setzen
+
+Falls keine dynamische Spracherkennung gewünscht ist:
+
+```html
+<!-- Statische Sprache -->
+<script>
+window.PushItLanguage = 'de'; // oder 'en' für Englisch
+</script>
+<script src="/assets/addons/push_it/lang/de.js"></script>
+<script src="/assets/addons/push_it/frontend.js"></script>
+```
+
+#### Unterstützte Sprachen für Frontend
+
+- **Deutsch (de)** - Alle Fehlermeldungen und Browser-Anleitungen
+- **Englisch (en)** - Vollständige Übersetzung
+
+#### Neue Sprachen hinzufügen
+
+1. Erstelle neue Sprachdatei: `/assets/addons/push_it/lang/[code].js`
+2. Kopiere Struktur von `de.js` oder `en.js`
+3. Übersetze alle Schlüssel:
+
+```javascript
+window.PushItLang = window.PushItLang || {};
+window.PushItLang.fr = {
+    'error.browser_not_supported': 'Web Push n\'est pas supporté par ce navigateur',
+    'success.notifications_activated': 'Notifications activées!',
+    // ... weitere Übersetzungen
+};
+```
+
+4. Füge Sprache zu unterstützten Sprachen hinzu:
+```php
+$supportedLangs = ['de', 'en', 'fr']; // Französisch hinzufügen
+```
+
 ### Backend Integration
 
 ```php
@@ -119,6 +193,62 @@ curl -X POST "https://domain.com/redaxo/index.php?rex-api-call=push_it_subscribe
 curl -X POST "https://domain.com/redaxo/index.php?rex-api-call=push_it_unsubscribe" \
   -H "Content-Type: application/json" \
   -d '{"endpoint":"..."}'
+```
+
+## Mehrsprachigkeit
+
+Das AddOn bietet umfassende Mehrsprachigkeits-Unterstützung für Frontend-Benachrichtigungen:
+
+### Automatische Browser-Anleitungen
+
+Wenn Benachrichtigungen blockiert sind, zeigt das AddOn automatisch browser-spezifische Anleitungen in der gewählten Sprache:
+
+- **Safari**: Schloss-Symbol → Website-Einstellungen → Benachrichtigungen
+- **Chrome**: Schloss-Symbol → Benachrichtigungen aktivieren  
+- **Firefox**: Schild-Symbol → Benachrichtigungen aktivieren
+- **Generisch**: Fallback für andere Browser
+
+### Übersetzte Meldungen
+
+Alle Frontend-Nachrichten werden automatisch übersetzt:
+
+- ✅ Fehlermeldungen (VAPID-Fehler, Server-Fehler, etc.)
+- ✅ Erfolgs-Nachrichten (Aktivierung, Deaktivierung)
+- ✅ Browser-spezifische Anleitungen
+- ✅ Console-Log-Nachrichten
+- ✅ Alert-Dialoge
+
+### Backend-Spracherkennung
+
+Die Sprache wird automatisch aus dem REDAXO-Backend erkannt:
+
+```php
+// Automatische Spracherkennung im Backend
+$lang = rex::getUser() ? rex::getUser()->getLanguage() : 'de';
+
+// Frontend: Clang-basierte Erkennung
+$lang = rex_clang::getCurrent()->getCode();
+```
+
+### Sprachdatei-Struktur
+
+```javascript
+window.PushItLang = window.PushItLang || {};
+window.PushItLang.de = {
+    // Fehlermeldungen
+    'error.browser_not_supported': 'Web Push wird von diesem Browser nicht unterstützt',
+    'error.permission_denied': 'Berechtigung für Benachrichtigungen verweigert...',
+    
+    // Erfolgs-Nachrichten  
+    'success.notifications_activated': 'Benachrichtigungen aktiviert!',
+    
+    // Browser-Anleitungen
+    'instructions.safari': '🔧 Safari:\n1. Klicken Sie auf das Schloss-Symbol...',
+    
+    // Mit Platzhaltern
+    'error.server_error': 'Server-Fehler: {status}',
+    'backend.activation_error': 'Fehler beim Aktivieren: {message}'
+};
 ```
 
 ## Topics

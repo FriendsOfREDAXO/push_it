@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS `rex_push_it_user_tokens` (
   `user_id` INT UNSIGNED NOT NULL,
   `token` VARCHAR(64) NOT NULL,
   `created` DATETIME NOT NULL,
-  `expires_at` DATETIME NOT NULL,
+  `expires_at` DATETIME NULL,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   KEY `token` (`token`),
@@ -102,6 +102,12 @@ try {
     $checkImage = $sql->setQuery("SHOW COLUMNS FROM rex_push_it_notifications LIKE 'image'")->getRows();
     if ($checkImage === 0) {
         $sql->setQuery("ALTER TABLE rex_push_it_notifications ADD COLUMN image VARCHAR(500) NULL AFTER badge");
+    }
+    
+    // Security-Update: expires_at Spalte auf NULL setzen können für Backend-User Tokens
+    $checkTokenTable = $sql->setQuery("SHOW TABLES LIKE 'rex_push_it_user_tokens'")->getRows();
+    if ($checkTokenTable > 0) {
+        $sql->setQuery("ALTER TABLE rex_push_it_user_tokens MODIFY expires_at DATETIME NULL");
     }
 } catch (Exception $e) {
     // Bei Fehlern ignorieren - Spalten sind vermutlich bereits vorhanden

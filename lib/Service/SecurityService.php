@@ -18,9 +18,10 @@ class SecurityService
      * Generiert einen sicheren Token für einen Benutzer
      * 
      * @param int $userId
+     * @param bool $isBackendUser Ist der Benutzer ein Backend-User? (Token läuft nicht ab)
      * @return string
      */
-    public static function generateUserToken(int $userId): string
+    public static function generateUserToken(int $userId, bool $isBackendUser = false): string
     {
         // Kombiniere User-ID mit einem sicheren Zufallswert
         $randomBytes = random_bytes(16);
@@ -32,7 +33,7 @@ class SecurityService
         $token = hash('sha256', $data);
         
         // Speichere Token in der Datenbank für spätere Validierung
-        self::storeUserToken($userId, $token, $timestamp);
+        self::storeUserToken($userId, $token, $timestamp, $isBackendUser);
         
         return $token;
     }
@@ -53,7 +54,7 @@ class SecurityService
         $sql = rex_sql::factory();
         $sql->setQuery(
             "SELECT id, created FROM rex_push_it_user_tokens 
-             WHERE user_id = ? AND token = ? AND expires_at > NOW()
+             WHERE user_id = ? AND token = ? AND (expires_at IS NULL OR expires_at > NOW())
              ORDER BY created DESC LIMIT 1",
             [$userId, $token]
         );
@@ -76,7 +77,7 @@ class SecurityService
         $sql = rex_sql::factory();
         $sql->setQuery(
             "SELECT user_id FROM rex_push_it_user_tokens 
-             WHERE token = ? AND expires_at > NOW()
+             WHERE token = ? AND (expires_at IS NULL OR expires_at > NOW())
              ORDER BY created DESC LIMIT 1",
             [$token]
         );
@@ -94,9 +95,10 @@ class SecurityService
      * @param int $userId
      * @param string $token
      * @param int $timestamp
+     * @param bool $isBackendUser Backend-User Tokens laufen nicht ab
      * @return void
      */
-    private static function storeUserToken(int $userId, string $token, int $timestamp): void
+    private static function storeUserToken(int $userId, string $token, int $timestamp, bool $isBackendUser = false): void
     {
         $sql = rex_sql::factory();
         
@@ -113,14 +115,23 @@ class SecurityService
             [$userId, $userId]
         );
         
-        // Neuen Token speichern (gültig für 30 Tage)
-        $expiresAt = date('Y-m-d H:i:s', $timestamp + (30 * 24 * 60 * 60));
-        
-        $sql->setQuery(
-            "INSERT INTO rex_push_it_user_tokens (user_id, token, created, expires_at)
-             VALUES (?, ?, NOW(), ?)",
-            [$userId, $token, $expiresAt]
-        );
+        // Neuen Token speichern
+        if ($isBackendUser) {
+            // Backend-User Tokens laufen nicht ab
+            $sql->setQuery(
+                "INSERT INTO rex_push_it_user_tokens (user_id, token, created, expires_at)
+                 VALUES (?, ?, NOW(), NULL)",
+                [$userId, $token]
+            );
+        } else {
+            // Frontend-User Tokens laufen nach 30 Tagen ab
+            $expiresAt = date('Y-m-d H:i:s', $timestamp + (30 * 24 * 60 * 60));
+            $sql->setQuery(
+                "INSERT INTO rex_push_it_user_tokens (user_id, token, created, expires_at)
+                 VALUES (?, ?, NOW(), ?)",
+                [$userId, $token, $expiresAt]
+            );
+        }
     }
     
     /**
@@ -131,7 +142,25 @@ class SecurityService
     public static function cleanupExpiredTokens(): int
     {
         $sql = rex_sql::factory();
-        $sql->setQuery("DELETE FROM rex_push_it_user_tokens WHERE expires_at < NOW()");
+        $sql->setQuery("DELETE FROM rex_push_it_user_tokens WHERE expires_at IS NOT NULL AND expires_at < NOW()");
+        return $sql->getAffectedRows();
+    }
+    
+    /**
+     * Löscht alle Tokens für einen bestimmten Benutzer
+     * (z.B. wenn der Benutzer gelöscht wird)
+     * 
+     * @param int $userId
+     * @return int Anzahl gelöschte Tokens
+     */
+    public static function deleteUserTokens(int $userId): int
+    {
+        if ($userId <= 0) {
+            return 0;
+        }
+        
+        $sql = rex_sql::factory();
+        $sql->setQuery("DELETE FROM rex_push_it_user_tokens WHERE user_id = ?", [$userId]);
         return $sql->getAffectedRows();
     }
     

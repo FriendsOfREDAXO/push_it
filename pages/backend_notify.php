@@ -17,7 +17,7 @@ if ($publicKey) {
     echo '<script src="' . $addon->getAssetsUrl('frontend.js') . '"></script>';
     echo '<script nonce="' . rex_escape($nonce) . '">
         window.PushItPublicKey = ' . json_encode($publicKey) . ';
-        window.PushItUserToken = "' . SecurityService::generateUserToken($userId) . '";
+        window.PushItUserToken = "' . SecurityService::generateUserToken($userId, true) . '";
     </script>';
 } else {
     echo rex_view::warning('

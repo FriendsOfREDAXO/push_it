@@ -144,9 +144,9 @@ class Subscribe extends rex_api_function
                 'timestamp' => time()
             ];
             
-            // Für Backend-Subscriptions einen sicheren Token generieren
+            // Für Backend-Subscriptions einen sicheren Token generieren (läuft nicht ab)
             if ($userType === 'backend' && $userId) {
-                $responseData['user_token'] = SecurityService::generateUserToken($userId);
+                $responseData['user_token'] = SecurityService::generateUserToken($userId, true);
                 $responseData['user_id'] = $userId; // Für Debugging/Logging
             }
             

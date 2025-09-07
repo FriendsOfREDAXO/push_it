@@ -44,10 +44,10 @@ if (rex::isBackend() && $addon->getConfig('backend_enabled')) {
         rex_view::setJsProperty('push_it_public_key', $publicKey);
         rex_view::setJsProperty('push_it_backend_enabled', true);
         
-        // Für Backend-Benutzer: Sicheren Token generieren
+        // Für Backend-Benutzer: Sicheren Token generieren (läuft nicht ab)
         $currentUser = rex::getUser();
         if ($currentUser) {
-            $secureToken = \FriendsOfREDAXO\PushIt\Service\SecurityService::generateUserToken($currentUser->getId());
+            $secureToken = \FriendsOfREDAXO\PushIt\Service\SecurityService::generateUserToken($currentUser->getId(), true);
             rex_view::setJsProperty('push_it_user_token', $secureToken);
         }
     }
@@ -102,4 +102,22 @@ if (rex::isBackend()) {
             error_log("Push It Token Cleanup Fehler: " . $e->getMessage());
         }
     }
+}
+
+// Tokens löschen wenn ein Benutzer gelöscht wird
+if (rex::isBackend()) {
+    // Extension Point für Benutzer-Löschung (falls verfügbar)
+    rex_extension::register('USER_DELETED', function(rex_extension_point $ep) {
+        $userId = $ep->getParam('id');
+        if ($userId) {
+            try {
+                $deletedTokens = \FriendsOfREDAXO\PushIt\Service\SecurityService::deleteUserTokens($userId);
+                if ($deletedTokens > 0) {
+                    error_log("Push It: $deletedTokens Tokens für Benutzer $userId gelöscht");
+                }
+            } catch (Exception $e) {
+                error_log("Push It User Token Cleanup Fehler: " . $e->getMessage());
+            }
+        }
+    });
 }

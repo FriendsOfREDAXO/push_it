@@ -77,11 +77,11 @@ pushit_topics_help = Kommagetrennte Liste von Topics für gezielte Benachrichtig
 pushit_advanced_options = Erweiterte Optionen
 pushit_admin_only = (nur für Administratoren)
 pushit_icon_url_label = Icon-URL
-pushit_icon_url_help = URL zum Icon der Benachrichtigung (192x192px empfohlen)
+pushit_icon_url_help = URL zum Icon der Benachrichtigung (192x192px empfohlen, PNG/JPG Format). Nur für Administrator verfügbar.
 pushit_badge_url_label = Badge-URL
-pushit_badge_url_help = URL zum Badge (72x72px, monochrom empfohlen)
+pushit_badge_url_help = URL zum Badge (72x72px, monochrom empfohlen, PNG Format). Nur für Administrator verfügbar.
 pushit_hero_image_url_label = Hero-Image-URL
-pushit_hero_image_url_help = URL zum großen Bild in der Benachrichtigung
+pushit_hero_image_url_help = URL zum großen Bild in der Benachrichtigung (JPG/PNG Format). Nur für Administrator verfügbar.
 
 # Buttons
 pushit_send_notification_button = Benachrichtigung senden

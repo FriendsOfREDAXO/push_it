@@ -85,7 +85,7 @@ class NotificationService
             'title' => $title,
             'body' => $body,
             'url' => $url,
-            'icon' => $options['icon'] ?? '/assets/addons/push_it/icon.png',
+            'icon' => $options['icon'] ?? '/assets/addons/push_it/icon.svg',
             'timestamp' => time()
         ];
         
@@ -246,7 +246,7 @@ class NotificationService
             $title,
             $body,
             $url,
-            $options['icon'] ?? '/assets/addons/push_it/icon.png',
+            $options['icon'] ?? '/assets/addons/push_it/icon.svg',
             $options['badge'] ?? null,
             $options['image'] ?? null,
             !empty($options) ? json_encode($options) : null,

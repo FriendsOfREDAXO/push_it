@@ -75,7 +75,7 @@ class NotificationService
                 'success' => false,
                 'message' => 'Keine aktiven Subscriptions gefunden für User-Typ: ' . $userType . ' und Topics: ' . implode(',', $topics),
                 'sent' => 0,
-                'errors' => 0,
+                'failed' => 0,
                 'total' => 0
             ];
         }
@@ -162,7 +162,7 @@ class NotificationService
         return [
             'success' => true,
             'sent' => $sent,
-            'errors' => $errors,
+            'failed' => $errors,
             'total' => count($subscriptions)
         ];
     }

@@ -1,15 +1,1007 @@
-# Push-It AddOn - Praxisbeispiele
+# PushIt - Praktische Beispiele & Implementierung
 
-Diese Dokumentation zeigt praktische Anwendungsbeispiele für das Push-It AddOn mit verschiedenen Szenarien und Plattformen.
+Hier finden Sie praktische Implementierungsbeispiele, detaillierte Anleitungen und Use Cases für das PushIt AddOn.
+
+## 📋 **Inhaltsverzeichnis**
+
+1. [Frontend Integration](#frontend-integration)
+2. [Backend/PHP Integration](#backend-php-integration)
+3. [System Error Monitoring](#system-error-monitoring)
+4. [iOS & PWA Setup](#ios--pwa-setup)
+5. [Mehrsprachigkeit](#mehrsprachigkeit)
+6. [Topics & Zielgruppen](#topics--zielgruppen)
+7. [Troubleshooting](#troubleshooting)
+8. [Use Cases & Szenarien](#use-cases--szenarien)
+9. [Migration von rex_mailer](#migration-von-rex_mailer)
+
+## 🚀 **Frontend Integration**
+
+### Basis-Implementation
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- PWA Manifest für iOS Support -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+</head>
+<body>
+    <!-- Buttons für Nutzer -->
+    <button onclick="PushIt.requestFrontend()">Benachrichtigungen aktivieren</button>
+    <button onclick="PushIt.disable()">Benachrichtigungen deaktivieren</button>
+    <button onclick="checkStatus()">Status prüfen</button>
+
+    <!-- JavaScript wird automatisch eingebunden wenn Frontend aktiviert -->
+    <script>
+    // Einfache Aktivierung
+    function enableNotifications() {
+        PushIt.subscribe('frontend', 'news,updates').then(result => {
+            if (result.success) {
+                alert('Benachrichtigungen aktiviert!');
+            } else {
+                console.error('Fehler:', result.error);
+            }
+        });
+    }
+
+    // Status prüfen
+    function checkStatus() {
+        PushIt.getStatus().then(status => {
+            console.log('Subscription Status:', status);
+            document.getElementById('status').textContent = 
+                status.isSubscribed ? 'Aktiviert' : 'Deaktiviert';
+        });
+    }
+
+    // Event Listener für Push-Nachrichten
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', event => {
+            console.log('Push Message received:', event.data);
+        });
+    }
+    </script>
+
+### iOS-kompatible Implementation
+
+**Wichtig**: iOS Safari erfordert spezielle Behandlung und PWA-Setup.
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- PWA Manifest - ZWINGEND für iOS Push Notifications -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- iOS-spezifische Meta-Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Meine App">
+    <link rel="apple-touch-icon" href="/assets/addons/push_it/icon-192.png">
+    
+    <!-- WICHTIG: Sprache setzen BEVOR JavaScript geladen wird -->
+    <script>
+    <?php
+    // Automatische Spracherkennung
+    $lang = rex_clang::getCurrent()->getCode();
+    $supportedLangs = ['de', 'en'];
+    if (!in_array($lang, $supportedLangs)) {
+        $lang = 'de';
+    }
+    echo "window.PushItLanguage = '{$lang}';";
+    ?>
+    </script>
+    
+    <!-- Sprachdatei MUSS vor frontend.js geladen werden -->
+    <script src="/assets/addons/push_it/lang/<?php echo $lang; ?>.js"></script>
+    
+    <!-- Push-It Frontend JavaScript -->
+    <script src="/assets/addons/push_it/frontend.js"></script>
+    
+    <!-- Konfiguration nach JavaScript-Einbindung -->
+    <script>
+    window.PushItPublicKey = '<?php echo rex_addon::get('push_it')->getConfig('publicKey'); ?>';
+    window.PushItTopics = 'news,updates,breaking';
+    </script>
+</head>
+<body>
+    <!-- iOS-optimierte UI -->
+    <div class="notification-controls">
+        <h3>📱 Push-Benachrichtigungen</h3>
+        <button onclick="requestNotifications()" class="btn-primary">
+            🔔 Benachrichtigungen aktivieren
+        </button>
+        <button onclick="disableNotifications()" class="btn-secondary">
+            🔕 Deaktivieren
+        </button>
+        <div id="status-display" class="status-info"></div>
+    </div>
+
+    <!-- iOS Installation Hinweis -->
+    <div id="ios-install-prompt" style="display: none;" class="ios-prompt">
+        <h4>📲 Installation für iOS</h4>
+        <p>Für Push-Benachrichtigungen auf iOS:</p>
+        <ol>
+            <li>Tippen Sie auf das <strong>Teilen-Symbol</strong> (□↗)</li>
+            <li>Wählen Sie <strong>"Zum Home-Bildschirm"</strong></li>
+            <li>Bestätigen Sie mit <strong>"Hinzufügen"</strong></li>
+            <li>Öffnen Sie die App vom Home-Bildschirm</li>
+        </ol>
+    </div>
+
+    <script>
+    // iOS-spezifische Funktionen
+    function requestNotifications() {
+        // iOS-Check und PWA-Erkennung
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches;
+        
+        if (isIOS && !isInStandaloneMode) {
+            document.getElementById('ios-install-prompt').style.display = 'block';
+            return;
+        }
+        
+        // Standard Push-Request
+        PushIt.subscribe('frontend', window.PushItTopics).then(result => {
+            updateStatus(result.success ? 'Aktiviert ✅' : 'Fehler ❌');
+            if (!result.success) {
+                console.error('Push-Fehler:', result.error);
+            }
+        }).catch(error => {
+            console.error('Subscribe Error:', error);
+            updateStatus('Fehler beim Aktivieren ❌');
+        });
+    }
+    
+    function disableNotifications() {
+        PushIt.disable().then(result => {
+            updateStatus('Deaktiviert 🔕');
+        });
+    }
+    
+    function updateStatus(message) {
+        document.getElementById('status-display').textContent = message;
+    }
+    
+    // Status beim Laden prüfen
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            PushIt.getStatus().then(status => {
+                updateStatus(status.isSubscribed ? 'Aktiviert ✅' : 'Verfügbar 🔔');
+            });
+        }, 1000);
+    });
+    
+    // Service Worker Message Handling
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', event => {
+            if (event.data && event.data.type === 'push-received') {
+                console.log('Push empfangen:', event.data.payload);
+            }
+        });
+    }
+    </script>
+    
+    <!-- CSS für besseres iOS-Design -->
+    <style>
+    .notification-controls {
+        padding: 20px;
+        text-align: center;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin: 20px;
+    }
+    
+    .btn-primary, .btn-secondary {
+        padding: 12px 24px;
+        margin: 8px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        display: inline-block;
+    }
+    
+    .btn-primary {
+        background: #007AFF;
+        color: white;
+    }
+    
+    .btn-secondary {
+        background: #8E8E93;
+        color: white;
+    }
+    
+    .ios-prompt {
+        background: #FFF3CD;
+        border: 1px solid #FFEAA7;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 20px;
+    }
+    
+    .status-info {
+        margin-top: 12px;
+        font-weight: bold;
+        padding: 8px;
+        border-radius: 4px;
+        background: #E3F2FD;
+    }
+    
+    /* iOS Safari spezifische Styles */
+    @supports (-webkit-touch-callout: none) {
+        .btn-primary, .btn-secondary {
+            -webkit-appearance: none;
+            appearance: none;
+        }
+    }
+    </style>
+</body>
+</html>
+```
+
+## 🔧 **Backend/PHP Integration**
+
+### NotificationService Basics
+
+```php
+<?php
+use FriendsOfREDAXO\PushIt\Service\NotificationService;
+
+// Service initialisieren
+$service = new NotificationService();
+
+// Einfache Nachricht an alle
+$service->sendToAll(
+    'Willkommen!',
+    'Herzlich willkommen auf unserer Website',
+    'https://example.com/welcome'
+);
+
+// Mit erweiterten Optionen
+$options = [
+    'icon' => '/media/notification-icon.png',
+    'badge' => '/media/badge.png',
+    'image' => '/media/hero-image.jpg',
+    'tag' => 'welcome-series',
+    'requireInteraction' => true,
+    'actions' => [
+        [
+            'action' => 'view',
+            'title' => 'Jetzt ansehen',
+            'icon' => '/media/view-icon.png'
+        ],
+        [
+            'action' => 'later',
+            'title' => 'Später',
+            'icon' => '/media/later-icon.png'
+        ]
+    ]
+];
+
+$service->sendNotification(
+    'Neuer Artikel verfügbar',
+    'Ein spannender neuer Artikel wartet auf Sie',
+    'https://example.com/artikel/123',
+    $options
+);
+?>
+```
+
+### Zielgruppen-spezifische Nachrichten
+
+```php
+<?php
+use FriendsOfREDAXO\PushIt\Service\NotificationService;
+
+$service = new NotificationService();
+
+// Nur an Frontend-Benutzer
+$service->sendToFrontendUsers(
+    'Newsletter Update',
+    'Neue Ausgabe verfügbar',
+    '/newsletter/aktuell',
+    ['newsletter', 'updates']
+);
+
+// Nur an Backend-Benutzer (Admins)
+$service->sendToBackendUsers(
+    'System Wartung',
+    'Geplante Wartung heute um 22:00 Uhr',
+    '/redaxo/index.php?page=system',
+    ['system', 'maintenance']
+);
+
+// An spezifische Topics
+$service->sendToTopics(
+    ['breaking-news', 'urgent'],
+    'Eilmeldung',
+    'Wichtige Nachricht für alle Abonnenten',
+    '/news/breaking'
+);
+
+// Mit Bedingungen
+$service->sendToUsersWhere(
+    'user_type = "frontend" AND topics LIKE "%premium%"',
+    'Premium Feature',
+    'Neues Feature nur für Premium-Mitglieder',
+    '/premium/new-feature'
+);
+?>
+```
+
+### E-Commerce Beispiele
+
+```php
+<?php
+// Neue Bestellung
+function notifyNewOrder($orderId, $customerName) {
+    $service = new NotificationService();
+    
+    $service->sendToBackendUsers(
+        "💰 Neue Bestellung #$orderId",
+        "Bestellung von $customerName eingegangen",
+        "/redaxo/index.php?page=shop/orders&order_id=$orderId",
+        ['orders', 'ecommerce']
+    );
+}
+
+// Warenkorb-Erinnerung
+function sendCartReminder($userId, $cartItems) {
+    $service = new NotificationService();
+    
+    $message = count($cartItems) . " Artikel warten in Ihrem Warenkorb";
+    
+    $service->sendToUser(
+        $userId,
+        '🛒 Vergessene Artikel',
+        $message,
+        '/shop/cart',
+        [
+            'tag' => 'cart-reminder',
+            'icon' => '/media/cart-icon.png',
+            'actions' => [
+                ['action' => 'checkout', 'title' => 'Zur Kasse'],
+                ['action' => 'later', 'title' => 'Später']
+            ]
+        ]
+    );
+}
+
+// Lager-Warnung
+function notifyLowStock($productId, $stock) {
+    if ($stock <= 5) {
+        $service = new NotificationService();
+        
+        $service->sendToTopics(
+            ['admin', 'inventory'],
+            '⚠️ Niedriger Lagerbestand',
+            "Produkt #$productId hat nur noch $stock Stück",
+            "/redaxo/index.php?page=shop/products&id=$productId"
+        );
+    }
+}
+?>
+```
+
+## 🚨 **System Error Monitoring**
+
+### Vollständige Cronjob-Implementierung
+
+```php
+<?php
+// In boot.php - Cronjob-Modus Setup
+$addon = rex_addon::get('push_it');
+
+if ($addon->getConfig('error_monitoring_enabled') && 
+    $addon->getConfig('monitoring_mode') === 'cronjob') {
+    
+    // Cronjob-Type registrieren
+    if (rex_addon::get('cronjob')->isAvailable()) {
+        rex_cronjob_manager::registerType(
+            \FriendsOfREDAXO\PushIt\Cronjob\SystemMonitoringCronjob::class
+        );
+    }
+}
+
+// SystemMonitoringCronjob.php - Vollständige Implementierung
+<?php
+namespace FriendsOfREDAXO\PushIt\Cronjob;
+
+use rex_cronjob;
+use FriendsOfREDAXO\PushIt\Service\SystemErrorMonitor;
+
+class SystemMonitoringCronjob extends rex_cronjob
+{
+    public function execute()
+    {
+        $monitor = new SystemErrorMonitor();
+        $result = $monitor->cronCheck();
+        
+        if ($result['success']) {
+            $this->setMessage("Monitoring erfolgreich. " . 
+                            ($result['notifications_sent'] ?? 0) . " Benachrichtigungen gesendet.");
+            return true;
+        } else {
+            $this->setMessage("Monitoring-Fehler: " . ($result['error'] ?? 'Unbekannter Fehler'));
+            return false;
+        }
+    }
+
+    public function getTypeName()
+    {
+        return 'Push-It System Monitoring';
+    }
+
+    public function getParamFields()
+    {
+        return [
+            [
+                'label' => 'Fehler-Schwellenwert',
+                'name' => 'error_threshold',
+                'type' => 'select',
+                'options' => [1 => '1 Fehler', 5 => '5 Fehler', 10 => '10 Fehler'],
+                'default' => 1
+            ],
+            [
+                'label' => 'Debug-Modus',
+                'name' => 'debug_mode',
+                'type' => 'checkbox',
+                'default' => 0
+            ]
+        ];
+    }
+}
+?>
+```
+
+### Realtime-Monitoring Implementation
+
+```php
+<?php
+// In boot.php - Realtime-Modus
+if ($addon->getConfig('error_monitoring_enabled') && 
+    $addon->getConfig('monitoring_mode') === 'realtime') {
+    
+    rex_extension::register('RESPONSE_SHUTDOWN', function() {
+        $monitor = new SystemErrorMonitor();
+        $monitor->checkAndSendErrorNotifications();
+    }, rex_extension::LATE);
+}
+
+// Custom Error Handler mit Push-Integration
+function customErrorHandler($severity, $message, $file, $line) {
+    // Standard REDAXO Error Handling
+    $logEntry = "PHP Error [$severity]: $message in $file on line $line";
+    rex_logger::logError('system', $logEntry);
+    
+    // Sofortige Push-Benachrichtigung bei kritischen Fehlern
+    if (in_array($severity, [E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR])) {
+        $monitor = new SystemErrorMonitor();
+        $monitor->sendImmediateErrorNotification($logEntry);
+    }
+    
+    return false; // Standardverhalten nicht überschreiben
+}
+
+set_error_handler('customErrorHandler');
+?>
+```
+
+### Custom Error Monitoring
+
+```php
+<?php
+use FriendsOfREDAXO\PushIt\Service\SystemErrorMonitor;
+use FriendsOfREDAXO\PushIt\Service\NotificationService;
+
+// Eigene Fehlerüberwachung implementieren
+class CustomErrorMonitor extends SystemErrorMonitor
+{
+    protected function shouldNotify($errorCount, $lastError) 
+    {
+        // Custom-Logik: Nur bei mehr als 3 Fehlern benachrichtigen
+        if ($errorCount < 3) {
+            return false;
+        }
+        
+        // Nicht nachts benachrichtigen (22:00 - 06:00)
+        $hour = (int)date('H');
+        if ($hour >= 22 || $hour <= 6) {
+            return false;
+        }
+        
+        // Nicht am Wochenende bei nicht-kritischen Fehlern
+        $isWeekend = in_array(date('N'), [6, 7]);
+        $isCritical = strpos($lastError, 'CRITICAL') !== false;
+        
+        if ($isWeekend && !$isCritical) {
+            return false;
+        }
+        
+        return parent::shouldNotify($errorCount, $lastError);
+    }
+    
+    protected function createErrorMessage($errorCount, $lastError) 
+    {
+        $domain = rex::getServerName();
+        $severity = $this->getErrorSeverity($lastError);
+        
+        return [
+            'title' => "🚨 $severity: $errorCount Fehler auf $domain",
+            'body' => $this->shortenError($lastError),
+            'url' => rex_url::backendPage('system/log'),
+            'options' => [
+                'tag' => 'system-error-' . date('Y-m-d-H'),
+                'icon' => '/assets/addons/push_it/error-icon.png',
+                'badge' => '/assets/addons/push_it/error-badge.png',
+                'requireInteraction' => $severity === 'KRITISCH',
+                'actions' => [
+                    ['action' => 'view-log', 'title' => 'Log anzeigen'],
+                    ['action' => 'dismiss', 'title' => 'Verstanden']
+                ]
+            ]
+        ];
+    }
+    
+    private function getErrorSeverity($error) 
+    {
+        if (strpos($error, 'FATAL') !== false || strpos($error, 'E_ERROR') !== false) {
+            return 'KRITISCH';
+        }
+        if (strpos($error, 'WARNING') !== false) {
+            return 'WARNUNG';
+        }
+        return 'INFO';
+    }
+}
+
+## 📱 **iOS & PWA Setup**
+
+### Manifest.json erstellen
+
+**Wichtig**: Für Push-Benachrichtigungen auf iOS Safari ist eine `manifest.json` Datei **zwingend erforderlich**.
+
+```json
+{
+    "name": "Meine REDAXO Website",
+    "short_name": "REDAXO Site", 
+    "description": "Website mit Push-Benachrichtigungen",
+    "start_url": "/",
+    "display": "minimal-ui",
+    "background_color": "#ffffff",
+    "theme_color": "#d62d20",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "icons": [
+        {
+            "src": "/assets/addons/push_it/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/assets/addons/push_it/icon-512.png",
+            "sizes": "512x512", 
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": ["news", "business"],
+    "lang": "de-DE",
+    "prefer_related_applications": false
+}
+```
+
+### REDAXO Template Integration
+
+```php
+<?php
+// manifest.php - Dynamische Manifest-Generierung
+header('Content-Type: application/manifest+json; charset=utf-8');
+
+$manifestData = [
+    'name' => rex::getServerName() . ' - ' . rex_config::get('website', 'title', 'REDAXO Website'),
+    'short_name' => rex_config::get('website', 'short_title', rex::getServerName()),
+    'description' => rex_config::get('website', 'description', 'Website mit Push-Benachrichtigungen'),
+    'start_url' => rex_url::frontend(),
+    'scope' => rex_url::frontend(),
+    'display' => 'minimal-ui',
+    'background_color' => rex_config::get('website', 'background_color', '#ffffff'),
+    'theme_color' => rex_config::get('website', 'theme_color', '#d62d20'),
+    'orientation' => 'portrait-primary',
+    'lang' => rex_clang::getCurrent()->getCode() . '-' . strtoupper(rex_clang::getCurrent()->getCode()),
+    'icons' => [
+        [
+            'src' => rex_url::assets('addons/push_it/icon-192.png'),
+            'sizes' => '192x192',
+            'type' => 'image/png',
+            'purpose' => 'any maskable'
+        ],
+        [
+            'src' => rex_url::assets('addons/push_it/icon-512.png'),
+            'sizes' => '512x512',
+            'type' => 'image/png', 
+            'purpose' => 'any maskable'
+        ]
+    ],
+    'categories' => rex_config::get('website', 'categories', ['business']),
+    'prefer_related_applications' => false
+];
+
+echo json_encode($manifestData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+?>
+```
+
+### HTML Template Integration
+
+```html
+<!DOCTYPE html>
+<html lang="<?php echo rex_clang::getCurrent()->getCode(); ?>">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.php">
+    
+    <!-- iOS-spezifische Meta-Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="<?php echo rex_config::get('website', 'short_title', rex::getServerName()); ?>">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/addons/push_it/icon-180.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/assets/addons/push_it/icon-192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="/assets/addons/push_it/icon-512.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/addons/push_it/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/addons/push_it/favicon-16x16.png">
+    
+    <!-- Windows Tiles -->
+    <meta name="msapplication-TileColor" content="#d62d20">
+    <meta name="msapplication-TileImage" content="/assets/addons/push_it/ms-icon-144x144.png">
+    
+    <!-- Theme Colors -->
+    <meta name="theme-color" content="#d62d20">
+    <meta name="msapplication-navbutton-color" content="#d62d20">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <title><?php echo rex_config::get('website', 'title', 'REDAXO Website'); ?></title>
+</head>
+<body>
+    <!-- Ihr Content -->
+    
+    <!-- iOS Installation Prompt -->
+    <div id="ios-install-banner" style="display: none;" class="ios-install-prompt">
+        <div class="install-content">
+            <div class="install-icon">📱</div>
+            <div class="install-text">
+                <h4>App installieren</h4>
+                <p>Für Push-Benachrichtigungen installieren Sie diese Website als App</p>
+            </div>
+            <div class="install-actions">
+                <button onclick="showIOSInstructions()">Anleitung</button>
+                <button onclick="dismissInstallPrompt()">×</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- iOS Installations-Anleitung -->
+    <div id="ios-instructions" style="display: none;" class="modal-overlay">
+        <div class="modal-content">
+            <h3>📲 Installation auf iOS</h3>
+            <ol class="install-steps">
+                <li>Tippen Sie auf das <strong>Teilen-Symbol</strong> <span class="icon">□↗</span> unten in Safari</li>
+                <li>Scrollen Sie nach unten und wählen Sie <strong>"Zum Home-Bildschirm"</strong></li>
+                <li>Bestätigen Sie mit <strong>"Hinzufügen"</strong></li>
+                <li>Die App erscheint auf Ihrem Home-Bildschirm</li>
+                <li>Öffnen Sie die App vom Home-Bildschirm für Push-Benachrichtigungen</li>
+            </ol>
+            <button onclick="closeIOSInstructions()" class="btn-primary">Verstanden</button>
+        </div>
+    </div>
+
+    <script>
+    // iOS PWA Installation Detection
+    document.addEventListener('DOMContentLoaded', function() {
+        // Prüfen ob iOS und nicht bereits als PWA geöffnet
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        
+        if (isIOS && !isInStandaloneMode) {
+            // Prüfen ob Banner bereits geschlossen wurde
+            if (!localStorage.getItem('ios-install-dismissed')) {
+                setTimeout(() => {
+                    document.getElementById('ios-install-banner').style.display = 'block';
+                }, 3000); // Nach 3 Sekunden anzeigen
+            }
+        }
+        
+        // Browser PWA Install Prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Eigenen Install-Button anzeigen
+            showInstallButton();
+        });
+    });
+    
+    function showIOSInstructions() {
+        document.getElementById('ios-instructions').style.display = 'flex';
+    }
+    
+    function closeIOSInstructions() {
+        document.getElementById('ios-instructions').style.display = 'none';
+    }
+    
+    function dismissInstallPrompt() {
+        document.getElementById('ios-install-banner').style.display = 'none';
+        localStorage.setItem('ios-install-dismissed', 'true');
+    }
+    
+    // PWA Install für andere Browser
+    function showInstallButton() {
+        // Custom Install Button anzeigen
+        const installBtn = document.createElement('button');
+        installBtn.textContent = '📱 App installieren';
+        installBtn.onclick = installPWA;
+        installBtn.className = 'pwa-install-btn';
+        document.body.appendChild(installBtn);
+    }
+    
+    function installPWA() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('PWA installation accepted');
+                }
+                deferredPrompt = null;
+            });
+        }
+    }
+    </script>
+    
+    <style>
+    .ios-install-prompt {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 16px;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+        z-index: 1000;
+        animation: slideUp 0.3s ease-out;
+    }
+    
+    .install-content {
+        display: flex;
+        align-items: center;
+        max-width: 600px;
+        margin: 0 auto;
+        gap: 16px;
+    }
+    
+    .install-icon {
+        font-size: 32px;
+        line-height: 1;
+    }
+    
+    .install-text h4 {
+        margin: 0 0 4px 0;
+        font-size: 16px;
+        font-weight: 600;
+    }
+    
+    .install-text p {
+        margin: 0;
+        font-size: 14px;
+        opacity: 0.9;
+    }
+    
+    .install-actions {
+        margin-left: auto;
+        display: flex;
+        gap: 8px;
+    }
+    
+    .install-actions button {
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    
+    .install-actions button:hover {
+        background: rgba(255,255,255,0.3);
+    }
+    
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        padding: 20px;
+    }
+    
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        max-width: 400px;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .install-steps {
+        text-align: left;
+        padding-left: 20px;
+        line-height: 1.6;
+    }
+    
+    .install-steps .icon {
+        font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: #f0f0f0;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 16px;
+    }
+    
+    .btn-primary {
+        background: #007AFF;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 16px;
+    }
+    
+    .pwa-install-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #007AFF;
+        color: white;
+        border: none;
+        padding: 12px 16px;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0,122,255,0.3);
+        z-index: 1000;
+    }
+    
+    @keyframes slideUp {
+        from {
+            transform: translateY(100%);
+        }
+        to {
+            transform: translateY(0);
+        }
+    }
+    
+    /* Responsive */
+    @media (max-width: 600px) {
+        .install-content {
+            flex-direction: column;
+            text-align: center;
+            gap: 12px;
+        }
+        
+        .install-actions {
+            margin-left: 0;
+        }
+    }
+    </style>
+</body>
+</html>
+```
+
+### Service Worker Anpassungen für iOS
+
+```javascript
+// In service-worker.js - iOS-spezifische Optimierungen
+self.addEventListener('push', function(event) {
+    const data = event.data ? event.data.json() : {};
+    
+    // iOS-optimierte Notification-Optionen
+    const options = {
+        body: data.body,
+        icon: data.icon || '/assets/addons/push_it/icon-192.png',
+        badge: data.badge || '/assets/addons/push_it/badge-72.png',
+        image: data.image,
+        tag: data.tag || 'push-notification',
+        data: {
+            url: data.url,
+            actions: data.actions || []
+        },
+        // iOS-spezifische Optionen
+        requireInteraction: data.requireInteraction || false,
+        silent: data.silent || false,
+        timestamp: Date.now(),
+        // iOS-Fallback für Actions
+        actions: self.navigator.userAgent.includes('iPhone') ? [] : (data.actions || [])
+    };
+    
+    event.waitUntil(
+        self.registration.showNotification(data.title || 'Neue Nachricht', options)
+    );
+});
+
+// iOS-spezifisches Click-Handling
+self.addEventListener('notificationclick', function(event) {
+    event.notification.close();
+    
+    const notificationData = event.notification.data;
+    
+    if (event.action) {
+        // Action Button geklickt
+        handleNotificationAction(event.action, notificationData);
+    } else {
+        // Notification selbst geklickt
+        if (notificationData.url) {
+            event.waitUntil(
+                clients.openWindow(notificationData.url)
+            );
+        }
+    }
+});
+
+function handleNotificationAction(action, data) {
+    switch(action) {
+        case 'view':
+            if (data.url) {
+                clients.openWindow(data.url);
+            }
+            break;
+        case 'dismiss':
+            // Notification wird automatisch geschlossen
+            break;
+        default:
+            if (data.url) {
+                clients.openWindow(data.url);
+            }
+    }
+}
+```
 
 ## 📱 Grundlegende Integration
 
 ### Frontend JavaScript Integration
 
-```javascript
-// Einfache Frontend-Integration
+```html
+<!-- Push-It JavaScript einbinden -->
+<script src="/assets/addons/push_it/frontend.js"></script>
 <script>
-// Push-Benachrichtigungen für Frontend-Benutzer aktivieren
+// Push-It Konfiguration
+window.PushItPublicKey = 'YOUR_VAPID_PUBLIC_KEY_HERE';
+window.PushItTopics = 'news,updates';
+</script>
+
+<script>
+// Einfache Frontend-Integration
 async function enableNotifications() {
     try {
         await PushIt.subscribe('frontend', 'news,offers');
@@ -30,9 +1022,10 @@ async function checkStatus() {
 
 ### Backend Integration
 
-```javascript
-// Backend-Benachrichtigungen für Administratoren
+```html
+<!-- Backend JavaScript (im REDAXO Backend automatisch verfügbar) -->
 <script>
+// Backend-Benachrichtigungen für Administratoren
 async function enableBackendNotifications() {
     try {
         await PushIt.subscribe('backend', 'system,admin,critical');
@@ -61,6 +1054,14 @@ iOS Safari erfordert spezielle Behandlung, da Push-Nachrichten nur in Web-Apps f
     <meta name="apple-mobile-web-app-title" content="Meine App">
     <link rel="apple-touch-icon" href="/assets/addons/push_it/icon.png">
     <link rel="manifest" href="/manifest.json">
+    
+    <!-- Push-It JavaScript einbinden -->
+    <script src="/assets/addons/push_it/frontend.js"></script>
+    <script>
+        // Push-It Konfiguration
+        window.PushItPublicKey = 'YOUR_VAPID_PUBLIC_KEY_HERE';
+        window.PushItTopics = 'news,updates';
+    </script>
 </head>
 <body>
     <div id="ios-install-prompt" class="ios-prompt" style="display: none;">
@@ -88,7 +1089,22 @@ iOS Safari erfordert spezielle Behandlung, da Push-Nachrichten nur in Web-Apps f
     </div>
 
     <script>
-        // iOS-Erkennung und Installation
+        // Warten bis PushIt geladen ist
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePushFeatures();
+        });
+
+        function initializePushFeatures() {
+            // iOS-Erkennung und Installation
+            if (isInstallable()) {
+                document.getElementById('ios-install-prompt').style.display = 'block';
+                document.getElementById('notification-controls').style.display = 'none';
+            } else {
+                updateButtonStates();
+            }
+        }
+
+        // iOS-Hilfsfunktionen
         function isIOS() {
             return /iPad|iPhone|iPod/.test(navigator.userAgent);
         }
@@ -101,15 +1117,10 @@ iOS Safari erfordert spezielle Behandlung, da Push-Nachrichten nur in Web-Apps f
             return isIOS() && !isInStandaloneMode();
         }
         
-        // iOS-Installationsaufforderung anzeigen
-        if (isInstallable()) {
-            document.getElementById('ios-install-prompt').style.display = 'block';
-            document.getElementById('notification-controls').style.display = 'none';
-        }
-        
         function hideIOSPrompt() {
             document.getElementById('ios-install-prompt').style.display = 'none';
             document.getElementById('notification-controls').style.display = 'block';
+            updateButtonStates();
         }
         
         // Benachrichtigungen aktivieren
@@ -142,21 +1153,22 @@ iOS Safari erfordert spezielle Behandlung, da Push-Nachrichten nur in Web-Apps f
         
         // Button-Status aktualisieren
         async function updateButtonStates() {
-            const status = await PushIt.getStatus();
-            const enableBtn = document.getElementById('enable-notifications');
-            const disableBtn = document.getElementById('disable-notifications');
-            
-            if (status.isSubscribed) {
-                enableBtn.style.display = 'none';
-                disableBtn.style.display = 'inline-block';
-            } else {
-                enableBtn.style.display = 'inline-block';
-                disableBtn.style.display = 'none';
+            try {
+                const status = await PushIt.getStatus();
+                const enableBtn = document.getElementById('enable-notifications');
+                const disableBtn = document.getElementById('disable-notifications');
+                
+                if (status.isSubscribed) {
+                    enableBtn.style.display = 'none';
+                    disableBtn.style.display = 'inline-block';
+                } else {
+                    enableBtn.style.display = 'inline-block';
+                    disableBtn.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Status-Update-Fehler:', error);
             }
         }
-        
-        // Initial laden
-        document.addEventListener('DOMContentLoaded', updateButtonStates);
     </script>
 </body>
 </html>
@@ -173,20 +1185,26 @@ iOS Safari erfordert spezielle Behandlung, da Push-Nachrichten nur in Web-Apps f
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#007bff",
+    "orientation": "portrait-primary",
+    "scope": "/",
     "icons": [
         {
-            "src": "/assets/addons/push_it/icon.png",
+            "src": "/assets/addons/push_it/icon-192.png",
             "sizes": "192x192",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any maskable"
         },
         {
-            "src": "/assets/addons/push_it/icon.png",
+            "src": "/assets/addons/push_it/icon-512.png",
             "sizes": "512x512",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any maskable"
         }
     ]
 }
 ```
+
+**Hinweis**: Die Manifest-Datei sollte über HTTPS und mit korrektem MIME-Type (`application/manifest+json`) ausgeliefert werden. In REDAXO können Sie sie als statische Datei im `media/` Ordner ablegen oder über eine Template-Route bereitstellen.
 
 ## 🎨 Framework-neutrale UI-Komponente
 

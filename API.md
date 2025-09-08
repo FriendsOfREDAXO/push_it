@@ -1,14 +1,17 @@
-# Push-It AddOn - API Referenz
+# PushIt - API Documentation
 
-Diese Dokumentation beschreibt die vollständige API des Push-It AddOns für REDAXO 5.
+Vollständige API-Referenz für das PushIt AddOn.
 
-## 📝 Inhaltsverzeichnis
+## � **Inhaltsverzeichnis**
 
-- [JavaScript Frontend API](#javascript-frontend-api)
-- [JavaScript Backend API](#javascript-backend-api)
-- [PHP Service Classes](#php-service-classes)
-- [REST API Endpoints](#rest-api-endpoints)
-- [Event System](#event-system)
+1. [PHP Service Classes](#php-service-classes)
+2. [REST API Endpoints](#rest-api-endpoints)
+3. [JavaScript Frontend API](#javascript-frontend-api)
+4. [Extension Points](#extension-points)
+5. [Configuration Options](#configuration-options)
+6. [Advanced Features](#advanced-features)
+7. [Error Handling](#error-handling)
+8. [Performance & Limits](#performance--limits)
 - [Configuration API](#configuration-api)
 
 ---

@@ -309,3 +309,28 @@ pushit_backend_subscriptions_found = %s backend subscriptions without assigned U
 pushit_repair_subscriptions_confirm = Would you like to link these subscriptions with your User ID (%s)?
 pushit_repair_button = Repair
 pushit_deactivate_notifications_button = Deactivate Notifications
+
+# Browser help instructions
+pushit_safari_step1 = 1. Click the <strong>lock icon</strong> in the address bar
+pushit_safari_step2 = 2. Select <strong>"Settings for this Website"</strong>
+pushit_safari_step3 = 3. Set <strong>"Notifications" to "Allow"</strong>
+pushit_safari_step4 = 4. Reload the page
+
+pushit_chrome_step1 = 1. Click the <strong>lock icon</strong> in the address bar
+pushit_chrome_step2 = 2. Enable <strong>"Notifications"</strong>
+pushit_chrome_step3 = 3. Reload the page
+
+pushit_firefox_step1 = 1. Click the <strong>shield icon</strong> in the address bar
+pushit_firefox_step2 = 2. Select <strong>"Edit Permission"</strong>
+pushit_firefox_step3 = 3. Set <strong>"Desktop Notifications" to "Allow"</strong>
+pushit_firefox_step4 = 4. Reload the page
+
+# Backend statistics
+pushit_backend_subscriptions = Backend Subscriptions
+pushit_editorial_topic = Editorial Topic
+pushit_admin_topics = Admin Topics
+pushit_system_topic = System
+pushit_admin_topic = Admin
+pushit_critical_topic = Critical
+pushit_statistics_temporarily_unavailable = Statistics Temporarily Unavailable
+pushit_backend_statistics_loading_error = Backend statistics cannot be loaded at the moment.

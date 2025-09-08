@@ -35,6 +35,7 @@ class BackendNotificationManager
         $userId = $currentUser ? $currentUser->getId() : null;
         
         return '<script src="' . $this->addon->getAssetsUrl('frontend.js') . '"></script>
+        <script src="' . $this->addon->getAssetsUrl('backend.js') . '"></script>
         <script type="text/javascript" nonce="' . \rex_response::getNonce() . '">
             window.PushItPublicKey = ' . json_encode($publicKey) . ';
             window.PushItUserId = ' . json_encode($userId) . ';
@@ -108,21 +109,21 @@ class BackendNotificationManager
                 <summary><strong>' . rex_i18n::msg('pushit_notifications_blocked_help_title') . '</strong></summary>
                 <div class="help-block" style="margin-top: 10px;">
                     <strong>🔧 Safari:</strong><br>
-                    1. Klicken Sie auf das <strong>Schloss-Symbol</strong> in der Adressleiste<br>
-                    2. Wählen Sie <strong>"Einstellungen für diese Website"</strong><br>
-                    3. Setzen Sie <strong>"' . rex_i18n::msg('pushit_allow_notifications') . '" auf "' . rex_i18n::msg('pushit_allow_setting') . '"</strong><br>
-                    4. Laden Sie die Seite neu<br><br>
+                    ' . rex_i18n::msg('pushit_safari_step1') . '<br>
+                    ' . rex_i18n::msg('pushit_safari_step2') . '<br>
+                    ' . rex_i18n::msg('pushit_safari_step3') . '<br>
+                    ' . rex_i18n::msg('pushit_safari_step4') . '<br><br>
                     
                     <strong>🔧 Chrome:</strong><br>
-                    1. Klicken Sie auf das <strong>Schloss-Symbol</strong> in der Adressleiste<br>
-                    2. Aktivieren Sie <strong>"' . rex_i18n::msg('pushit_allow_notifications') . '"</strong><br>
-                    3. Laden Sie die Seite neu<br><br>
+                    ' . rex_i18n::msg('pushit_chrome_step1') . '<br>
+                    ' . rex_i18n::msg('pushit_chrome_step2') . '<br>
+                    ' . rex_i18n::msg('pushit_chrome_step3') . '<br><br>
                     
                     <strong>🔧 Firefox:</strong><br>
-                    1. Klicken Sie auf das <strong>Schloss-Symbol</strong> in der Adressleiste<br>
-                    2. Wählen Sie <strong>"Berechtigung bearbeiten"</strong><br>
-                    3. Setzen Sie <strong>"' . rex_i18n::msg('pushit_desktop_notifications_setting') . '" auf "' . rex_i18n::msg('pushit_allow_setting') . '"</strong><br>
-                    4. Laden Sie die Seite neu
+                    ' . rex_i18n::msg('pushit_firefox_step1') . '<br>
+                    ' . rex_i18n::msg('pushit_firefox_step2') . '<br>
+                    ' . rex_i18n::msg('pushit_firefox_step3') . '<br>
+                    ' . rex_i18n::msg('pushit_firefox_step4') . '
                 </div>
             </details>
         </div>';
@@ -315,7 +316,7 @@ class BackendNotificationManager
             <div class="row">
                 <div class="col-md-3 text-center">
                     <h3>' . $stats['total_backend'] . '</h3>
-                    <p>Backend-Subscriptions</p>
+                    <p>' . rex_i18n::msg('pushit_backend_subscriptions') . '</p>
                 </div>
                 <div class="col-md-3 text-center">
                     <h3 class="text-success">' . $stats['active_backend'] . '</h3>
@@ -323,11 +324,11 @@ class BackendNotificationManager
                 </div>
                 <div class="col-md-3 text-center">
                     <h3 class="text-primary">' . $stats['editorial_subscribers'] . '</h3>
-                    <p>Editorial-Topic</p>
+                    <p>' . rex_i18n::msg('pushit_editorial_topic') . '</p>
                 </div>
                 <div class="col-md-3 text-center">
                     <h3 class="text-warning">' . ($stats['system_subscribers'] + $stats['admin_subscribers'] + $stats['critical_subscribers']) . '</h3>
-                    <p>Admin-Topics</p>
+                    <p>' . rex_i18n::msg('pushit_admin_topics') . '</p>
                 </div>
             </div>';
             
@@ -335,16 +336,16 @@ class BackendNotificationManager
                 $content .= '
                 <div class="row" style="margin-top: 15px;">
                     <div class="col-md-3 text-center">
-                        <small class="text-muted">System: ' . $stats['system_subscribers'] . '</small>
+                        <small class="text-muted">' . rex_i18n::msg('pushit_system_topic') . ': ' . $stats['system_subscribers'] . '</small>
                     </div>
                     <div class="col-md-3 text-center">
-                        <small class="text-muted">Admin: ' . $stats['admin_subscribers'] . '</small>
+                        <small class="text-muted">' . rex_i18n::msg('pushit_admin_topic') . ': ' . $stats['admin_subscribers'] . '</small>
                     </div>
                     <div class="col-md-3 text-center">
-                        <small class="text-muted">Critical: ' . $stats['critical_subscribers'] . '</small>
+                        <small class="text-muted">' . rex_i18n::msg('pushit_critical_topic') . ': ' . $stats['critical_subscribers'] . '</small>
                     </div>
                     <div class="col-md-3 text-center">
-                        <small class="text-muted">Editorial: ' . $stats['editorial_subscribers'] . '</small>
+                        <small class="text-muted">' . rex_i18n::msg('pushit_editorial_topic') . ': ' . $stats['editorial_subscribers'] . '</small>
                     </div>
                 </div>';
             }
@@ -353,8 +354,8 @@ class BackendNotificationManager
             
         } catch (\Exception $e) {
             return '<div class="alert alert-warning">
-                <h4>Statistiken temporär nicht verfügbar</h4>
-                <p>Die Backend-Statistiken können momentan nicht geladen werden.</p>
+                <h4>' . rex_i18n::msg('pushit_statistics_temporarily_unavailable') . '</h4>
+                <p>' . rex_i18n::msg('pushit_backend_statistics_loading_error') . '</p>
             </div>';
         }
     }

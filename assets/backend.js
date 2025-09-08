@@ -6,6 +6,98 @@
   let translationsLoaded = false;
   let currentLang = 'de';
   
+  function t(key, replacements = {}) {
+    // Fallback-Übersetzungen direkt im JavaScript
+    const fallbackTranslations = {
+      de: {
+        'status_active': 'Benachrichtigungen sind aktiv',
+        'status_inactive': 'Benachrichtigungen sind nicht aktiv',
+        'quick_notification_confirm_prefix': 'Möchten Sie eine',
+        'quick_notification_confirm_suffix': 'Benachrichtigung senden',
+        'notification_sent_success': 'Benachrichtigung erfolgreich gesendet!',
+        'notification_sent_error': 'Fehler beim Senden der Benachrichtigung.',
+        'network_error': 'Netzwerk-Fehler',
+        'critical_error_title': 'Kritischer System-Fehler',
+        'critical_error_message': 'Ein kritischer Fehler wurde erkannt und muss sofort behoben werden.',
+        'system_warning_title': 'System-Warnung',
+        'system_warning_message': 'Eine System-Warnung wurde ausgelöst.',
+        'system_info_title': 'System-Information',
+        'system_info_message': 'Neue System-Information verfügbar.',
+        'backend.notifications_activated': 'Backend-Benachrichtigungen wurden aktiviert!',
+        'backend.activation_error': 'Fehler beim Aktivieren der Benachrichtigungen: {message}',
+        'backend.test_sent': 'Test-Benachrichtigung wurde gesendet!',
+        'backend.test_error': 'Fehler beim Senden der Test-Benachrichtigung!',
+        'backend.status_reset': 'Backend-Subscription Status wurde zurückgesetzt.',
+        'backend.notifications_title': 'Backend-Benachrichtigungen',
+        'backend.notifications_prompt': 'Möchten Sie Push-Benachrichtigungen für Systemereignisse aktivieren?',
+        'backend.activate_button': 'Aktivieren',
+        'backend.decline_button': 'Nein, danke',
+        'backend.activate_backend': 'Backend aktivieren',
+        'backend.deactivate_button': 'Deaktivieren', 
+        'backend.settings_button': 'Einstellungen'
+      },
+      en: {
+        'status_active': 'Notifications are active',
+        'status_inactive': 'Notifications are not active',
+        'quick_notification_confirm_prefix': 'Do you want to send a',
+        'quick_notification_confirm_suffix': 'notification',
+        'notification_sent_success': 'Notification sent successfully!',
+        'notification_sent_error': 'Error sending notification.',
+        'network_error': 'Network error',
+        'critical_error_title': 'Critical System Error',
+        'critical_error_message': 'A critical error has been detected and needs immediate attention.',
+        'system_warning_title': 'System Warning',
+        'system_warning_message': 'A system warning has been triggered.',
+        'system_info_title': 'System Information',
+        'system_info_message': 'New system information available.',
+        'backend.notifications_activated': 'Backend notifications have been activated!',
+        'backend.activation_error': 'Error activating notifications: {message}',
+        'backend.test_sent': 'Test notification has been sent!',
+        'backend.test_error': 'Error sending test notification!',
+        'backend.status_reset': 'Backend subscription status has been reset.',
+        'backend.notifications_title': 'Backend Notifications',
+        'backend.notifications_prompt': 'Would you like to activate push notifications for system events?',
+        'backend.activate_button': 'Activate',
+        'backend.decline_button': 'No, thanks',
+        'backend.activate_backend': 'Activate Backend',
+        'backend.deactivate_button': 'Deactivate',
+        'backend.settings_button': 'Settings'
+      }
+    };
+    
+    // Verwende geladene Übersetzungen oder Fallback
+    let translations = {};
+    if (window.PushItLang && window.PushItLang[currentLang]) {
+      translations = window.PushItLang[currentLang];
+    } else {
+      translations = fallbackTranslations[currentLang] || fallbackTranslations.de || {};
+    }
+    
+    let text = translations[key] || key;
+    
+    // Platzhalter ersetzen {variable} mit Werten
+    for (const [placeholder, value] of Object.entries(replacements)) {
+      text = text.replace(new RegExp(`\\{${placeholder}\\}`, 'g'), value);
+    }
+    
+    return text;
+  }
+  
+  // Initialisiere PushIt-Objekt mit i18n sofort verfügbar
+  window.PushIt = window.PushIt || {};
+  
+  // i18n-System sofort verfügbar machen
+  window.PushIt.i18n = {
+    get: function(key, replacements = {}) {
+      return t(key, replacements);
+    },
+    
+    loadLanguage: loadTranslations
+  };
+  
+  // Sprache sofort laden (nicht auf DOMContentLoaded warten)
+  loadTranslations();
+  
   // Sprache ermitteln
   function detectLanguage() {
     if (window.rex && window.rex.push_it_language) {
@@ -13,6 +105,14 @@
     }
     if (window.PushItLanguage) {
       return window.PushItLanguage;
+    }
+    // Fallback: HTML lang attribute prüfen
+    const htmlLang = document.documentElement.lang;
+    if (htmlLang) {
+      const lang = htmlLang.split('-')[0];
+      if (['de', 'en'].includes(lang)) {
+        return lang;
+      }
     }
     // Fallback auf Browser-Sprache
     const browserLang = navigator.language.split('-')[0];
@@ -66,19 +166,6 @@
     }
   }
 
-  function t(key, replacements = {}) {
-    const translations = window.PushItLang && window.PushItLang[currentLang] ? window.PushItLang[currentLang] : {};
-    
-    let text = translations[key] || key;
-    
-    // Platzhalter ersetzen {variable} mit Werten
-    for (const [placeholder, value] of Object.entries(replacements)) {
-      text = text.replace(new RegExp(`\\{${placeholder}\\}`, 'g'), value);
-    }
-    
-    return text;
-  }
-  
   // Warten bis DOM und REDAXO-spezifische Objekte geladen sind
   document.addEventListener('DOMContentLoaded', async function() {
     // Sprache laden
@@ -328,17 +415,4 @@
     }
   };
   
-  // Erweitere PushIt-Objekt mit i18n falls nicht bereits vorhanden
-  if (typeof window.PushIt !== 'undefined') {
-    if (!window.PushIt.i18n) {
-      window.PushIt.i18n = {
-        get: function(key, replacements = {}) {
-          return t(key, replacements);
-        },
-        
-        loadLanguage: loadTranslations
-      };
-    }
-  }
-
 })();

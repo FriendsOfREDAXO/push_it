@@ -309,3 +309,28 @@ pushit_backend_subscriptions_found = Es wurden %s Backend-Subscriptions ohne zug
 pushit_repair_subscriptions_confirm = Möchten Sie diese Subscriptions mit Ihrer User-ID (%s) verknüpfen?
 pushit_repair_button = Reparieren
 pushit_deactivate_notifications_button = Benachrichtigungen deaktivieren
+
+# Browser help instructions
+pushit_safari_step1 = 1. Klicken Sie auf das <strong>Schloss-Symbol</strong> in der Adressleiste
+pushit_safari_step2 = 2. Wählen Sie <strong>"Einstellungen für diese Website"</strong>
+pushit_safari_step3 = 3. Setzen Sie <strong>"Benachrichtigungen" auf "Erlauben"</strong>
+pushit_safari_step4 = 4. Laden Sie die Seite neu
+
+pushit_chrome_step1 = 1. Klicken Sie auf das <strong>Schloss-Symbol</strong> in der Adressleiste
+pushit_chrome_step2 = 2. Aktivieren Sie <strong>"Benachrichtigungen"</strong>
+pushit_chrome_step3 = 3. Laden Sie die Seite neu
+
+pushit_firefox_step1 = 1. Klicken Sie auf das <strong>Schild-Symbol</strong> in der Adressleiste
+pushit_firefox_step2 = 2. Wählen Sie <strong>"Berechtigung bearbeiten"</strong>
+pushit_firefox_step3 = 3. Setzen Sie <strong>"Desktop-Benachrichtigungen" auf "Erlauben"</strong>
+pushit_firefox_step4 = 4. Laden Sie die Seite neu
+
+# Backend statistics
+pushit_backend_subscriptions = Backend-Subscriptions
+pushit_editorial_topic = Editorial-Topic
+pushit_admin_topics = Admin-Topics
+pushit_system_topic = System
+pushit_admin_topic = Admin
+pushit_critical_topic = Critical
+pushit_statistics_temporarily_unavailable = Statistiken temporär nicht verfügbar
+pushit_backend_statistics_loading_error = Die Backend-Statistiken können momentan nicht geladen werden.

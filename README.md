@@ -205,7 +205,7 @@ $service->sendToFrontendUsers(
 );
 ```
 
-## �🛠️ **System Error Monitoring Setup**
+## **System Error Monitoring Setup**
 
 Das Error Monitoring ersetzt `rex_mailer::errorMail()` mit modernen Push-Notifications:
 
@@ -219,7 +219,7 @@ Das Error Monitoring ersetzt `rex_mailer::errorMail()` mit modernen Push-Notific
 2. **Push-It System Monitoring** auswählen
 3. Intervall konfigurieren (z.B. alle 15 Minuten)
 
-## 📱 **iOS & PWA Support**
+## **iOS & PWA Support**
 
 **Wichtig**: Für iOS Safari ist eine `manifest.json` erforderlich:
 
@@ -252,20 +252,20 @@ Das Error Monitoring ersetzt `rex_mailer::errorMail()` mit modernen Push-Notific
 | Edge    | ✅ 17+  | ✅ 17+  | Vollständig |
 | Safari  | ✅ 16+  | ✅ 16.4+| Erfordert PWA |
 
-## 🔗 **Weiterführende Dokumentation**
+## **Weiterführende Dokumentation**
 
 - **[📚 EXAMPLES.md](EXAMPLES.md)** - Praktische Implementierungsbeispiele
 - **[📖 API.md](API.md)** - Vollständige API-Referenz
 - **[AddOns → PushIt → Hilfe](help)** - Backend-Dokumentation
 
-## 🎯 **Use Cases**
+## **Use Cases**
 
 - **E-Commerce**: Neue Bestellungen, Warenkorb-Erinnerungen
 - **News & Content**: Breaking News, neue Artikel
 - **System-Monitoring**: Fehlerbenachrichtigungen, Server-Alerts
 - **Community**: Forum-Updates, Event-Erinnerungen
 
-## 📄 **Lizenz & Support**
+## **Lizenz & Support**
 
 - **Lizenz**: MIT License
 - **Support**: [GitHub Issues](https://github.com/FriendsOfREDAXO/push_it/issues)

@@ -239,8 +239,14 @@ pushit_generate_vapid_keys = VAPID-Schlüssel generieren
 
 # Send page additional strings
 pushit_notification_sent_success = Benachrichtigung wurde erfolgreich gesendet! Gesendet: %d, Fehler: %d, Gesamt: %d
+# Send error messages
 pushit_send_error = Fehler beim Senden: %s
 pushit_send_notification_error = Fehler beim Senden der Benachrichtigung: %s
+pushit_send_unknown_error = Unbekannter Fehler beim Senden der Benachrichtigung
+
+# No subscriptions warnings
+pushit_no_subscriptions_title = Keine Abonnenten vorhanden
+pushit_no_subscriptions_message = Es sind derzeit keine aktiven Push-Notification-Abonnenten registriert. Bitten Sie Ihre Nutzer, Benachrichtigungen zu aktivieren, bevor Sie eine Nachricht senden.
 pushit_title_help = Haupt-Überschrift der Benachrichtigung
 pushit_body_help = Text der Benachrichtigung
 pushit_recipient_type_label = Empfänger-Typ

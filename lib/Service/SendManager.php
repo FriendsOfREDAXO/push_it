@@ -70,7 +70,7 @@ class SendManager
             } else {
                 return [
                     'success' => false,
-                    'message' => sprintf(rex_i18n::msg('pushit_send_error'), $result['error'] ?? 'Unknown error'),
+                    'message' => $result['message'] ?? rex_i18n::msg('pushit_send_unknown_error'),
                     'result' => $result
                 ];
             }
@@ -81,6 +81,30 @@ class SendManager
                 'result' => null
             ];
         }
+    }
+    
+    /**
+     * Ermittelt verfügbare User-Typen basierend auf aktiven Subscriptions
+     */
+    private function getAvailableUserTypes(): array
+    {
+        $sql = rex_sql::factory();
+        $sql->setQuery("
+            SELECT user_type, COUNT(*) as count 
+            FROM rex_push_it_subscriptions 
+            WHERE active = 1 
+            GROUP BY user_type
+        ");
+        
+        $available = [];
+        for ($i = 0; $i < $sql->getRows(); $i++) {
+            $userType = $sql->getValue('user_type');
+            $count = $sql->getValue('count');
+            $available[$userType] = $count;
+            $sql->next();
+        }
+        
+        return $available;
     }
     
     /**
@@ -164,6 +188,9 @@ class SendManager
         $badge = $formData['badge'] ?? '';
         $image = $formData['image'] ?? '';
         
+        // Verfügbare User-Typen ermitteln
+        $availableUserTypes = $this->getAvailableUserTypes();
+        
         $content = '
         <form action="' . rex_url::currentBackendPage() . '" method="post">
             <fieldset class="rex-form-col-1">
@@ -183,63 +210,106 @@ class SendManager
                     <label class="control-label" for="url">' . rex_i18n::msg('pushit_url_label') . '</label>
                     <input class="form-control" id="url" name="url" value="' . rex_escape($url) . '" placeholder="https://example.com" />
                     <p class="help-block">' . rex_i18n::msg('pushit_url_help') . '</p>
-                </div>
-                
+                </div>';
+        
+        // User-Type-Auswahl nur anzeigen, wenn Subscriptions vorhanden sind
+        if (!empty($availableUserTypes)) {
+            $content .= '
                 <hr>
                 <h4>' . rex_i18n::msg('pushit_user_type_label') . '</h4>
                 
                 <div class="rex-form-group form-group">
                     <label class="control-label" for="user_type">' . rex_i18n::msg('pushit_recipient_type_label') . '</label>
-                    <select class="form-control" id="user_type" name="user_type">
-                        <option value="frontend"' . ($userType === 'frontend' ? ' selected' : '') . '>' . rex_i18n::msg('pushit_user_type_frontend') . '</option>
-                        <option value="backend"' . ($userType === 'backend' ? ' selected' : '') . '>' . rex_i18n::msg('pushit_user_type_backend') . '</option>
-                        <option value="all"' . ($userType === 'all' ? ' selected' : '') . '>' . rex_i18n::msg('pushit_all_users') . '</option>
+                    <select class="form-control" id="user_type" name="user_type">';
+                    
+            // Frontend-Option nur anzeigen, wenn Frontend-Subscriptions vorhanden
+            if (isset($availableUserTypes['frontend'])) {
+                $content .= '<option value="frontend"' . ($userType === 'frontend' ? ' selected' : '') . '>' . 
+                           rex_i18n::msg('pushit_user_type_frontend') . ' (' . $availableUserTypes['frontend'] . ' Abonnenten)</option>';
+            }
+            
+            // Backend-Option nur anzeigen, wenn Backend-Subscriptions vorhanden  
+            if (isset($availableUserTypes['backend'])) {
+                $content .= '<option value="backend"' . ($userType === 'backend' ? ' selected' : '') . '>' . 
+                           rex_i18n::msg('pushit_user_type_backend') . ' (' . $availableUserTypes['backend'] . ' Abonnenten)</option>';
+            }
+            
+            // "Alle" Option nur anzeigen, wenn beide Typen vorhanden sind
+            if (isset($availableUserTypes['frontend']) && isset($availableUserTypes['backend'])) {
+                $totalCount = $availableUserTypes['frontend'] + $availableUserTypes['backend'];
+                $content .= '<option value="all"' . ($userType === 'all' ? ' selected' : '') . '>' . 
+                           rex_i18n::msg('pushit_all_users') . ' (' . $totalCount . ' Abonnenten)</option>';
+            }
+            
+            $content .= '
                     </select>
                     <p class="help-block">' . rex_i18n::msg('pushit_target_group_help') . '</p>
-                </div>
-                
+                </div>';
+        } else {
+            // Warnung anzeigen, wenn keine Subscriptions vorhanden sind
+            $content .= '
+                <div class="alert alert-warning">
+                    <strong>' . rex_i18n::msg('pushit_no_subscriptions_title') . '</strong><br>
+                    ' . rex_i18n::msg('pushit_no_subscriptions_message') . '
+                </div>';
+        }
+        
+        // Topics-Feld und erweiterte Optionen nur anzeigen, wenn Subscriptions vorhanden sind
+        if (!empty($availableUserTypes)) {
+            $content .= '
                 <div class="rex-form-group form-group">
                     <label class="control-label" for="topics">' . rex_i18n::msg('pushit_topics_label') . '</label>
                     <input class="form-control" id="topics" name="topics" value="' . rex_escape($topics) . '" placeholder="news,updates,alerts" />
                     <p class="help-block">' . rex_i18n::msg('pushit_topics_help') . '</p>
                 </div>';
 
-        // Erweiterte Optionen nur für Admins
-        if ($isAdmin) {
+            // Erweiterte Optionen nur für Admins
+            if ($isAdmin) {
+                $content .= '
+                    <hr>
+                    <h4>' . rex_i18n::msg('pushit_advanced_options') . ' <small class="text-muted">' . rex_i18n::msg('pushit_admin_only') . '</small></h4>
+                    
+                    <div class="rex-form-group form-group">
+                        <label class="control-label" for="icon">' . rex_i18n::msg('pushit_icon_url_label') . '</label>
+                        <input class="form-control" id="icon" name="icon" value="' . rex_escape($icon) . '" placeholder="/media/notification-icon.png" />
+                        <p class="help-block">' . rex_i18n::msg('pushit_icon_url_help') . '</p>
+                    </div>
+                    
+                    <div class="rex-form-group form-group">
+                        <label class="control-label" for="badge">' . rex_i18n::msg('pushit_badge_url_label') . '</label>
+                        <input class="form-control" id="badge" name="badge" value="' . rex_escape($badge) . '" placeholder="/media/badge.png" />
+                        <p class="help-block">' . rex_i18n::msg('pushit_badge_url_help') . '</p>
+                    </div>
+                    
+                    <div class="rex-form-group form-group">
+                        <label class="control-label" for="image">' . rex_i18n::msg('pushit_hero_image_url_label') . '</label>
+                        <input class="form-control" id="image" name="image" value="' . rex_escape($image) . '" placeholder="/media/hero-image.jpg" />
+                        <p class="help-block">' . rex_i18n::msg('pushit_hero_image_url_help') . '</p>
+                    </div>';
+            }
+
             $content .= '
-                <hr>
-                <h4>' . rex_i18n::msg('pushit_advanced_options') . ' <small class="text-muted">' . rex_i18n::msg('pushit_admin_only') . '</small></h4>
-                
-                <div class="rex-form-group form-group">
-                    <label class="control-label" for="icon">' . rex_i18n::msg('pushit_icon_url_label') . '</label>
-                    <input class="form-control" id="icon" name="icon" value="' . rex_escape($icon) . '" placeholder="/media/notification-icon.png" />
-                    <p class="help-block">' . rex_i18n::msg('pushit_icon_url_help') . '</p>
-                </div>
-                
-                <div class="rex-form-group form-group">
-                    <label class="control-label" for="badge">' . rex_i18n::msg('pushit_badge_url_label') . '</label>
-                    <input class="form-control" id="badge" name="badge" value="' . rex_escape($badge) . '" placeholder="/media/badge.png" />
-                    <p class="help-block">' . rex_i18n::msg('pushit_badge_url_help') . '</p>
-                </div>
-                
-                <div class="rex-form-group form-group">
-                    <label class="control-label" for="image">' . rex_i18n::msg('pushit_hero_image_url_label') . '</label>
-                    <input class="form-control" id="image" name="image" value="' . rex_escape($image) . '" placeholder="/media/hero-image.jpg" />
-                    <p class="help-block">' . rex_i18n::msg('pushit_hero_image_url_help') . '</p>
-                </div>';
+                    <hr>
+                    <div class="rex-form-group form-group">
+                        <button class="btn btn-primary" name="send" value="1" type="submit">
+                            <i class="rex-icon fa-paper-plane"></i> ' . rex_i18n::msg('pushit_send_notification_button') . '
+                        </button>
+                        <button class="btn btn-default" type="reset">
+                            <i class="rex-icon fa-eraser"></i> ' . rex_i18n::msg('pushit_reset_form_button') . '
+                        </button>
+                    </div>';
+        } else {
+            // Deaktivierter Send-Button wenn keine Subscriptions
+            $content .= '
+                    <hr>
+                    <div class="rex-form-group form-group">
+                        <button class="btn btn-default" disabled>
+                            <i class="rex-icon fa-paper-plane"></i> ' . rex_i18n::msg('pushit_send_notification_button') . ' (Keine Abonnenten)
+                        </button>
+                    </div>';
         }
 
         $content .= '
-                <hr>
-                <div class="rex-form-group form-group">
-                    <button class="btn btn-primary" name="send" value="1" type="submit">
-                        <i class="rex-icon fa-paper-plane"></i> ' . rex_i18n::msg('pushit_send_notification_button') . '
-                    </button>
-                    <button class="btn btn-default" type="reset">
-                        <i class="rex-icon fa-eraser"></i> ' . rex_i18n::msg('pushit_reset_form_button') . '
-                    </button>
-                </div>
-            </fieldset>
         </form>';
 
         // Test-Funktionen hinzufügen wenn VAPID verfügbar

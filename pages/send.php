@@ -33,8 +33,8 @@ $testMode = rex_request('test_mode', 'bool');
 // Send-Action verarbeiten
 if ($doSend) {
     if ($testMode) {
-        // Testmodus: Nur an aktuellen Benutzer senden
-        $result = $sendManager->sendTestNotification();
+        // Testmodus: Nur an aktuellen Benutzer senden - mit echten Formulardaten
+        $result = $sendManager->sendTestNotification($formData);
         
         if ($result['success']) {
             echo rex_view::success('✅ Test-Benachrichtigung erfolgreich gesendet!');

@@ -16,18 +16,28 @@ $historyManager = new HistoryManager();
 $action = rex_request('action', 'string');
 $id = rex_request('id', 'int');
 
-if ($action && $id > 0) {
-    $result = $historyManager->processAction($action, $id);
-    
-    if ($result['success']) {
-        echo rex_view::success($result['message']);
+if ($action) {
+    if ($action === 'delete_all' || $action === 'delete_filtered') {
+        // Für Lösch-Aktionen keine ID erforderlich
+        $result = $historyManager->processAction($action, 0);
+    } elseif ($id > 0) {
+        // Für andere Aktionen ID erforderlich
+        $result = $historyManager->processAction($action, $id);
     } else {
-        echo rex_view::error($result['message']);
+        $result = ['success' => false, 'message' => 'Ungültige Aktion oder fehlende ID'];
     }
     
-    // Bei Delete-Action redirect
-    if ($action === 'delete' && $result['success']) {
-        echo '<script>window.location.href = "' . rex_url::backendPage('push_it/history') . '";</script>';
+    if (isset($result)) {
+        if ($result['success']) {
+            echo rex_view::success($result['message']);
+        } else {
+            echo rex_view::error($result['message']);
+        }
+        
+        // Bei Delete-Actions redirect
+        if (in_array($action, ['delete', 'delete_all', 'delete_filtered']) && $result['success']) {
+            echo '<script>window.location.href = "' . rex_url::backendPage('push_it/history') . '";</script>';
+        }
     }
 }
 

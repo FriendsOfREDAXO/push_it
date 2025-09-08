@@ -350,10 +350,10 @@ class NotificationService
     {
         $sql = rex_sql::factory();
         
-        $where = ['active = 1', 'user_id = ?'];
+        $where = ['active = 1', 'user_id = ?', "user_type = 'backend'"];
         $params = [$userId];
         
-        // Topics Filter
+        // Topics Filter (nur wenn Topics angegeben sind)
         if (!empty($topics)) {
             $topicConditions = [];
             foreach ($topics as $topic) {

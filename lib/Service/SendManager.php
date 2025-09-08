@@ -146,9 +146,9 @@ class SendManager
     }
     
     /**
-     * Sendet eine Test-Benachrichtigung an den aktuellen User
+     * Sendet eine Test-Benachrichtigung an den aktuellen User mit den Formulardaten
      */
-    public function sendTestNotification(): array
+    public function sendTestNotification(array $formData = []): array
     {
         if (!\rex::isBackend() || !\rex::getUser()) {
             return [
@@ -161,14 +161,29 @@ class SendManager
             $user = \rex::getUser();
             $userId = $user->getId();
             
-            $notificationService = new NotificationService($this->addon);
+            // Prüfen ob User eine aktive Backend-Subscription hat
+            $sql = \rex_sql::factory();
+            $sql->setQuery("SELECT COUNT(*) as count FROM rex_push_it_subscriptions WHERE user_id = ? AND user_type = 'backend' AND active = 1", [$userId]);
+            $subscriptionCount = $sql->getValue('count');
             
-            // Test-Benachrichtigung ohne Topic-Filter senden
-            $result = $notificationService->sendToUser(
+            if ($subscriptionCount == 0) {
+                return [
+                    'success' => false,
+                    'message' => 'Keine aktive Backend-Subscription gefunden. Bitte aktivieren Sie zuerst Backend-Benachrichtigungen.'
+                ];
+            }
+            
+            // Formulardaten verwenden oder Fallback
+            $title = !empty($formData['title']) ? '[TEST] ' . $formData['title'] : '[TEST] PushIt Test';
+            $body = !empty($formData['body']) ? $formData['body'] : 'Test-Benachrichtigung';
+            $url = $formData['url'] ?? '';
+            
+            // Test-Benachrichtigung mit echten Formulardaten senden
+            $result = $this->notificationService->sendToUser(
                 $userId,
-                'PushIt Test',
-                'Test-Benachrichtigung erfolgreich gesendet! 🎉',
-                '', // url
+                $title,
+                $body,
+                $url,
                 [] // keine Topics - alle aktiven Subscriptions des Users
             );
             

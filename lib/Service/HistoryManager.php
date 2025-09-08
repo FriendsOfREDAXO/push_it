@@ -11,7 +11,7 @@ use rex_i18n;
 class HistoryManager
 {
     /**
-     * Verarbeitet Aktionen (resend, delete)
+     * Verarbeitet Aktionen (resend, delete, delete_all)
      */
     public function processAction(string $action, int $id): array
     {
@@ -21,6 +21,19 @@ class HistoryManager
         
         if ($action === 'delete' && $id > 0) {
             return $this->deleteNotification($id);
+        }
+        
+        if ($action === 'delete_all') {
+            return $this->deleteAllFiltered();
+        }
+        
+        if ($action === 'delete_filtered') {
+            $filters = [
+                'user_type' => rex_request('filter_user_type', 'string', ''),
+                'topics' => rex_request('filter_topics', 'string', ''),
+                'date' => rex_request('filter_date', 'string', '')
+            ];
+            return $this->deleteFilteredNotifications($filters);
         }
         
         return ['success' => false, 'message' => rex_i18n::msg('pushit_invalid_action')];
@@ -73,6 +86,75 @@ class HistoryManager
         $sql->setQuery('DELETE FROM rex_push_it_notifications WHERE id = ?', [$id]);
         
         return ['success' => true, 'message' => rex_i18n::msg('pushit_notification_deleted_success')];
+    }
+    
+    /**
+     * Löscht alle Nachrichten aus der Historie
+     */
+    private function deleteAllFiltered(): array
+    {
+        $sql = rex_sql::factory();
+        $sql->setQuery('SELECT COUNT(*) as count FROM rex_push_it_notifications');
+        $totalCount = $sql->getValue('count');
+        
+        if ($totalCount == 0) {
+            return ['success' => false, 'message' => 'Keine Nachrichten zum Löschen gefunden.'];
+        }
+        
+        $sql = rex_sql::factory();
+        $sql->setQuery('DELETE FROM rex_push_it_notifications');
+        
+        return ['success' => true, 'message' => "Alle {$totalCount} Nachrichten wurden gelöscht."];
+    }
+    
+    /**
+     * Löscht gefilterte Nachrichten aus der Historie
+     */
+    private function deleteFilteredNotifications(array $filters): array
+    {
+        $whereConditions = [];
+        $params = [];
+        
+        if (!empty($filters['user_type']) && $filters['user_type'] !== 'all') {
+            $whereConditions[] = "user_type = ?";
+            $params[] = $filters['user_type'];
+        }
+        
+        if (!empty($filters['topics'])) {
+            $topics = array_map('trim', explode(',', $filters['topics']));
+            $topicConditions = [];
+            foreach ($topics as $topic) {
+                $topicConditions[] = "FIND_IN_SET(?, topics) > 0";
+                $params[] = $topic;
+            }
+            if (!empty($topicConditions)) {
+                $whereConditions[] = '(' . implode(' OR ', $topicConditions) . ')';
+            }
+        }
+        
+        if (!empty($filters['date'])) {
+            $whereConditions[] = "DATE(created) = ?";
+            $params[] = $filters['date'];
+        }
+        
+        $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
+        
+        // Erst zählen
+        $sql = rex_sql::factory();
+        $countQuery = "SELECT COUNT(*) as count FROM rex_push_it_notifications {$whereClause}";
+        $sql->setQuery($countQuery, $params);
+        $count = $sql->getValue('count');
+        
+        if ($count == 0) {
+            return ['success' => false, 'message' => 'Keine Nachrichten mit den aktuellen Filtern gefunden.'];
+        }
+        
+        // Dann löschen
+        $sql = rex_sql::factory();
+        $deleteQuery = "DELETE FROM rex_push_it_notifications {$whereClause}";
+        $sql->setQuery($deleteQuery, $params);
+        
+        return ['success' => true, 'message' => "{$count} gefilterte Nachrichten wurden gelöscht."];
     }
     
     /**
@@ -219,7 +301,82 @@ class HistoryManager
             <a href="' . rex_url::backendPage('push_it/history') . '" class="btn btn-default">
                 <i class="rex-icon fa-refresh"></i> ' . rex_i18n::msg('pushit_reset_filter_button') . '
             </a>
-        </form>';
+            
+            <div class="btn-group" style="margin-left: 10px;">
+                <button type="button" class="btn btn-danger btn-sm" onclick="confirmDeleteFiltered()">
+                    <i class="rex-icon fa-trash"></i> Gefilterte löschen
+                </button>
+                
+                <button type="button" class="btn btn-danger btn-sm" onclick="confirmDeleteAll()">
+                    <i class="rex-icon fa-trash"></i> Alle löschen
+                </button>
+            </div>
+        </form>
+        
+        <script>
+        function confirmDeleteFiltered() {
+            if (confirm("Alle gefilterten Nachrichten löschen? Diese Aktion kann nicht rückgängig gemacht werden.")) {
+                var form = document.createElement("form");
+                form.method = "POST";
+                form.action = "' . rex_url::backendPage('push_it/history') . '";
+                
+                var actionInput = document.createElement("input");
+                actionInput.type = "hidden";
+                actionInput.name = "action";
+                actionInput.value = "delete_filtered";
+                form.appendChild(actionInput);
+                
+                // Filter-Parameter übernehmen
+                var filterUserType = document.getElementById("filter_user_type").value;
+                var filterTopics = document.getElementById("filter_topics").value;
+                var filterDate = document.getElementById("filter_date").value;
+                
+                if (filterUserType) {
+                    var userTypeInput = document.createElement("input");
+                    userTypeInput.type = "hidden";
+                    userTypeInput.name = "filter_user_type";
+                    userTypeInput.value = filterUserType;
+                    form.appendChild(userTypeInput);
+                }
+                
+                if (filterTopics) {
+                    var topicsInput = document.createElement("input");
+                    topicsInput.type = "hidden";
+                    topicsInput.name = "filter_topics";
+                    topicsInput.value = filterTopics;
+                    form.appendChild(topicsInput);
+                }
+                
+                if (filterDate) {
+                    var dateInput = document.createElement("input");
+                    dateInput.type = "hidden";
+                    dateInput.name = "filter_date";
+                    dateInput.value = filterDate;
+                    form.appendChild(dateInput);
+                }
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+        
+        function confirmDeleteAll() {
+            if (confirm("ALLE Nachrichten aus der Historie löschen? Diese Aktion kann nicht rückgängig gemacht werden.")) {
+                var form = document.createElement("form");
+                form.method = "POST";
+                form.action = "' . rex_url::backendPage('push_it/history') . '";
+                
+                var actionInput = document.createElement("input");
+                actionInput.type = "hidden";
+                actionInput.name = "action";
+                actionInput.value = "delete_all";
+                form.appendChild(actionInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+        </script>';
     }
     
     /**

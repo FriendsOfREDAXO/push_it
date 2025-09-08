@@ -48,6 +48,13 @@ class SettingsManager
             $this->addon->setConfig('frontend_enabled', $data['frontend_enabled'] ?? false);
             $this->addon->setConfig('admin_notifications', $data['admin_notifications'] ?? false);
             $this->addon->setConfig('backend_only_topics', $data['backend_only_topics'] ?? 'system,admin,critical');
+            $this->addon->setConfig('default_icon', $data['default_icon'] ?? '');
+            
+            // Error Monitoring Einstellungen
+            $this->addon->setConfig('error_monitoring_enabled', $data['error_monitoring_enabled'] ?? false);
+            $this->addon->setConfig('error_monitoring_interval', $data['error_monitoring_interval'] ?? 3600);
+            $this->addon->setConfig('error_icon', $data['error_icon'] ?? '');
+            $this->addon->setConfig('monitoring_mode', $data['monitoring_mode'] ?? 'realtime');
             
             return true;
         } catch (Exception $e) {
@@ -153,7 +160,13 @@ class SettingsManager
             'backend_enabled' => $this->addon->getConfig('backend_enabled', true),
             'frontend_enabled' => $this->addon->getConfig('frontend_enabled', true),
             'admin_notifications' => $this->addon->getConfig('admin_notifications', true),
-            'backend_only_topics' => $this->addon->getConfig('backend_only_topics', 'system,admin,critical')
+            'backend_only_topics' => $this->addon->getConfig('backend_only_topics', 'system,admin,critical'),
+            'default_icon' => $this->addon->getConfig('default_icon', ''),
+            // Error Monitoring Einstellungen
+            'error_monitoring_enabled' => $this->addon->getConfig('error_monitoring_enabled', false),
+            'error_monitoring_interval' => $this->addon->getConfig('error_monitoring_interval', 3600),
+            'error_icon' => $this->addon->getConfig('error_icon', ''),
+            'monitoring_mode' => $this->addon->getConfig('monitoring_mode', 'realtime')
         ];
     }
     
@@ -304,6 +317,26 @@ class SettingsManager
         </div>
         
         <div class="rex-form-group form-group">
+            <label class="control-label" for="default_icon">Standard-Icon</label>
+            <div class="input-group">
+                <input class="form-control" id="default_icon" name="default_icon" 
+                       value="' . rex_escape($settings['default_icon']) . '" 
+                       placeholder="/media/icon.png" readonly />
+                <span class="input-group-btn">
+                    <a class="btn btn-default" 
+                       href="' . rex_url::backendController(['page' => 'mediapool/media', 'opener_input_field' => 'default_icon']) . '" 
+                       onclick="openMediaPool(this.href); return false;">
+                        <i class="rex-icon fa-file-image-o"></i> Aus Medienpool wählen
+                    </a>
+                </span>
+            </div>
+            <p class="help-block">
+                Wählen Sie ein Standard-Icon aus dem Medienpool, das für Benachrichtigungen ohne spezifisches Icon verwendet wird.<br>
+                <small class="text-muted">Unterstützte Formate: PNG, JPG, SVG (empfohlen: 192x192px oder größer)</small>
+            </p>
+        </div>
+        
+        <div class="rex-form-group form-group">
             <label class="control-label" for="backend_only_topics">' . rex_i18n::msg('pushit_backend_only_topics_label') . '</label>
             <input class="form-control" id="backend_only_topics" name="backend_only_topics" 
                    value="' . rex_escape($settings['backend_only_topics']) . '" 
@@ -312,7 +345,72 @@ class SettingsManager
                 <strong>' . rex_i18n::msg('pushit_topic_security_description') . '</strong><br>
                 ' . rex_i18n::msg('pushit_topics_comma_separated') . '
             </p>
-        </div>';
+        </div>
+        
+        <fieldset class="rex-form-col-1">
+            <legend>System Error Monitoring</legend>
+            
+            <div class="rex-form-group form-group">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="error_monitoring_enabled" value="1" ' . ($settings['error_monitoring_enabled'] ? 'checked' : '') . ' />
+                        System-Fehlerüberwachung aktivieren
+                    </label>
+                    <p class="help-block">
+                        Aktiviert die automatische Überwachung der system.log Datei auf Fehler und sendet Push-Benachrichtigungen 
+                        an Backend-Benutzer mit "system" oder "admin" Topics.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="rex-form-group form-group">
+                <label class="control-label" for="monitoring_mode">Überwachungsmodus</label>
+                <select class="form-control" id="monitoring_mode" name="monitoring_mode">
+                    <option value="realtime"' . ($settings['monitoring_mode'] == 'realtime' ? ' selected' : '') . '>Echtzeit (bei jedem Request)</option>
+                    <option value="cronjob"' . ($settings['monitoring_mode'] == 'cronjob' ? ' selected' : '') . '>Cronjob (regelmäßig geplant)</option>
+                </select>
+                <p class="help-block">
+                    <strong>Echtzeit:</strong> Überwachung läuft bei jedem Website-Request (sofortige Benachrichtigungen)<br>
+                    <strong>Cronjob:</strong> Überwachung läuft nur via Cronjob (für bessere Performance bei viel Traffic)
+                    ' . (!rex_addon::exists('cronjob') ? '<br><span class="text-danger">⚠️ Cronjob-AddOn nicht installiert!</span>' : '') . '
+                </p>
+            </div>
+            
+            <div class="rex-form-group form-group">
+                <label class="control-label" for="error_monitoring_interval">Überwachungsintervall (Sekunden)</label>
+                <select class="form-control" id="error_monitoring_interval" name="error_monitoring_interval">
+                    <option value="300"' . ($settings['error_monitoring_interval'] == 300 ? ' selected' : '') . '>5 Minuten (300s)</option>
+                    <option value="900"' . ($settings['error_monitoring_interval'] == 900 ? ' selected' : '') . '>15 Minuten (900s)</option>
+                    <option value="1800"' . ($settings['error_monitoring_interval'] == 1800 ? ' selected' : '') . '>30 Minuten (1800s)</option>
+                    <option value="3600"' . ($settings['error_monitoring_interval'] == 3600 ? ' selected' : '') . '>1 Stunde (3600s)</option>
+                    <option value="7200"' . ($settings['error_monitoring_interval'] == 7200 ? ' selected' : '') . '>2 Stunden (7200s)</option>
+                    <option value="21600"' . ($settings['error_monitoring_interval'] == 21600 ? ' selected' : '') . '>6 Stunden (21600s)</option>
+                </select>
+                <p class="help-block">
+                    Minimum Zeitabstand zwischen Error-Benachrichtigungen für gleiche Fehler.
+                </p>
+            </div>
+            
+            <div class="rex-form-group form-group">
+                <label class="control-label" for="error_icon">Fehler-Icon</label>
+                <div class="input-group">
+                    <input class="form-control" id="error_icon" name="error_icon" 
+                           value="' . rex_escape($settings['error_icon']) . '" 
+                           placeholder="/media/error-icon.png" readonly />
+                    <span class="input-group-btn">
+                        <a class="btn btn-default" 
+                           href="' . rex_url::backendController(['page' => 'mediapool/media', 'opener_input_field' => 'error_icon']) . '" 
+                           onclick="openMediaPool(this.href); return false;">
+                            <i class="rex-icon fa-file-image-o"></i> Aus Medienpool wählen
+                        </a>
+                    </span>
+                </div>
+                <p class="help-block">
+                    Spezifisches Icon für Fehler-Benachrichtigungen. Falls leer, wird das Standard-Icon verwendet.<br>
+                    <small class="text-muted">Empfohlen: Rotes oder oranges Icon für bessere Erkennbarkeit</small>
+                </p>
+            </div>
+        </fieldset>';
     }
     
     /**

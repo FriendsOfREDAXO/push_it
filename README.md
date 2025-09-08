@@ -45,6 +45,119 @@ Gehen Sie zu **AddOns → PushIt → Einstellungen** und konfigurieren Sie:
 - **Backend aktiviert**: Push-Notifications für REDAXO-Benutzer
 - **Admin-Benachrichtigungen**: Automatische System-Notifications
 
+## System Error Monitoring
+
+PushIt bietet automatische Überwachung von System-Fehlern mit Push-Benachrichtigungen. Diese Funktion sendet Ihnen sofortige Benachrichtigungen, wenn Fehler oder Exceptions in Ihrem REDAXO-System auftreten.
+
+### Monitoring-Modi
+
+Das Error Monitoring unterstützt zwei verschiedene Betriebsmodi:
+
+#### 1. Realtime-Modus (Standard)
+- **Aktivierung**: Beim Laden von Backend-Seiten
+- **Trigger**: `RESPONSE_SHUTDOWN` Event bei jeder Backend-Anfrage
+- **Zeitkontrolle**: Prüfung nur alle 5 Minuten (Performance-Schutz)
+- **Mindestabstand**: 5 Minuten zwischen Push-Benachrichtigungen
+- **Geeignet für**: Sofortige Benachrichtigung bei kritischen Fehlern
+
+```php
+// Konfiguration für Realtime-Modus
+$addon->setConfig('monitoring_mode', 'realtime');
+$addon->setConfig('error_monitoring_enabled', true);
+```
+
+#### 2. Cronjob-Modus (Empfohlen)
+- **Aktivierung**: Über REDAXO Cronjob-System
+- **Trigger**: Regelmäßige Ausführung nach festem Zeitplan
+- **Zeitkontrolle**: Keine internen Beschränkungen
+- **Mindestabstand**: Nur durch Cronjob-Intervall bestimmt
+- **Geeignet für**: Planbare, regelmäßige Überwachung
+
+```php
+// Konfiguration für Cronjob-Modus
+$addon->setConfig('monitoring_mode', 'cronjob');
+$addon->setConfig('error_monitoring_enabled', true);
+
+// Cronjob-Setup (automatisch registriert)
+// AddOns → Cronjob → Neuer Cronjob → "Push-It System Monitoring"
+```
+
+### Konfiguration
+
+In den **AddOn-Einstellungen** können Sie folgende Parameter konfigurieren:
+
+- **Error Monitoring**: Ein-/Ausschalten der Fehlerüberwachung
+- **Monitoring Modus**: `realtime` oder `cronjob`
+- **Intervall**: Mindestabstand zwischen Benachrichtigungen (nur Realtime-Modus)
+
+### Cronjob einrichten
+
+1. Gehen Sie zu **AddOns → Cronjob → Liste**
+2. Klicken Sie auf **Hinzufügen**
+3. Wählen Sie **Push-It System Monitoring** aus der Liste
+4. Konfigurieren Sie das gewünschte Intervall:
+   - **Alle 5 Minuten**: Schnelle Reaktion auf Fehler
+   - **Alle 15 Minuten**: Ausgewogene Überwachung
+   - **Stündlich**: Für weniger kritische Systeme
+
+```bash
+# Cronjob-Beispiele
+*/5 * * * *    # Alle 5 Minuten
+*/15 * * * *   # Alle 15 Minuten  
+0 * * * *      # Stündlich
+0 */4 * * *    # Alle 4 Stunden
+```
+
+### Was wird überwacht
+
+Das System überwacht automatisch:
+
+- **PHP Errors**: Alle Arten von PHP-Fehlern
+- **Exceptions**: Uncaught Exceptions und Fehler
+- **Log-Einträge**: Aus der REDAXO `system.log`
+- **Neue Fehler**: Nur Fehler seit der letzten Benachrichtigung
+
+### Benachrichtigungs-Details
+
+Push-Benachrichtigungen enthalten:
+
+- **Fehleranzahl**: Anzahl neuer Fehler seit letzter Benachrichtigung
+- **Fehlermeldung**: Kurze Beschreibung des letzten Fehlers
+- **Zeitstempel**: Wann der Fehler aufgetreten ist
+- **Direktlink**: Zum REDAXO System-Log
+
+### Beispiel-Benachrichtigung
+
+```
+📋 3 System-Fehler auf example.com
+Mehrere Fehler aufgetreten. Letzter: Call to undefined function func()
+
+[Log anzeigen] [Schließen]
+```
+
+### Debug und Troubleshooting
+
+Für die Fehlersuche steht eine versteckte Debug-Seite zur Verfügung:
+
+**URL**: `/redaxo/index.php?page=push_it/debug`
+
+Die Debug-Seite zeigt:
+- Aktuelle Monitoring-Konfiguration
+- Cronjob-Status und letzte Ausführung
+- Letzte Log-Einträge mit [NEU] Markierung
+- Test-Buttons für beide Modi
+- Reset-Optionen für Zeitstempel
+
+### Vorteile der Modi
+
+| Feature | Realtime | Cronjob |
+|---------|----------|---------|
+| Reaktionszeit | Sofort (bei Backend-Nutzung) | Nach Cronjob-Intervall |
+| Server-Performance | Minimaler Overhead | Geplante Last |
+| Zeitkontrolle | 5-Min-Mindestabstand | Vollständig konfigurierbar |
+| Unabhängigkeit | Erfordert Backend-Aktivität | Läuft eigenständig |
+| Empfehlung | Entwicklung/Testing | Produktive Systeme |
+
 ## Verwendung
 
 ### Frontend Integration

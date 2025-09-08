@@ -1,5 +1,5 @@
 package: push_it
-version: '1.0.0-alpha3'
+version: '1.0.0-beta1'
 author: 'Thomas Skerbis, Friends Of REDAXO'
 supportpage: 'https://github.com/FriendsOfREDAXO/push_it'
 title: translate:pushit_title
@@ -44,13 +44,13 @@ page:
             icon: rex-icon fa-code
             subPath: EXAMPLES.md
             itemClass: 'pull-right'
-            perm: push_it[]
+            perm: admin
         api:
             title: translate:pushit_api_reference
             icon: rex-icon fa-book
             subPath: API.md
             itemClass: 'pull-right'
-            perm: push_it[]
+            perm: admin
 
 translate:
     - de_de

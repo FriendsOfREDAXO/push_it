@@ -27,7 +27,13 @@ if ($doSave) {
         'backend_enabled' => rex_request('backend_enabled', 'bool'),
         'frontend_enabled' => rex_request('frontend_enabled', 'bool'),
         'admin_notifications' => rex_request('admin_notifications', 'bool'),
-        'backend_only_topics' => rex_request('backend_only_topics', 'string')
+        'backend_only_topics' => rex_request('backend_only_topics', 'string'),
+        'default_icon' => rex_request('default_icon', 'string'),
+        // Error Monitoring Felder
+        'error_monitoring_enabled' => rex_request('error_monitoring_enabled', 'bool'),
+        'error_monitoring_interval' => rex_request('error_monitoring_interval', 'int'),
+        'error_icon' => rex_request('error_icon', 'string'),
+        'monitoring_mode' => rex_request('monitoring_mode', 'string')
     ];
     
     if ($settingsManager->saveSettings($formData)) {

@@ -4,6 +4,10 @@
 pushit_title = PushIt - Web Push Notifications
 pushit_description = Web Push Notifications für Frontend und Backend
 
+# Cronjob
+pushit_cronjob_system_monitoring = Push-It System Monitoring
+pushit_cronjob_monitoring_type = Monitoring-Typ
+
 # Page titles
 pushit_settings = Einstellungen
 pushit_subscriptions = Subscriptions
@@ -342,3 +346,8 @@ pushit_admin_topic = Admin
 pushit_critical_topic = Critical
 pushit_statistics_temporarily_unavailable = Statistiken temporär nicht verfügbar
 pushit_backend_statistics_loading_error = Die Backend-Statistiken können momentan nicht geladen werden.
+
+# Default icon settings
+pushit_default_icon_label = Standard-Icon
+pushit_default_icon_help = Wählen Sie ein Standard-Icon aus dem Medienpool, das für Benachrichtigungen ohne spezifisches Icon verwendet wird.
+pushit_default_icon_format_info = Unterstützte Formate: PNG, JPG, SVG (empfohlen: 192x192px oder größer)

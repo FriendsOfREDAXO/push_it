@@ -209,7 +209,7 @@ class BackendNotificationManager
      */
     public function renderAutomaticNotificationsInfo(bool $isAdmin): string
     {
-        $adminNotificationsEnabled = $this->addon->getConfig('enableAdminNotifications', false);
+        $adminNotificationsEnabled = $this->addon->getConfig('admin_notifications', false);
         
         return '
         <p>' . rex_i18n::msg('pushit_automatic_events_info') . '</p>
@@ -372,5 +372,99 @@ class BackendNotificationManager
                 <i class="rex-icon fa-key"></i> ' . rex_i18n::msg('pushit_generate_vapid_keys') . '
             </a></p>
         ');
+    }
+
+    /**
+     * Rendert Status-Informationen für System Error Monitoring
+     */
+    public function renderErrorMonitoringInfo(): string
+    {
+        if (!class_exists('\\FriendsOfREDAXO\\PushIt\\Service\\SystemErrorMonitor')) {
+            return '';
+        }
+
+        $errorMonitor = new \FriendsOfREDAXO\PushIt\Service\SystemErrorMonitor();
+        $status = $errorMonitor->getErrorMonitoringStatus();
+
+        $statusClass = $status['enabled'] ? 'success' : 'info';
+        $statusIcon = $status['enabled'] ? 'fa-check-circle' : 'fa-info-circle';
+        $statusText = $status['enabled'] ? 'Aktiviert' : 'Deaktiviert';
+
+        // Monitoring-Modus ermitteln
+        $monitoringMode = $this->addon->getConfig('monitoring_mode', 'realtime');
+        $monitoringModeText = $monitoringMode === 'cronjob' ? 'Cronjob' : 'Echtzeit';
+
+        $intervalText = '';
+        if ($status['interval'] >= 3600) {
+            $intervalText = ($status['interval'] / 3600) . ' Stunde(n)';
+        } elseif ($status['interval'] >= 60) {
+            $intervalText = ($status['interval'] / 60) . ' Minute(n)';
+        } else {
+            $intervalText = $status['interval'] . ' Sekunde(n)';
+        }
+
+        $lastCheckText = $status['last_check'] > 0 
+            ? date('d.m.Y H:i:s', $status['last_check']) 
+            : 'Noch nie';
+
+        // Cronjob-Status prüfen
+        $cronjobStats = '';
+        if ($monitoringMode === 'cronjob') {
+            $cronStats = \FriendsOfREDAXO\PushIt\Cronjob\SystemMonitoringCronjob::getCronjobStats();
+            $cronjobConfigured = $cronStats['is_configured'];
+            $lastRun = $cronStats['last_run'] > 0 ? date('d.m.Y H:i:s', $cronStats['last_run']) : 'Noch nie';
+            
+            if (!$cronjobConfigured) {
+                $statusClass = 'warning';
+                $statusIcon = 'fa-warning';
+            }
+            
+            $cronjobStats = '<br><strong>Cronjob konfiguriert:</strong> ' . ($cronjobConfigured ? 'Ja' : 'Nein') . 
+                           '<br><strong>Letzter Cronjob-Lauf:</strong> ' . $lastRun;
+        }
+
+        return '
+        <div class="panel panel-' . $statusClass . '">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="rex-icon ' . $statusIcon . '"></i> 
+                    System Error Monitoring: ' . $statusText . '
+                </h4>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <strong>Status:</strong> ' . $statusText . '<br>
+                        <strong>Modus:</strong> ' . $monitoringModeText . '<br>
+                        <strong>Intervall:</strong> ' . $intervalText . '<br>
+                        <strong>Letzte Prüfung:</strong> ' . $lastCheckText . $cronjobStats . '
+                    </div>
+                    <div class="col-sm-6">
+                        <strong>Abonnenten:</strong> ' . $status['subscriber_count'] . ' Backend-Benutzer<br>
+                        <strong>Error-Icon:</strong> ' . ($status['error_icon'] ? 'Konfiguriert' : 'Standard verwenden') . '
+                    </div>
+                </div>
+                ' . ($status['enabled'] ? '
+                <div class="alert alert-info" style="margin-top: 15px; margin-bottom: 0;">
+                    <small>
+                        <i class="rex-icon fa-info-circle"></i> 
+                        Das System überwacht die system.log Datei ' . ($monitoringMode === 'cronjob' ? 'via Cronjob' : 'automatisch bei jedem Request') . ' auf Fehler und sendet 
+                        Push-Benachrichtigungen an Backend-Benutzer mit "system" oder "admin" Topics.
+                        ' . ($monitoringMode === 'cronjob' && !$cronStats['is_configured'] ? 
+                            '<br><strong class="text-warning">⚠️ Kein Push-It Cronjob konfiguriert!</strong> 
+                             <a href="/redaxo/index.php?page=cronjob">Cronjob einrichten</a>' : '') . '
+                    </small>
+                </div>
+                ' : '
+                <div class="alert alert-warning" style="margin-top: 15px; margin-bottom: 0;">
+                    <small>
+                        <i class="rex-icon fa-warning"></i> 
+                        Error Monitoring ist deaktiviert. Aktivieren Sie es in den 
+                        <a href="' . rex_url::backendPage('push_it') . '">Push-It Einstellungen</a>.
+                    </small>
+                </div>
+                ') . '
+            </div>
+        </div>';
     }
 }

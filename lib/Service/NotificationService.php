@@ -43,6 +43,134 @@ class NotificationService
     }
     
     /**
+     * Sendet eine Benachrichtigung an einen spezifischen Backend-Benutzer
+     * 
+     * HINWEIS: Funktioniert nur für Backend-User mit REDAXO User-ID.
+     * Frontend-User haben keine User-IDs - nutzen Sie stattdessen Topics.
+     * 
+     * @param int $userId REDAXO Backend User-ID
+     * @param string $title
+     * @param string $body
+     * @param string $url
+     * @param array $topics
+     * @param array $options
+     * @return array
+     */
+    public function sendToUser(int $userId, string $title, string $body, string $url = '', array $topics = [], array $options = []): array
+    {
+        $publicKey = $this->addon->getConfig('publicKey');
+        $privateKey = $this->addon->getConfig('privateKey');
+        $subject = $this->addon->getConfig('subject');
+        
+        if (!$publicKey || !$privateKey) {
+            throw new \Exception('VAPID-Schlüssel nicht konfiguriert');
+        }
+        
+        // WebPush-Instanz erstellen
+        $webPush = new WebPush([
+            'VAPID' => [
+                'subject' => $subject,
+                'publicKey' => $publicKey,
+                'privateKey' => $privateKey,
+            ]
+        ]);
+        
+        // Subscriptions für spezifischen User abrufen
+        $subscriptions = $this->getSubscriptionsByUserId($userId, $topics);
+        
+        if (empty($subscriptions)) {
+            return [
+                'success' => false,
+                'message' => 'Keine aktiven Subscriptions für User ID: ' . $userId . ' und Topics: ' . implode(',', $topics),
+                'sent' => 0,
+                'failed' => 0,
+                'total' => 0
+            ];
+        }
+        
+        // Payload erstellen
+        $payload = [
+            'title' => $title,
+            'body' => $body,
+            'url' => $url,
+            'icon' => $options['icon'] ?? '/assets/addons/push_it/icon.svg',
+            'timestamp' => time()
+        ];
+        
+        // Erweiterte Optionen hinzufügen
+        if (isset($options['badge'])) {
+            $payload['badge'] = $options['badge'];
+        }
+        
+        if (isset($options['image'])) {
+            $payload['image'] = $options['image'];
+        }
+        
+        if (isset($options['silent'])) {
+            $payload['silent'] = $options['silent'];
+        }
+        
+        if (isset($options['tag'])) {
+            $payload['tag'] = $options['tag'];
+        }
+        
+        if (isset($options['renotify'])) {
+            $payload['renotify'] = $options['renotify'];
+        }
+        
+        if (isset($options['vibrate']) && is_array($options['vibrate'])) {
+            $payload['vibrate'] = $options['vibrate'];
+        }
+        
+        if (isset($options['actions']) && is_array($options['actions'])) {
+            $payload['actions'] = $options['actions'];
+        }
+        
+        $payloadJson = json_encode($payload);
+        
+        $sent = 0;
+        $errors = 0;
+        
+        // Nachrichten senden
+        foreach ($subscriptions as $sub) {
+            try {
+                $subscription = Subscription::create([
+                    'endpoint' => $sub['endpoint'],
+                    'keys' => [
+                        'p256dh' => $sub['p256dh'],
+                        'auth' => $sub['auth']
+                    ]
+                ]);
+                
+                $result = $webPush->sendOneNotification($subscription, $payloadJson);
+                
+                if ($result->isSuccess()) {
+                    $sent++;
+                    $this->updateSubscriptionSuccess($sub['id']);
+                } else {
+                    $errors++;
+                    $errorMsg = $result->getReason();
+                    $this->updateSubscriptionError($sub['id'], $errorMsg);
+                }
+                
+            } catch (\Exception $e) {
+                $errors++;
+                $this->updateSubscriptionError($sub['id'], $e->getMessage());
+            }
+        }
+        
+        // Log-Eintrag erstellen
+        $this->logNotification($title, $body, $url, 'user_' . $userId, implode(',', $topics), $sent, $errors, $options);
+        
+        return [
+            'success' => true,
+            'sent' => $sent,
+            'failed' => $errors,
+            'total' => count($subscriptions)
+        ];
+    }
+    
+    /**
      * Hauptfunktion zum Senden von Benachrichtigungen
      */
     public function sendNotification(string $title, string $body, string $url = '', string $userType = 'frontend', array $topics = [], array $options = []): array
@@ -184,6 +312,46 @@ class NotificationService
             $where[] = "user_type = 'frontend'";
         }
         // bei 'both' keine Einschränkung
+        
+        // Topics Filter
+        if (!empty($topics)) {
+            $topicConditions = [];
+            foreach ($topics as $topic) {
+                $topicConditions[] = "FIND_IN_SET(?, topics)";
+                $params[] = trim($topic);
+            }
+            if (!empty($topicConditions)) {
+                $where[] = '(' . implode(' OR ', $topicConditions) . ')';
+            }
+        }
+        
+        $query = "SELECT id, endpoint, p256dh, auth FROM rex_push_it_subscriptions WHERE " . implode(' AND ', $where);
+        
+        $sql->setQuery($query, $params);
+        
+        $subscriptions = [];
+        for ($i = 0; $i < $sql->getRows(); $i++) {
+            $subscriptions[] = [
+                'id' => $sql->getValue('id'),
+                'endpoint' => $sql->getValue('endpoint'),
+                'p256dh' => $sql->getValue('p256dh'),
+                'auth' => $sql->getValue('auth')
+            ];
+            $sql->next();
+        }
+        
+        return $subscriptions;
+    }
+    
+    /**
+     * Holt aktive Subscriptions für einen spezifischen Benutzer
+     */
+    private function getSubscriptionsByUserId(int $userId, array $topics = []): array
+    {
+        $sql = rex_sql::factory();
+        
+        $where = ['active = 1', 'user_id = ?'];
+        $params = [$userId];
         
         // Topics Filter
         if (!empty($topics)) {

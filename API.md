@@ -2,19 +2,6 @@
 
 Vollständige API-Referenz für das PushIt AddOn.
 
-## � **Inhaltsverzeichnis**
-
-1. [PHP Service Classes](#php-service-classes)
-2. [REST API Endpoints](#rest-api-endpoints)
-3. [JavaScript Frontend API](#javascript-frontend-api)
-4. [Extension Points](#extension-points)
-5. [Configuration Options](#configuration-options)
-6. [Advanced Features](#advanced-features)
-7. [Error Handling](#error-handling)
-8. [Performance & Limits](#performance--limits)
-- [Configuration API](#configuration-api)
-
----
 
 ## 🌐 JavaScript Frontend API
 
@@ -313,6 +300,108 @@ $result = $sendManager->sendQuickNotification('critical_error', [
     'message' => 'Database connection failed',
     'url' => rex_url::backendPage('system/log')
 ]);
+```
+
+---
+
+### NotificationService
+
+Direkte Service-Klasse für einfaches Versenden von Push-Benachrichtigungen.
+
+```php
+use FriendsOfREDAXO\PushIt\Service\NotificationService;
+
+$service = new NotificationService();
+```
+
+#### Methods
+
+##### `sendToAllUsers(string $title, string $body, string $url, array $topics, array $options): array`
+
+Sendet Benachrichtigung an alle Benutzer.
+
+```php
+$result = $service->sendToAllUsers(
+    'Titel der Benachrichtigung',
+    'Nachrichtentext',
+    'https://example.com/target',    // optional
+    ['news', 'updates'],             // optional: Topic-Filter
+    ['icon' => '/media/icon.png']    // optional: Erweiterte Optionen
+);
+```
+
+##### `sendToFrontendUsers(string $title, string $body, string $url, array $topics, array $options): array`
+
+Sendet Benachrichtigung nur an Frontend-Benutzer.
+
+```php
+$result = $service->sendToFrontendUsers(
+    'News Update',
+    'Neuer Artikel verfügbar',
+    '/news/latest',
+    ['news', 'articles']
+);
+```
+
+##### `sendToBackendUsers(string $title, string $body, string $url, array $topics, array $options): array`
+
+Sendet Benachrichtigung nur an Backend-Benutzer (Administratoren).
+
+```php
+$result = $service->sendToBackendUsers(
+    'System Wartung',
+    'Geplante Wartung heute um 22:00 Uhr',
+    '/redaxo/index.php?page=system',
+    ['system', 'maintenance']
+);
+```
+
+##### `sendToUser(int $userId, string $title, string $body, string $url, array $topics, array $options): array`
+
+Sendet Benachrichtigung an einen spezifischen Backend-Benutzer.
+
+**Hinweis:** Funktioniert nur für Backend-User mit REDAXO User-ID. Frontend-User haben keine User-IDs.
+
+```php
+$result = $service->sendToUser(
+    123,                             // REDAXO Backend User-ID
+    'Admin-Benachrichtigung',
+    'Wichtige System-Information',
+    '/redaxo/index.php?page=system',
+    ['admin', 'system'],             // optional: Topic-Filter
+    [
+        'icon' => '/media/admin-icon.png',
+        'requireInteraction' => true
+    ]
+);
+```
+
+**Returns (alle Methoden):**
+```php
+[
+    'success' => true,
+    'sent' => 15,           // Anzahl erfolgreich versendeter Nachrichten
+    'failed' => 2,          // Anzahl fehlgeschlagener Sendungen
+    'total' => 17           // Gesamtanzahl der Subscriptions
+]
+```
+
+**Example mit Error Handling:**
+```php
+try {
+    $result = $service->sendToBackendUsers(
+        'Kritischer Fehler',
+        'Database connection failed',
+        '/redaxo/index.php?page=system/log',
+        ['system', 'critical']
+    );
+    
+    if ($result['success'] && $result['sent'] > 0) {
+        rex_logger::logInfo('push_it', "Sent to {$result['sent']} users");
+    }
+} catch (\Exception $e) {
+    rex_logger::logError('push_it', 'Send failed: ' . $e->getMessage());
+}
 ```
 
 ---

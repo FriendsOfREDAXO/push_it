@@ -323,6 +323,15 @@ $service->sendToTopics(
     '/news/breaking'
 );
 
+// An einen spezifischen Backend-Benutzer (nur Backend-User haben User-IDs)
+$service->sendToUser(
+    123, // REDAXO Backend User-ID
+    'Admin-Benachrichtigung',
+    'Hallo Admin, wichtige System-Info!',
+    '/redaxo/index.php?page=system',
+    ['admin', 'system'] // Optional: nur wenn User diese Topics abonniert hat
+);
+
 // Mit Bedingungen
 $service->sendToUsersWhere(
     'user_type = "frontend" AND topics LIKE "%premium%"',
@@ -368,6 +377,43 @@ function sendCartReminder($userId, $cartItems) {
                 ['action' => 'later', 'title' => 'Später']
             ]
         ]
+    );
+}
+
+// Admin-Benachrichtigung an spezifischen Backend-User
+function notifyAdmin($adminUserId, $message, $urgency = 'normal') {
+    $service = new NotificationService();
+    
+    $icons = [
+        'critical' => '�',
+        'warning' => '⚠️', 
+        'normal' => '�'
+    ];
+    
+    $service->sendToUser(
+        $adminUserId, // REDAXO Backend User-ID
+        $icons[$urgency] . ' System-Benachrichtigung',
+        $message,
+        '/redaxo/index.php?page=system',
+        ['admin', 'system'],
+        [
+            'tag' => 'admin-notification',
+            'icon' => '/media/admin-icon.png',
+            'requireInteraction' => $urgency === 'critical'
+        ]
+    );
+}
+
+// Hinweis: Frontend-User haben keine User-IDs in REDAXO
+// Für Frontend-User nutzen Sie Topics oder andere Filter:
+function notifyFrontendCustomers($topic, $title, $message) {
+    $service = new NotificationService();
+    
+    $service->sendToFrontendUsers(
+        $title,
+        $message,
+        '/news',
+        [$topic] // z.B. 'customers', 'premium', 'newsletter'
     );
 }
 

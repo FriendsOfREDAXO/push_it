@@ -1,26 +1,26 @@
 # PushIt - Web Push Notifications für REDAXO 5
 
-Ein leistungsstarkes AddOn für Web Push Notifications in REDAXO 5, das sowohl Frontend- als auch Backend-Benachrichtigungen unterstützt.
+ Web Push Notifications in REDAXO 5, das sowohl Frontend- als auch Backend-Benachrichtigungen unterstützt.
 
-## 🚀 **Key Features**
+## **Key Features**
 
-### 🚨 **System Error Monitoring** (PHPMailer Ersatz)
-- **Automatische Fehlerüberwachung** mit sofortigen Push-Benachrichtigungen
-- **Realtime & Cronjob Modi** für flexible Überwachungsstrategien  
-- **Domain & URL-Tracking** zeigt genau wo Fehler aufgetreten sind
-- **Ersetzt rex_mailer::errorMail()** mit modernen Push-Notifications
-
-### 📱 **Web Push Notifications** 
+### **Web Push Notifications** 
 - **Cross-Browser Support** für Chrome, Firefox, Edge, Safari (iOS 16.4+)
 - **Frontend & Backend** Unterstützung mit separaten Subscription-Typen
 - **Topic-basierte Subscriptions** für gezielte Benachrichtigungen
 - **Rich Notifications** mit Bildern, Actions und benutzerdefinierten Daten
 
-### 🎯 **Advanced Features**
+### **Advanced Features**
 - **iOS PWA Support** mit automatischen Installationsanleitungen
 - **Mehrsprachiges Frontend** (DE/EN) mit browser-spezifischen Hilfen
 - **REST API** für externe Integrationen und Drittsysteme
 - **Umfassendes Admin-Interface** mit Subscription-Verwaltung und Historie
+
+### **System Error Monitoring** (PHPMailer Error-Mail Ersatz)
+- **Automatische Fehlerüberwachung** mit sofortigen Push-Benachrichtigungen
+- **Realtime & Cronjob Modi** für flexible Überwachungsstrategien  
+- **Domain & URL-Tracking** zeigt genau wo Fehler aufgetreten sind
+- **Ersetzt rex_mailer::errorMail()** mit modernen Push-Notifications
 
 ## ⚡ **Quick Start**
 
@@ -34,33 +34,178 @@ Ein leistungsstarkes AddOn für Web Push Notifications in REDAXO 5, das sowohl F
 
 ### Frontend Integration
 ```html
-<!-- Automatisch eingebunden wenn Frontend aktiviert -->
+<!-- JavaScript manuell in Template einbinden -->
+<script src="/assets/addons/push_it/frontend.js"></script>
 <script>
-// Einfache Aktivierung
-PushIt.subscribe('frontend', 'news,updates');
+// VAPID Public Key setzen
+window.PushItPublicKey = '<?php echo rex_addon::get('push_it')->getConfig('publicKey'); ?>';
+</script>
 
-// Status prüfen
+<!-- Button für User-Interaktion erforderlich -->
+<button onclick="enableNotifications()">🔔 Benachrichtigungen aktivieren</button>
+<button onclick="disableNotifications()">🔕 Deaktivieren</button>
+
+<script>
+// Nur bei User-Klick möglich!
+function enableNotifications() {
+    PushIt.subscribe('frontend', 'news,updates').then(result => {
+        if (result.success) {
+            alert('Benachrichtigungen aktiviert!');
+        }
+    }).catch(error => {
+        console.error('Fehler:', error);
+    });
+}
+
+function disableNotifications() {
+    PushIt.disable().then(() => {
+        alert('Benachrichtigungen deaktiviert');
+    });
+}
+
+// Status prüfen (das geht ohne User-Interaktion)
 PushIt.getStatus().then(status => {
     console.log('Subscribed:', status.isSubscribed);
 });
 </script>
 ```
 
-### Backend Integration
+### Benachrichtigungen senden (PHP)
 ```php
 <?php
 use FriendsOfREDAXO\PushIt\Service\NotificationService;
 
 $service = new NotificationService();
-$service->sendToAll(
-    'Neue Nachricht',
-    'Ein neuer Artikel ist verfügbar',
-    'https://example.com/artikel'
-);
+
+// An alle Empfänger
+$service->sendToAllUsers('Titel', 'Nachricht', 'https://example.com');
+
+// Nur an Frontend-Benutzer
+$service->sendToFrontendUsers('News Update', 'Neuer Artikel verfügbar', '/news');
+
+// Nur an Backend-Benutzer (Admins)
+$service->sendToBackendUsers('System Info', 'Wartung abgeschlossen', '/redaxo');
+
+// An einen spezifischen Backend-Benutzer (nur Backend-User haben User-IDs)
+$service->sendToUser(123, 'Admin-Nachricht', 'Hallo Admin, wichtige Info!', '/redaxo/index.php?page=system');
+
+// Nach Topics filtern (Frontend-Benutzer)
+$service->sendToFrontendUsers('Breaking News', 'Eilmeldung', '/breaking', ['news', 'updates']);
 ?>
 ```
 
-## 🛠️ **System Error Monitoring Setup**
+## � **PHP API-Referenz**
+
+### NotificationService Methoden
+
+```php
+<?php
+use FriendsOfREDAXO\PushIt\Service\NotificationService;
+$service = new NotificationService();
+
+// 🌐 An alle Benutzer senden
+$service->sendToAllUsers(
+    string $title,           // Benachrichtigungstitel
+    string $body,            // Nachrichtentext
+    string $url = '',        // Optional: Link-URL
+    array $topics = [],      // Optional: Topic-Filter
+    array $options = []      // Optional: Erweiterte Optionen
+): array;
+
+// 👥 An Frontend-Benutzer senden
+$service->sendToFrontendUsers(
+    string $title,
+    string $body,
+    string $url = '',
+    array $topics = [],
+    array $options = []
+): array;
+
+// 🔧 An Backend-Benutzer senden
+$service->sendToBackendUsers(
+    string $title,
+    string $body,
+    string $url = '',
+    array $topics = [],
+    array $options = []
+): array;
+
+// 👤 An spezifischen Backend-Benutzer senden
+// Hinweis: Nur für Backend-User mit REDAXO User-ID
+$service->sendToUser(
+    int $userId,             // REDAXO Backend User-ID
+    string $title,
+    string $body,
+    string $url = '',
+    array $topics = [],
+    array $options = []
+): array;
+?>
+```
+
+### Erweiterte Optionen (options)
+
+```php
+$options = [
+    'icon' => '/media/notification-icon.png',  // Icon-URL
+    'badge' => '/media/badge.png',             // Badge-Icon
+    'image' => '/media/hero-image.jpg',        // Großes Bild
+    'tag' => 'unique-notification-id',         // Eindeutige ID (ersetzt vorherige)
+    'silent' => false,                         // Stumme Benachrichtigung
+    'requireInteraction' => true,              // Bleibt bis Benutzerinteraktion
+    'renotify' => true,                        // Erneut benachrichtigen bei gleichem Tag
+    'vibrate' => [200, 100, 200],             // Vibrationsmuster (Mobile)
+    'actions' => [                             // Action-Buttons
+        [
+            'action' => 'view',
+            'title' => 'Ansehen',
+            'icon' => '/media/view-icon.png'
+        ],
+        [
+            'action' => 'later',
+            'title' => 'Später'
+        ]
+    ]
+];
+```
+
+### Return-Werte
+
+Alle Methoden geben ein Array zurück:
+
+```php
+[
+    'success' => true,       // bool: Erfolgreich versendet
+    'sent' => 15,           // int: Anzahl erfolgreich versendeter Nachrichten
+    'failed' => 2,          // int: Anzahl fehlgeschlagener Sendungen
+    'total' => 17           // int: Gesamtanzahl der Subscriptions
+]
+```
+
+### Topics für Zielgruppen-Segmentierung
+
+```php
+// Beispiel Topics
+$topics = [
+    'news',           // Nachrichten
+    'updates',        // System-Updates  
+    'orders',         // Bestellungen
+    'premium',        // Premium-Kunden
+    'admin',          // Admin-Nachrichten (Backend-Only)
+    'system',         // System-Meldungen (Backend-Only)
+    'critical'        // Kritische Meldungen (Backend-Only)
+];
+
+// Verwendung
+$service->sendToFrontendUsers(
+    'Newsletter Update',
+    'Neue Ausgabe verfügbar',
+    '/newsletter',
+    ['news', 'updates']  // Nur an User mit diesen Topics
+);
+```
+
+## �🛠️ **System Error Monitoring Setup**
 
 Das Error Monitoring ersetzt `rex_mailer::errorMail()` mit modernen Push-Notifications:
 

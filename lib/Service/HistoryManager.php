@@ -368,7 +368,7 @@ class HistoryManager
             data-topics="' . rex_escape($topics) . '"
             data-type="' . $userType . '"
             data-sent="' . $sentTo . '"
-            data-date="' . ($created ? strtotime($created) : 0) . '"
+            data-date="' . ($created ? $this->getGermanTimestamp($created) : 0) . '"
             data-user="' . rex_escape($createdBy) . '">
             <td><span class="label label-default">#' . $notificationId . '</span></td>
             <td>
@@ -538,5 +538,56 @@ class HistoryManager
             }
         });
         </script>';
+    }
+    
+    /**
+     * Formatiert Datum/Zeit für deutsche Zeitzone
+     * 
+     * @param string $dateString
+     * @param string $format
+     * @return string
+     */
+    private function formatGermanDate(?string $dateString, string $format): string
+    {
+        if (empty($dateString)) {
+            return '-';
+        }
+        
+        $timestamp = strtotime($dateString);
+        if ($timestamp === false) {
+            return '-';
+        }
+        
+        // Deutsche Zeitzone verwenden
+        $germanTimezone = new \DateTimeZone('Europe/Berlin');
+        $dateTime = new \DateTime('@' . $timestamp);
+        $dateTime->setTimezone($germanTimezone);
+        
+        return $dateTime->format($format);
+    }
+    
+    /**
+     * Gibt deutschen Timestamp für Sortierung zurück
+     * 
+     * @param string $dateString
+     * @return int
+     */
+    private function getGermanTimestamp(?string $dateString): int
+    {
+        if (empty($dateString)) {
+            return 0;
+        }
+        
+        $timestamp = strtotime($dateString);
+        if ($timestamp === false) {
+            return 0;
+        }
+        
+        // Deutsche Zeitzone verwenden für konsistente Sortierung
+        $germanTimezone = new \DateTimeZone('Europe/Berlin');
+        $dateTime = new \DateTime('@' . $timestamp);
+        $dateTime->setTimezone($germanTimezone);
+        
+        return $dateTime->getTimestamp();
     }
 }

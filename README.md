@@ -94,7 +94,7 @@ $service->sendToFrontendUsers('Breaking News', 'Eilmeldung', '/breaking', ['news
 ?>
 ```
 
-## � **PHP API-Referenz**
+## **PHP API-Referenz**
 
 ### NotificationService Methoden
 

@@ -3,11 +3,11 @@
         'name' => 'friendsofredaxo/push_it',
         'pretty_version' => 'dev-copilot/fix-11',
         'version' => 'dev-copilot/fix-11',
-        'reference' => '1162e74050ddc200780df2dde7999fd8b23fea50',
+        'reference' => 'de61adaea94f7fdcdb2e7ab7da49b007bf3c1d73',
         'type' => 'redaxo-addon',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'dev' => true,
+        'dev' => false,
     ),
     'versions' => array(
         'brick/math' => array(
@@ -22,7 +22,7 @@
         'friendsofredaxo/push_it' => array(
             'pretty_version' => 'dev-copilot/fix-11',
             'version' => 'dev-copilot/fix-11',
-            'reference' => '1162e74050ddc200780df2dde7999fd8b23fea50',
+            'reference' => 'de61adaea94f7fdcdb2e7ab7da49b007bf3c1d73',
             'type' => 'redaxo-addon',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

@@ -1,5 +1,5 @@
 package: push_it
-version: '1.0.0-alpha2'
+version: '1.0.0-alpha3'
 author: 'Thomas Skerbis, Friends Of REDAXO'
 supportpage: 'https://github.com/FriendsOfREDAXO/push_it'
 title: translate:pushit_title

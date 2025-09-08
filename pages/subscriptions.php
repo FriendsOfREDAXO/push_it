@@ -68,12 +68,12 @@ if ($isAdmin) {
     if ($backendSubscriptionsWithoutUserId > 0) {
         $repairContent = '
         <div class="alert alert-warning">
-            <h4><i class="rex-icon fa-exclamation-triangle"></i> Backend-Subscriptions ohne User-ID</h4>
-            <p>Es wurden ' . $backendSubscriptionsWithoutUserId . ' Backend-Subscriptions ohne zugeordnete User-ID gefunden.</p>
+            <h4><i class="rex-icon fa-exclamation-triangle"></i> ' . rex_i18n::msg('pushit_backend_subscriptions_without_user_id') . '</h4>
+            <p>' . rex_i18n::msg('pushit_backend_subscriptions_found', $backendSubscriptionsWithoutUserId) . '</p>
             <a href="' . rex_url::currentBackendPage(['action' => 'repair']) . '" 
                class="btn btn-warning"
-               onclick="return confirm(\'Möchten Sie diese Subscriptions mit Ihrer User-ID (' . rex::getUser()->getId() . ') verknüpfen?\')">
-                <i class="rex-icon fa-wrench"></i> Reparieren
+               onclick="return confirm(\'' . rex_i18n::msg('pushit_repair_subscriptions_confirm', rex::getUser()->getId()) . '\')">
+                <i class="rex-icon fa-wrench"></i> ' . rex_i18n::msg('pushit_repair_button') . '
             </a>
         </div>';
         

@@ -299,4 +299,13 @@ pushit_system_error_body = Ein Fehler wurde im System registriert. Bitte prüfen
 
 # Frontend integration buttons
 pushit_activate_notifications_button = Benachrichtigungen aktivieren
+
+# Settings page - additional
+pushit_settings_change = Einstellungen ändern
+
+# Subscriptions page - repair
+pushit_backend_subscriptions_without_user_id = Backend-Subscriptions ohne User-ID
+pushit_backend_subscriptions_found = Es wurden %s Backend-Subscriptions ohne zugeordnete User-ID gefunden.
+pushit_repair_subscriptions_confirm = Möchten Sie diese Subscriptions mit Ihrer User-ID (%s) verknüpfen?
+pushit_repair_button = Reparieren
 pushit_deactivate_notifications_button = Benachrichtigungen deaktivieren

@@ -2,8 +2,87 @@
 (function() {
   'use strict';
   
+  // i18n-System für Backend-Texte mit dynamischem Laden
+  let translationsLoaded = false;
+  let currentLang = 'de';
+  
+  // Sprache ermitteln
+  function detectLanguage() {
+    if (window.rex && window.rex.push_it_language) {
+      return window.rex.push_it_language;
+    }
+    if (window.PushItLanguage) {
+      return window.PushItLanguage;
+    }
+    // Fallback auf Browser-Sprache
+    const browserLang = navigator.language.split('-')[0];
+    return ['de', 'en'].includes(browserLang) ? browserLang : 'de';
+  }
+  
+  // Sprachdatei dynamisch laden
+  async function loadTranslations(lang = null) {
+    if (!lang) {
+      lang = detectLanguage();
+    }
+    
+    // Bereits geladen oder aktuell geladen wird
+    if (translationsLoaded && currentLang === lang) {
+      return;
+    }
+    
+    try {
+      // Prüfen ob bereits inline geladen (Fallback)
+      if (window.PushItLang && window.PushItLang[lang]) {
+        currentLang = lang;
+        translationsLoaded = true;
+        return;
+      }
+      
+      // Dynamisch laden via Script-Tag (besser für Browser-Caching)
+      const script = document.createElement('script');
+      script.src = '/assets/addons/push_it/lang/' + lang + '.js';
+      
+      await new Promise((resolve, reject) => {
+        script.onload = () => {
+          currentLang = lang;
+          translationsLoaded = true;
+          resolve();
+        };
+        script.onerror = () => {
+          // Fallback auf Deutsch wenn Sprache nicht verfügbar
+          if (lang !== 'de') {
+            loadTranslations('de').then(resolve).catch(reject);
+          } else {
+            reject(new Error('Could not load language file: ' + lang));
+          }
+        };
+        document.head.appendChild(script);
+      });
+      
+    } catch (error) {
+      console.warn('Could not load translations for', lang, '- using fallback');
+      currentLang = 'de';
+      translationsLoaded = true;
+    }
+  }
+
+  function t(key, replacements = {}) {
+    const translations = window.PushItLang && window.PushItLang[currentLang] ? window.PushItLang[currentLang] : {};
+    
+    let text = translations[key] || key;
+    
+    // Platzhalter ersetzen {variable} mit Werten
+    for (const [placeholder, value] of Object.entries(replacements)) {
+      text = text.replace(new RegExp(`\\{${placeholder}\\}`, 'g'), value);
+    }
+    
+    return text;
+  }
+  
   // Warten bis DOM und REDAXO-spezifische Objekte geladen sind
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', async function() {
+    // Sprache laden
+    await loadTranslations();
     
     // Backend-Benachrichtigungen automatisch aktivieren wenn konfiguriert
     if (window.rex && window.rex.push_it_backend_enabled && window.rex.push_it_public_key) {
@@ -91,14 +170,14 @@
         <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="declineBackendNotifications()">
           <span aria-hidden="true">&times;</span>
         </button>
-        <h4><i class="rex-icon fa-bell"></i> Backend-Benachrichtigungen</h4>
-        <p>Möchten Sie Push-Benachrichtigungen für Systemereignisse aktivieren?</p>
+        <h4><i class="rex-icon fa-bell"></i> ${t('backend.notifications_title')}</h4>
+        <p>${t('backend.notifications_prompt')}</p>
         <div class="btn-group" role="group" style="margin-top: 10px;">
           <button type="button" class="btn btn-success btn-sm" onclick="activateBackendNotifications()">
-            <i class="rex-icon fa-bell"></i> Aktivieren
+            <i class="rex-icon fa-bell"></i> ${t('backend.activate_button')}
           </button>
           <button type="button" class="btn btn-default btn-sm" onclick="declineBackendNotifications()">
-            Nein, danke
+            ${t('backend.decline_button')}
           </button>
         </div>
       </div>
@@ -112,10 +191,10 @@
     try {
       await window.PushIt.subscribe('backend', 'system,admin');
       localStorage.setItem('push_it_backend_asked', 'accepted');
-      showBackendMessage('Backend-Benachrichtigungen wurden aktiviert!', 'success');
+      showBackendMessage(t('backend.notifications_activated'), 'success');
     } catch (error) {
       console.error('Backend subscription error:', error);
-      showBackendMessage('Fehler beim Aktivieren der Benachrichtigungen: ' + error.message, 'error');
+      showBackendMessage(t('backend.activation_error', { message: error.message }), 'error');
     }
   };
   
@@ -136,21 +215,21 @@
       listItem.className = 'dropdown';
       
       listItem.innerHTML = `
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown" title="Push-Benachrichtigungen">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" title="${t('backend.notifications_title')}">
           <i class="rex-icon fa-bell"></i>
-          <span class="sr-only">Push-Benachrichtigungen</span>
+          <span class="sr-only">${t('backend.notifications_title')}</span>
           <span class="caret"></span>
         </a>
         <ul class="dropdown-menu">
           <li><a href="#" onclick="PushIt.requestBackend('system,admin'); return false;">
-            <i class="rex-icon fa-bell-o"></i> Backend aktivieren
+            <i class="rex-icon fa-bell-o"></i> ${t('backend.activate_backend')}
           </a></li>
           <li><a href="#" onclick="PushIt.disable(); return false;">
-            <i class="rex-icon fa-bell-slash"></i> Deaktivieren
+            <i class="rex-icon fa-bell-slash"></i> ${t('backend.deactivate_button')}
           </a></li>
           <li class="divider"></li>
           <li><a href="index.php?page=push_it">
-            <i class="rex-icon fa-cog"></i> Einstellungen
+            <i class="rex-icon fa-cog"></i> ${t('backend.settings_button')}
           </a></li>
         </ul>
       `;
@@ -200,13 +279,13 @@
         body: 'rex-api-call=push_it_test'
       }).then(response => {
         if (response.ok) {
-          showBackendMessage('Test-Benachrichtigung wurde gesendet!', 'success');
+          showBackendMessage(t('backend.test_sent'), 'success');
         } else {
-          showBackendMessage('Fehler beim Senden der Test-Benachrichtigung!', 'error');
+          showBackendMessage(t('backend.test_error'), 'error');
         }
       }).catch(error => {
         console.error('Test notification error:', error);
-        showBackendMessage('Fehler beim Senden der Test-Benachrichtigung!', 'error');
+        showBackendMessage(t('backend.test_error'), 'error');
       });
     },
     
@@ -221,7 +300,7 @@
   window.PushItReset = function() {
     localStorage.removeItem('push_it_backend_asked');
     console.log('PushIt: Backend ask status reset');
-    alert('Backend-Subscription Status wurde zurückgesetzt.');
+    alert(t('backend.status_reset'));
     // Banner erneut anzeigen
     setTimeout(() => {
       showBackendNotificationPrompt();
@@ -249,4 +328,17 @@
     }
   };
   
+  // Erweitere PushIt-Objekt mit i18n falls nicht bereits vorhanden
+  if (typeof window.PushIt !== 'undefined') {
+    if (!window.PushIt.i18n) {
+      window.PushIt.i18n = {
+        get: function(key, replacements = {}) {
+          return t(key, replacements);
+        },
+        
+        loadLanguage: loadTranslations
+      };
+    }
+  }
+
 })();

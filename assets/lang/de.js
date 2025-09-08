@@ -24,6 +24,13 @@ window.PushItLang.de = {
   'backend.test_sent': 'Test-Benachrichtigung wurde gesendet!',
   'backend.test_error': 'Fehler beim Senden der Test-Benachrichtigung!',
   'backend.status_reset': 'Backend-Subscription Status wurde zurückgesetzt.',
+  'backend.notifications_title': 'Backend-Benachrichtigungen',
+  'backend.notifications_prompt': 'Möchten Sie Push-Benachrichtigungen für Systemereignisse aktivieren?',
+  'backend.activate_button': 'Aktivieren',
+  'backend.decline_button': 'Nein, danke',
+  'backend.activate_backend': 'Backend aktivieren',
+  'backend.deactivate_button': 'Deaktivieren', 
+  'backend.settings_button': 'Einstellungen',
   
   // Browser-spezifische Anleitungen
   'instructions.notifications_blocked': 'Benachrichtigungen wurden blockiert. Bitte aktivieren Sie diese in den Browser-Einstellungen:\n\n',

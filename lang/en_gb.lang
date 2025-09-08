@@ -299,4 +299,13 @@ pushit_system_error_body = An error has been registered in the system. Please ch
 
 # Frontend integration buttons
 pushit_activate_notifications_button = Activate Notifications
+
+# Settings page - additional
+pushit_settings_change = Change Settings
+
+# Subscriptions page - repair
+pushit_backend_subscriptions_without_user_id = Backend Subscriptions without User ID
+pushit_backend_subscriptions_found = %s backend subscriptions without assigned User ID found.
+pushit_repair_subscriptions_confirm = Would you like to link these subscriptions with your User ID (%s)?
+pushit_repair_button = Repair
 pushit_deactivate_notifications_button = Deactivate Notifications

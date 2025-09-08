@@ -232,7 +232,7 @@ class BackendNotificationManager
         </ul>
 
         <p><a href="' . rex_url::backendPage('push_it') . '" class="btn btn-default">
-            <i class="rex-icon fa-cog"></i> Einstellungen ändern
+            <i class="rex-icon fa-cog"></i> ' . rex_i18n::msg('pushit_settings_change') . '
         </a></p>';
     }
     

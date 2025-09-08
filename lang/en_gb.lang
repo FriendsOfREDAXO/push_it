@@ -313,18 +313,18 @@ pushit_repair_button = Repair
 pushit_deactivate_notifications_button = Deactivate Notifications
 
 # Browser help instructions
-pushit_safari_step1 = 1. Click the <strong>lock icon</strong> in the address bar
-pushit_safari_step2 = 2. Select <strong>"Settings for this Website"</strong>
-pushit_safari_step3 = 3. Set <strong>"Notifications" to "Allow"</strong>
+pushit_safari_step1 = 1. Click the <b>lock icon</b> in the address bar
+pushit_safari_step2 = 2. Select <b>"Settings for this Website"</b>
+pushit_safari_step3 = 3. Set <b>"Notifications" to "Allow"</b>
 pushit_safari_step4 = 4. Reload the page
 
-pushit_chrome_step1 = 1. Click the <strong>lock icon</strong> in the address bar
-pushit_chrome_step2 = 2. Enable <strong>"Notifications"</strong>
+pushit_chrome_step1 = 1. Click the <b>lock icon</b> in the address bar
+pushit_chrome_step2 = 2. Enable <b>"Notifications"</b>
 pushit_chrome_step3 = 3. Reload the page
 
-pushit_firefox_step1 = 1. Click the <strong>shield icon</strong> in the address bar
-pushit_firefox_step2 = 2. Select <strong>"Edit Permission"</strong>
-pushit_firefox_step3 = 3. Set <strong>"Desktop Notifications" to "Allow"</strong>
+pushit_firefox_step1 = 1. Click the <b>shield icon</b> in the address bar
+pushit_firefox_step2 = 2. Select <b>"Edit Permission"</b>
+pushit_firefox_step3 = 3. Set <b>"Desktop Notifications" to "Allow"</b>
 pushit_firefox_step4 = 4. Reload the page
 
 # Backend statistics

@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'friendsofredaxo/push_it',
-        'pretty_version' => 'dev-copilot/fix-4',
-        'version' => 'dev-copilot/fix-4',
-        'reference' => 'c3f35bc00b9d6c876ca49dd306c0b9bc596edbd5',
+        'pretty_version' => 'dev-copilot/fix-11',
+        'version' => 'dev-copilot/fix-11',
+        'reference' => 'de61adaea94f7fdcdb2e7ab7da49b007bf3c1d73',
         'type' => 'redaxo-addon',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -20,9 +20,9 @@
             'dev_requirement' => false,
         ),
         'friendsofredaxo/push_it' => array(
-            'pretty_version' => 'dev-copilot/fix-4',
-            'version' => 'dev-copilot/fix-4',
-            'reference' => 'c3f35bc00b9d6c876ca49dd306c0b9bc596edbd5',
+            'pretty_version' => 'dev-copilot/fix-11',
+            'version' => 'dev-copilot/fix-11',
+            'reference' => 'de61adaea94f7fdcdb2e7ab7da49b007bf3c1d73',
             'type' => 'redaxo-addon',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

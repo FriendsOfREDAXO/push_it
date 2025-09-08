@@ -146,6 +146,43 @@ class SendManager
     }
     
     /**
+     * Sendet eine Test-Benachrichtigung an den aktuellen User
+     */
+    public function sendTestNotification(): array
+    {
+        if (!\rex::isBackend() || !\rex::getUser()) {
+            return [
+                'success' => false,
+                'message' => 'Nicht authentifiziert'
+            ];
+        }
+
+        try {
+            $user = \rex::getUser();
+            $userId = $user->getId();
+            
+            $notificationService = new NotificationService($this->addon);
+            
+            // Test-Benachrichtigung ohne Topic-Filter senden
+            $result = $notificationService->sendToUser(
+                $userId,
+                'PushIt Test',
+                'Test-Benachrichtigung erfolgreich gesendet! 🎉',
+                '', // url
+                [] // keine Topics - alle aktiven Subscriptions des Users
+            );
+            
+            return $result;
+            
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Fehler: ' . $e->getMessage()
+            ];
+        }
+    }
+    
+    /**
      * Rendert JavaScript für die Send-Seite
      */
     public function renderJavaScript(): string
@@ -159,17 +196,9 @@ class SendManager
         $nonce = \rex_response::getNonce();
         
         return '<script type="text/javascript" nonce="' . $nonce . '">
-        window.PushItPublicKey = ' . json_encode($publicKey) . ';
-        
         function testOwnSubscription() {
-            if (!window.PushIt) {
-                alert("' . rex_i18n::msg('pushit_not_available') . '");
-                return;
-            }
-            
-            PushIt.subscribe("frontend", "test")
-                .then(() => alert("' . rex_i18n::msg('pushit_test_subscription_success') . '"))
-                .catch(err => alert("' . rex_i18n::msg('pushit_error_prefix') . ': " + err.message));
+            // Einfach die Seite neu laden mit Test-Parameter
+            window.location.href = window.location.href + (window.location.href.includes("?") ? "&" : "?") + "test_notification=1";
         }
         </script>';
     }
@@ -291,6 +320,20 @@ class SendManager
             $content .= '
                     <hr>
                     <div class="rex-form-group form-group">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="test_mode" value="1" />
+                                <strong>Testversand:</strong> Nur an mich senden (ignoriert Empfängergruppe)
+                            </label>
+                            <p class="help-block text-info">
+                                <i class="rex-icon fa-info-circle"></i> 
+                                Bei aktiviertem Testmodus wird die Benachrichtigung nur an dich gesendet, 
+                                unabhängig von der gewählten Empfängergruppe.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="rex-form-group form-group">
                         <button class="btn btn-primary" name="send" value="1" type="submit">
                             <i class="rex-icon fa-paper-plane"></i> ' . rex_i18n::msg('pushit_send_notification_button') . '
                         </button>
@@ -311,25 +354,6 @@ class SendManager
 
         $content .= '
         </form>';
-
-        // Test-Funktionen hinzufügen wenn VAPID verfügbar
-        if ($this->addon->getConfig('publicKey')) {
-            $nonce = \rex_response::getNonce();
-            $content .= '
-            <div class="alert alert-info">
-                <h4><i class="rex-icon fa-info-circle"></i> ' . rex_i18n::msg('pushit_test_functions') . '</h4>
-                <p>' . rex_i18n::msg('pushit_test_functions_help') . '</p>
-                <button class="btn btn-sm btn-info" id="test-subscription-btn">
-                    <i class="rex-icon fa-bell"></i> ' . rex_i18n::msg('pushit_test_subscription_button') . '
-                </button>
-                
-                <script type="text/javascript" nonce="' . $nonce . '">
-                    document.getElementById("test-subscription-btn").addEventListener("click", function() {
-                        testOwnSubscription();
-                    });
-                </script>
-            </div>';
-        }
 
         return $content;
     }

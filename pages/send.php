@@ -28,20 +28,33 @@ $formData = [
 ];
 
 $doSend = rex_request('send', 'bool');
+$testMode = rex_request('test_mode', 'bool');
 
 // Send-Action verarbeiten
 if ($doSend) {
-    $result = $sendManager->sendNotification($formData, $isAdmin);
-    
-    if ($result['success']) {
-        echo rex_view::success($result['message']);
+    if ($testMode) {
+        // Testmodus: Nur an aktuellen Benutzer senden
+        $result = $sendManager->sendTestNotification();
+        
+        if ($result['success']) {
+            echo rex_view::success('✅ Test-Benachrichtigung erfolgreich gesendet!');
+        } else {
+            echo rex_view::error('❌ Fehler beim Senden der Test-Benachrichtigung: ' . $result['message']);
+        }
     } else {
-        echo rex_view::error($result['message']);
-    }
-    
-    // Warnung für Nicht-Admins bei Bildverwendung
-    if (!$isAdmin && ($formData['icon'] || $formData['badge'] || $formData['image'])) {
-        echo rex_view::warning(rex_i18n::msg('pushit_admin_images_only'));
+        // Normaler Versand
+        $result = $sendManager->sendNotification($formData, $isAdmin);
+        
+        if ($result['success']) {
+            echo rex_view::success($result['message']);
+        } else {
+            echo rex_view::error($result['message']);
+        }
+        
+        // Warnung für Nicht-Admins bei Bildverwendung
+        if (!$isAdmin && ($formData['icon'] || $formData['badge'] || $formData['image'])) {
+            echo rex_view::warning(rex_i18n::msg('pushit_admin_images_only'));
+        }
     }
 }
 

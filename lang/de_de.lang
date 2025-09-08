@@ -90,9 +90,6 @@ pushit_hero_image_url_help = URL zum großen Bild in der Benachrichtigung (JPG/P
 # Buttons
 pushit_send_notification_button = Benachrichtigung senden
 pushit_reset_form_button = Formular zurücksetzen
-pushit_test_functions = Test-Funktionen
-pushit_test_functions_help = Sie können Push-Notifications für sich selbst testen:
-pushit_test_subscription_button = Test-Subscription erstellen
 
 # Subscriptions page
 pushit_no_permission_delete = Keine Berechtigung zum Löschen von Subscriptions.

@@ -516,6 +516,6 @@ MIT License - Siehe LICENSE.md
 - **Organization**: Friends Of REDAXO
 - **Based on**: [Web Push Protocol](https://tools.ietf.org/html/rfc8030)
 - **Library**: [Minishlink/WebPush](https://github.com/Minishlink/web-push)
----
+
 
 **PushIt** - Moderne Web Push Notifications für REDAXO 5 🚀

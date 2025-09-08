@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="PushIt Demo">
+    <title>PushIt Notification Demo</title>
+    <link rel="stylesheet" href="pushit-ui.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .demo-section {
+            margin: 2rem 0;
+            padding: 1rem;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0.25rem;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .color-picker {
+            margin: 0.5rem 0;
+        }
+        .color-picker input {
+            margin-right: 0.5rem;
+        }
+        code {
+            background: #f8f9fa;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <!-- Demo Notification Bar -->
+    <div id="demo-notification" class="pushit-notification-bar">
+        <div class="pushit-bar-content">
+            <span class="pushit-bar-icon">🔔</span>
+            <div class="pushit-bar-text">
+                <strong>Push-Benachrichtigungen aktivieren?</strong><br>
+                Bleiben Sie über wichtige Updates informiert.
+            </div>
+            <div class="pushit-bar-actions">
+                <button class="pushit-btn primary" onclick="acceptDemo()">
+                    Aktivieren
+                </button>
+                <button class="pushit-btn outline" onclick="declineDemo()">
+                    Nein, danke
+                </button>
+            </div>
+            <button class="pushit-close" onclick="hideDemo()">&times;</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>🔔 PushIt Notification Bar Demo</h1>
+        <p>Interaktive Demonstration der framework-neutralen Notification-Bar mit CSS-Variablen.</p>
+
+        <!-- Basis-Demo -->
+        <div class="demo-section">
+            <h2>🎮 Basis-Funktionen</h2>
+            <button class="btn" onclick="showNotification()">Notification anzeigen</button>
+            <button class="btn" onclick="hideNotification()">Notification verstecken</button>
+            <button class="btn" onclick="toggleNotification()">Toggle Notification</button>
+        </div>
+
+        <!-- Varianten Demo -->
+        <div class="demo-section">
+            <h2>🎨 Varianten & Stile</h2>
+            <button class="btn" onclick="showVariant('default')">Standard</button>
+            <button class="btn" onclick="showVariant('success')">Erfolg</button>
+            <button class="btn" onclick="showVariant('error')">Fehler</button>
+            <button class="btn" onclick="showVariant('warning')">Warnung</button>
+            <button class="btn" onclick="showVariant('info')">Info</button>
+            <button class="btn" onclick="showVariant('light')">Hell</button>
+            <button class="btn" onclick="showVariant('dark')">Dunkel</button>
+        </div>
+
+        <!-- Position Demo -->
+        <div class="demo-section">
+            <h2>📍 Positionen</h2>
+            <button class="btn" onclick="setPosition('top')">Oben (fixed)</button>
+            <button class="btn" onclick="setPosition('bottom')">Unten (fixed)</button>
+            <button class="btn" onclick="setPosition('inline')">Inline (relative)</button>
+        </div>
+
+        <!-- Anpassungen -->
+        <div class="demo-section">
+            <h2>🎛️ Live-Anpassungen</h2>
+            
+            <div class="color-picker">
+                <label>Primärfarbe: </label>
+                <input type="color" id="primary-color" value="#007bff" onchange="updatePrimary(this.value)">
+                <code>--pushit-primary</code>
+            </div>
+            
+            <div class="color-picker">
+                <label>Border Radius: </label>
+                <input type="range" id="border-radius" min="0" max="20" value="6" onchange="updateRadius(this.value)">
+                <span id="radius-value">6px</span>
+                <code>--pushit-border-radius</code>
+            </div>
+            
+            <div class="color-picker">
+                <label>Font Size: </label>
+                <input type="range" id="font-size" min="12" max="20" value="16" onchange="updateFontSize(this.value)">
+                <span id="font-size-value">16px</span>
+                <code>--pushit-font-size-base</code>
+            </div>
+            
+            <div class="color-picker">
+                <label>Animation: </label>
+                <select onchange="updateAnimation(this.value)">
+                    <option value="0.3s ease-in-out">Standard (0.3s)</option>
+                    <option value="0.1s ease-in-out">Schnell (0.1s)</option>
+                    <option value="0.6s ease-in-out">Langsam (0.6s)</option>
+                    <option value="0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)">Bouncy</option>
+                </select>
+                <code>--pushit-transition-base</code>
+            </div>
+        </div>
+
+        <!-- iOS Demo -->
+        <div class="demo-section">
+            <h2>📱 iOS Simulation</h2>
+            <p>Simulation des iOS-Installations-Workflows:</p>
+            <button class="btn" onclick="simulateIOS()">iOS Installation simulieren</button>
+            <button class="btn" onclick="simulateStandalone()">Standalone-Modus simulieren</button>
+        </div>
+
+        <!-- Code Beispiele -->
+        <div class="demo-section">
+            <h2>💻 Code-Beispiele</h2>
+            
+            <h3>HTML Struktur:</h3>
+            <pre><code>&lt;div class="pushit-notification-bar show success"&gt;
+  &lt;div class="pushit-bar-content"&gt;
+    &lt;span class="pushit-bar-icon"&gt;✅&lt;/span&gt;
+    &lt;div class="pushit-bar-text"&gt;
+      &lt;strong&gt;Erfolgreich!&lt;/strong&gt; Benachrichtigungen aktiviert.
+    &lt;/div&gt;
+    &lt;div class="pushit-bar-actions"&gt;
+      &lt;button class="pushit-btn primary"&gt;OK&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;button class="pushit-close"&gt;&amp;times;&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+
+            <h3>CSS Anpassung:</h3>
+            <pre><code>:root {
+  --pushit-primary: #6f42c1;
+  --pushit-border-radius: 1rem;
+  --pushit-font-family: "Inter", sans-serif;
+}</code></pre>
+
+            <h3>JavaScript Integration:</h3>
+            <pre><code>// Notification anzeigen
+const notification = document.querySelector('.pushit-notification-bar');
+notification.classList.add('show');
+
+// Nach 5 Sekunden verstecken
+setTimeout(() => {
+  notification.classList.remove('show');
+}, 5000);</code></pre>
+        </div>
+
+        <!-- Progressive Enhancement -->
+        <div class="demo-section">
+            <h2>⚡ Progressive Enhancement</h2>
+            <button class="btn" onclick="loadPushItScript()">PushIt Script laden</button>
+            <button class="btn" onclick="testBrowserSupport()">Browser-Support testen</button>
+            <div id="support-result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Demo JavaScript
+        let currentPosition = 'top';
+        let isVisible = false;
+
+        function showNotification() {
+            const notification = document.getElementById('demo-notification');
+            notification.classList.add('show');
+            isVisible = true;
+        }
+
+        function hideNotification() {
+            const notification = document.getElementById('demo-notification');
+            notification.classList.remove('show');
+            isVisible = false;
+        }
+
+        function toggleNotification() {
+            if (isVisible) {
+                hideNotification();
+            } else {
+                showNotification();
+            }
+        }
+
+        function showVariant(variant) {
+            const notification = document.getElementById('demo-notification');
+            
+            // Alle Varianten-Klassen entfernen
+            notification.classList.remove('success', 'error', 'warning', 'info', 'light', 'dark');
+            
+            // Neue Variante hinzufügen (außer default)
+            if (variant !== 'default') {
+                notification.classList.add(variant);
+            }
+            
+            // Passende Texte und Icons
+            const icon = notification.querySelector('.pushit-bar-icon');
+            const text = notification.querySelector('.pushit-bar-text');
+            
+            const variants = {
+                'default': { icon: '🔔', text: 'Standard Benachrichtigung' },
+                'success': { icon: '✅', text: '<strong>Erfolgreich!</strong> Aktion wurde ausgeführt.' },
+                'error': { icon: '❌', text: '<strong>Fehler!</strong> Etwas ist schief gelaufen.' },
+                'warning': { icon: '⚠️', text: '<strong>Warnung!</strong> Bitte beachten Sie folgendes.' },
+                'info': { icon: 'ℹ️', text: '<strong>Information:</strong> Neue Updates verfügbar.' },
+                'light': { icon: '💡', text: '<strong>Tipp:</strong> Heller Modus aktiviert.' },
+                'dark': { icon: '🌙', text: '<strong>Dark Mode:</strong> Dunkler Modus aktiviert.' }
+            };
+            
+            icon.textContent = variants[variant].icon;
+            text.innerHTML = variants[variant].text;
+            
+            showNotification();
+        }
+
+        function setPosition(position) {
+            const notification = document.getElementById('demo-notification');
+            
+            // Position-Klassen entfernen
+            notification.classList.remove('bottom', 'inline');
+            
+            if (position === 'bottom') {
+                notification.classList.add('bottom');
+            } else if (position === 'inline') {
+                notification.classList.add('inline');
+                document.querySelector('.container').prepend(notification);
+            } else {
+                // top (default)
+                document.body.prepend(notification);
+            }
+            
+            currentPosition = position;
+            showNotification();
+        }
+
+        function updatePrimary(color) {
+            document.documentElement.style.setProperty('--pushit-primary', color);
+            
+            // Darker shade generieren
+            const hex = color.replace('#', '');
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+            const darker = `rgb(${Math.max(0, r-40)}, ${Math.max(0, g-40)}, ${Math.max(0, b-40)})`;
+            document.documentElement.style.setProperty('--pushit-primary-dark', darker);
+        }
+
+        function updateRadius(value) {
+            document.documentElement.style.setProperty('--pushit-border-radius', value + 'px');
+            document.getElementById('radius-value').textContent = value + 'px';
+        }
+
+        function updateFontSize(value) {
+            document.documentElement.style.setProperty('--pushit-font-size-base', value + 'px');
+            document.getElementById('font-size-value').textContent = value + 'px';
+        }
+
+        function updateAnimation(value) {
+            document.documentElement.style.setProperty('--pushit-transition-base', value);
+        }
+
+        function acceptDemo() {
+            showVariant('success');
+            setTimeout(() => {
+                hideNotification();
+            }, 3000);
+        }
+
+        function declineDemo() {
+            hideNotification();
+        }
+
+        function hideDemo() {
+            hideNotification();
+        }
+
+        function simulateIOS() {
+            const notification = document.getElementById('demo-notification');
+            const icon = notification.querySelector('.pushit-bar-icon');
+            const text = notification.querySelector('.pushit-bar-text');
+            
+            notification.classList.remove('success', 'error', 'warning', 'info', 'light', 'dark');
+            notification.classList.add('warning');
+            
+            icon.textContent = '📱';
+            text.innerHTML = '<strong>iOS Installation:</strong><br>Fügen Sie diese Seite zum Home-Bildschirm hinzu (Teilen → "Zum Home-Bildschirm")';
+            
+            showNotification();
+        }
+
+        function simulateStandalone() {
+            showVariant('success');
+            const text = document.querySelector('.pushit-bar-text');
+            text.innerHTML = '<strong>Standalone-Modus!</strong> Push-Benachrichtigungen sind jetzt verfügbar.';
+        }
+
+        function loadPushItScript() {
+            // Simuliere Script-Loading
+            const notification = document.getElementById('demo-notification');
+            notification.classList.add('info');
+            
+            const icon = notification.querySelector('.pushit-bar-icon');
+            const text = notification.querySelector('.pushit-bar-text');
+            
+            icon.textContent = '⚡';
+            text.innerHTML = '<strong>Progressive Enhancement:</strong> PushIt Script wird geladen...';
+            
+            showNotification();
+            
+            setTimeout(() => {
+                text.innerHTML = '<strong>Bereit!</strong> PushIt Features sind verfügbar.';
+                notification.classList.remove('info');
+                notification.classList.add('success');
+            }, 2000);
+        }
+
+        function testBrowserSupport() {
+            const result = document.getElementById('support-result');
+            const support = {
+                'Service Worker': 'serviceWorker' in navigator,
+                'Push Manager': 'PushManager' in window,
+                'Notifications': 'Notification' in window,
+                'Promises': typeof Promise !== 'undefined',
+                'Fetch API': typeof fetch !== 'undefined'
+            };
+            
+            let html = '<h4>Browser-Support:</h4><ul>';
+            for (const [feature, supported] of Object.entries(support)) {
+                const status = supported ? '✅' : '❌';
+                html += `<li>${status} ${feature}: ${supported ? 'Unterstützt' : 'Nicht unterstützt'}</li>`;
+            }
+            html += '</ul>';
+            
+            result.innerHTML = html;
+        }
+
+        // Initial Demo beim Laden
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(showNotification, 1000);
+        });
+    </script>
+</body>
+</html>

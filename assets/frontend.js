@@ -96,27 +96,73 @@
       throw new Error(t('error.browser_not_supported'));
     }
     
-    // Service Worker registrieren oder vorhandenen abrufen
-    let reg = await navigator.serviceWorker.getRegistration('/assets/addons/push_it/sw.js');
-    if (!reg) {
-      reg = await navigator.serviceWorker.register('/assets/addons/push_it/sw.js', {
-        scope: '/assets/addons/push_it/'
-      });
-    }
-    
-    // Warten bis Service Worker aktiv ist
-    if (reg.installing) {
-      await new Promise(resolve => {
-        reg.installing.addEventListener('statechange', function() {
-          if (this.state === 'activated') resolve();
+    try {
+      // Service Worker registrieren oder vorhandenen abrufen
+      let reg = await navigator.serviceWorker.getRegistration('/assets/addons/push_it/sw.js');
+      if (!reg) {
+        try {
+          reg = await navigator.serviceWorker.register('/assets/addons/push_it/sw.js', {
+            scope: '/assets/addons/push_it/'
+          });
+        } catch (registerError) {
+          // Spezifische Behandlung für SSL/Fetch-Probleme
+          if (registerError.message.includes('fetch') || 
+              registerError.message.includes('An unknown error occurred when fetching the script') ||
+              registerError.message.includes('Load failed') ||
+              registerError.message.includes('net::ERR_CERT')) {
+            
+            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            const isChrome = /chrome/i.test(navigator.userAgent);
+            const isFirefox = /firefox/i.test(navigator.userAgent);
+            
+            let sslInstructions = t('instructions.ssl_certificate') + '\n\n';
+            
+            if (isChrome) {
+              sslInstructions += t('instructions.ssl_chrome');
+            } else if (isFirefox) {
+              sslInstructions += t('instructions.ssl_firefox');
+            } else if (isSafari) {
+              sslInstructions += t('instructions.ssl_safari');
+            } else {
+              sslInstructions += t('instructions.ssl_general');
+            }
+            
+            sslInstructions += '\n\n' + t('instructions.ssl_general');
+            
+            throw new Error(t('error.serviceworker_ssl') + '\n\n' + sslInstructions);
+          }
+          
+          // Andere Service Worker Registrierungsfehler
+          console.error('Service Worker registration error:', registerError);
+          throw new Error(t('error.serviceworker_register') + ': ' + registerError.message);
+        }
+      }
+      
+      // Warten bis Service Worker aktiv ist
+      if (reg.installing) {
+        await new Promise(resolve => {
+          reg.installing.addEventListener('statechange', function() {
+            if (this.state === 'activated') resolve();
+          });
         });
-      });
-    } else if (!reg.active) {
-      // Kurz warten für bereits installierte SW
-      await new Promise(resolve => setTimeout(resolve, 100));
+      } else if (!reg.active) {
+        // Kurz warten für bereits installierte SW
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      return reg;
+      
+    } catch (error) {
+      // Falls der Fehler bereits behandelt wurde, weiterwerfen
+      if (error.message.includes(t('error.serviceworker_ssl')) || 
+          error.message.includes(t('instructions.ssl_certificate'))) {
+        throw error;
+      }
+      
+      // Allgemeine Service Worker Fehler
+      console.error('Service Worker error:', error);
+      throw new Error(t('error.serviceworker_register') + ': ' + error.message);
     }
-    
-    return reg;
   }
   
   async function requestNotificationPermission() {

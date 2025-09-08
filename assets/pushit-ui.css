@@ -1,0 +1,556 @@
+/**
+ * PushIt Notification Bar - CSS Framework
+ * Framework-neutrale, stylbare Notification-Bars mit CSS-Variablen
+ */
+
+/* ===== CSS CUSTOM PROPERTIES (VARIABLEN) ===== */
+:root {
+  /* Primäre Farben */
+  --pushit-primary: #007bff;
+  --pushit-primary-dark: #0056b3;
+  --pushit-secondary: #6c757d;
+  --pushit-success: #28a745;
+  --pushit-success-dark: #1e7e34;
+  --pushit-danger: #dc3545;
+  --pushit-danger-dark: #c82333;
+  --pushit-warning: #ffc107;
+  --pushit-warning-dark: #e0a800;
+  --pushit-info: #17a2b8;
+  --pushit-info-dark: #117a8b;
+  --pushit-light: #f8f9fa;
+  --pushit-dark: #343a40;
+  
+  /* Neutrale Farben */
+  --pushit-white: #ffffff;
+  --pushit-black: #000000;
+  --pushit-gray-100: #f8f9fa;
+  --pushit-gray-200: #e9ecef;
+  --pushit-gray-300: #dee2e6;
+  --pushit-gray-400: #ced4da;
+  --pushit-gray-500: #adb5bd;
+  --pushit-gray-600: #6c757d;
+  --pushit-gray-700: #495057;
+  --pushit-gray-800: #343a40;
+  --pushit-gray-900: #212529;
+  
+  /* Typographie */
+  --pushit-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --pushit-font-size-sm: 0.875rem;
+  --pushit-font-size-base: 1rem;
+  --pushit-font-size-lg: 1.125rem;
+  --pushit-font-weight-normal: 400;
+  --pushit-font-weight-medium: 500;
+  --pushit-font-weight-bold: 700;
+  --pushit-line-height-base: 1.5;
+  
+  /* Spacing */
+  --pushit-spacing-xs: 0.25rem;
+  --pushit-spacing-sm: 0.5rem;
+  --pushit-spacing-md: 1rem;
+  --pushit-spacing-lg: 1.5rem;
+  --pushit-spacing-xl: 2rem;
+  --pushit-spacing-xxl: 3rem;
+  
+  /* Layout */
+  --pushit-border-radius: 0.375rem;
+  --pushit-border-radius-sm: 0.25rem;
+  --pushit-border-radius-lg: 0.5rem;
+  --pushit-border-width: 1px;
+  
+  /* Shadows */
+  --pushit-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --pushit-shadow-md: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+  --pushit-shadow-lg: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  
+  /* Transitions */
+  --pushit-transition-fast: 0.15s ease-in-out;
+  --pushit-transition-base: 0.3s ease-in-out;
+  --pushit-transition-slow: 0.5s ease-in-out;
+  
+  /* Z-Index */
+  --pushit-z-notification: 1050;
+  --pushit-z-modal: 1060;
+  --pushit-z-tooltip: 1070;
+  
+  /* Notification Bar spezifisch */
+  --pushit-bar-height: auto;
+  --pushit-bar-padding: var(--pushit-spacing-md) var(--pushit-spacing-lg);
+  --pushit-bar-margin: 0;
+  --pushit-bar-border-radius: 0;
+  --pushit-bar-backdrop-filter: blur(10px);
+  
+  /* Button Variablen */
+  --pushit-btn-padding: var(--pushit-spacing-sm) var(--pushit-spacing-md);
+  --pushit-btn-border-radius: var(--pushit-border-radius);
+  --pushit-btn-font-size: var(--pushit-font-size-sm);
+  --pushit-btn-font-weight: var(--pushit-font-weight-medium);
+  
+  /* Icon Variablen */
+  --pushit-icon-size: 1.25rem;
+  --pushit-icon-margin: var(--pushit-spacing-sm);
+}
+
+/* ===== DARK MODE SUPPORT ===== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --pushit-primary: #0d6efd;
+    --pushit-light: #212529;
+    --pushit-dark: #f8f9fa;
+    --pushit-gray-100: #212529;
+    --pushit-gray-200: #2c3034;
+    --pushit-gray-300: #3a3d42;
+    --pushit-gray-400: #495057;
+    --pushit-gray-500: #6c757d;
+    --pushit-gray-600: #adb5bd;
+    --pushit-gray-700: #ced4da;
+    --pushit-gray-800: #dee2e6;
+    --pushit-gray-900: #f8f9fa;
+  }
+}
+
+/* ===== NOTIFICATION BAR COMPONENTS ===== */
+
+/* Base Notification Bar */
+.pushit-notification-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, var(--pushit-primary), var(--pushit-primary-dark));
+  color: var(--pushit-white);
+  padding: var(--pushit-bar-padding);
+  margin: var(--pushit-bar-margin);
+  font-family: var(--pushit-font-family);
+  font-size: var(--pushit-font-size-base);
+  line-height: var(--pushit-line-height-base);
+  text-align: center;
+  box-shadow: var(--pushit-shadow-md);
+  backdrop-filter: var(--pushit-bar-backdrop-filter);
+  border-radius: var(--pushit-bar-border-radius);
+  z-index: var(--pushit-z-notification);
+  
+  /* Animation */
+  transform: translateY(-100%);
+  transition: transform var(--pushit-transition-base);
+}
+
+/* Show state */
+.pushit-notification-bar.show {
+  transform: translateY(0);
+}
+
+/* Notification Bar Variants */
+.pushit-notification-bar.success {
+  background: linear-gradient(135deg, var(--pushit-success), var(--pushit-success-dark));
+}
+
+.pushit-notification-bar.error,
+.pushit-notification-bar.danger {
+  background: linear-gradient(135deg, var(--pushit-danger), var(--pushit-danger-dark));
+}
+
+.pushit-notification-bar.warning {
+  background: linear-gradient(135deg, var(--pushit-warning), var(--pushit-warning-dark));
+  color: var(--pushit-dark);
+}
+
+.pushit-notification-bar.info {
+  background: linear-gradient(135deg, var(--pushit-info), var(--pushit-info-dark));
+}
+
+.pushit-notification-bar.light {
+  background: var(--pushit-light);
+  color: var(--pushit-dark);
+  border: var(--pushit-border-width) solid var(--pushit-gray-300);
+}
+
+.pushit-notification-bar.dark {
+  background: var(--pushit-dark);
+  color: var(--pushit-light);
+}
+
+/* Notification Bar Positions */
+.pushit-notification-bar.bottom {
+  top: auto;
+  bottom: 0;
+  transform: translateY(100%);
+}
+
+.pushit-notification-bar.bottom.show {
+  transform: translateY(0);
+}
+
+.pushit-notification-bar.inline {
+  position: relative;
+  transform: none;
+  margin: var(--pushit-spacing-md) 0;
+}
+
+/* ===== BAR CONTENT LAYOUT ===== */
+
+.pushit-bar-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--pushit-spacing-md);
+  max-width: 1200px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.pushit-bar-icon {
+  font-size: var(--pushit-icon-size);
+  margin-right: var(--pushit-icon-margin);
+  flex-shrink: 0;
+}
+
+.pushit-bar-text {
+  flex: 1 1 auto;
+  max-width: 600px;
+  min-width: 200px;
+}
+
+.pushit-bar-text strong {
+  font-weight: var(--pushit-font-weight-bold);
+}
+
+.pushit-bar-actions {
+  display: flex;
+  gap: var(--pushit-spacing-sm);
+  flex-shrink: 0;
+}
+
+/* ===== BUTTONS ===== */
+
+.pushit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--pushit-btn-padding);
+  font-family: var(--pushit-font-family);
+  font-size: var(--pushit-btn-font-size);
+  font-weight: var(--pushit-btn-font-weight);
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  border: var(--pushit-border-width) solid transparent;
+  border-radius: var(--pushit-btn-border-radius);
+  transition: all var(--pushit-transition-fast);
+  
+  /* Default (transparent) */
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: inherit;
+}
+
+.pushit-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+  text-decoration: none;
+  color: inherit;
+}
+
+.pushit-btn:active {
+  transform: translateY(0);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Button Variants */
+.pushit-btn.primary {
+  background: var(--pushit-white);
+  border-color: var(--pushit-white);
+  color: var(--pushit-primary);
+}
+
+.pushit-btn.primary:hover {
+  background: var(--pushit-gray-100);
+  border-color: var(--pushit-gray-100);
+  color: var(--pushit-primary-dark);
+}
+
+.pushit-btn.outline {
+  background: transparent;
+  border-color: currentColor;
+}
+
+.pushit-btn.outline:hover {
+  background: currentColor;
+  color: var(--pushit-white);
+}
+
+.pushit-btn.ghost {
+  background: transparent;
+  border-color: transparent;
+}
+
+.pushit-btn.ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Button Sizes */
+.pushit-btn.sm {
+  padding: calc(var(--pushit-spacing-xs)) var(--pushit-spacing-sm);
+  font-size: calc(var(--pushit-font-size-base) * 0.85);
+}
+
+.pushit-btn.lg {
+  padding: var(--pushit-spacing-sm) var(--pushit-spacing-lg);
+  font-size: var(--pushit-font-size-lg);
+}
+
+/* ===== CLOSE BUTTON ===== */
+
+.pushit-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-left: var(--pushit-spacing-sm);
+  padding: 0;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: inherit;
+  opacity: 0.7;
+  cursor: pointer;
+  transition: all var(--pushit-transition-fast);
+}
+
+.pushit-close:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.pushit-close:active {
+  transform: scale(0.95);
+}
+
+/* ===== PROGRESS BAR (optional) ===== */
+
+.pushit-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 0 0 var(--pushit-bar-border-radius) var(--pushit-bar-border-radius);
+  animation: pushit-progress 5s linear;
+}
+
+@keyframes pushit-progress {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Mobile */
+@media (max-width: 768px) {
+  .pushit-notification-bar {
+    position: relative;
+    transform: none !important;
+    padding: var(--pushit-spacing-lg);
+    text-align: left;
+  }
+  
+  .pushit-bar-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--pushit-spacing-sm);
+  }
+  
+  .pushit-bar-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .pushit-btn {
+    flex: 1;
+    max-width: 150px;
+  }
+  
+  .pushit-close {
+    position: absolute;
+    top: var(--pushit-spacing-sm);
+    right: var(--pushit-spacing-sm);
+    margin: 0;
+  }
+}
+
+/* Tablet */
+@media (max-width: 992px) {
+  .pushit-bar-content {
+    padding: 0 var(--pushit-spacing-md);
+  }
+  
+  .pushit-bar-text {
+    max-width: 400px;
+  }
+}
+
+/* ===== iOS SAFE AREA SUPPORT ===== */
+
+@supports (padding-top: env(safe-area-inset-top)) {
+  .pushit-notification-bar {
+    padding-top: max(var(--pushit-spacing-md), env(safe-area-inset-top));
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+
+.pushit-notification-bar {
+  /* Screen reader support */
+  role: alert;
+  aria-live: polite;
+}
+
+.pushit-notification-bar.error,
+.pushit-notification-bar.danger {
+  aria-live: assertive;
+}
+
+/* Focus styles */
+.pushit-btn:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+.pushit-close:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .pushit-notification-bar {
+    transition: none;
+  }
+  
+  .pushit-btn {
+    transition: none;
+  }
+  
+  .pushit-btn:hover {
+    transform: none;
+  }
+  
+  .pushit-progress {
+    animation: none;
+  }
+}
+
+/* ===== HIGH CONTRAST MODE ===== */
+
+@media (prefers-contrast: high) {
+  .pushit-notification-bar {
+    border: 2px solid currentColor;
+  }
+  
+  .pushit-btn {
+    border-width: 2px;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+
+@media print {
+  .pushit-notification-bar {
+    display: none !important;
+  }
+}
+
+/* ===== UTILITY CLASSES ===== */
+
+/* Spacing utilities */
+.pushit-mt-0 { margin-top: 0 !important; }
+.pushit-mt-1 { margin-top: var(--pushit-spacing-xs) !important; }
+.pushit-mt-2 { margin-top: var(--pushit-spacing-sm) !important; }
+.pushit-mt-3 { margin-top: var(--pushit-spacing-md) !important; }
+.pushit-mt-4 { margin-top: var(--pushit-spacing-lg) !important; }
+.pushit-mt-5 { margin-top: var(--pushit-spacing-xl) !important; }
+
+.pushit-mb-0 { margin-bottom: 0 !important; }
+.pushit-mb-1 { margin-bottom: var(--pushit-spacing-xs) !important; }
+.pushit-mb-2 { margin-bottom: var(--pushit-spacing-sm) !important; }
+.pushit-mb-3 { margin-bottom: var(--pushit-spacing-md) !important; }
+.pushit-mb-4 { margin-bottom: var(--pushit-spacing-lg) !important; }
+.pushit-mb-5 { margin-bottom: var(--pushit-spacing-xl) !important; }
+
+/* Text utilities */
+.pushit-text-left { text-align: left !important; }
+.pushit-text-center { text-align: center !important; }
+.pushit-text-right { text-align: right !important; }
+
+.pushit-text-sm { font-size: var(--pushit-font-size-sm) !important; }
+.pushit-text-base { font-size: var(--pushit-font-size-base) !important; }
+.pushit-text-lg { font-size: var(--pushit-font-size-lg) !important; }
+
+.pushit-font-normal { font-weight: var(--pushit-font-weight-normal) !important; }
+.pushit-font-medium { font-weight: var(--pushit-font-weight-medium) !important; }
+.pushit-font-bold { font-weight: var(--pushit-font-weight-bold) !important; }
+
+/* Display utilities */
+.pushit-d-none { display: none !important; }
+.pushit-d-block { display: block !important; }
+.pushit-d-flex { display: flex !important; }
+.pushit-d-inline-flex { display: inline-flex !important; }
+
+/* Flex utilities */
+.pushit-flex-column { flex-direction: column !important; }
+.pushit-flex-row { flex-direction: row !important; }
+.pushit-justify-start { justify-content: flex-start !important; }
+.pushit-justify-center { justify-content: center !important; }
+.pushit-justify-end { justify-content: flex-end !important; }
+.pushit-justify-between { justify-content: space-between !important; }
+.pushit-align-start { align-items: flex-start !important; }
+.pushit-align-center { align-items: center !important; }
+.pushit-align-end { align-items: flex-end !important; }
+
+/* ===== COMPONENT EXAMPLES IN COMMENTS ===== */
+
+/*
+BASIC USAGE EXAMPLE:
+
+<div class="pushit-notification-bar show success">
+  <div class="pushit-bar-content">
+    <span class="pushit-bar-icon">✅</span>
+    <div class="pushit-bar-text">
+      <strong>Erfolgreich!</strong> Ihre Einstellungen wurden gespeichert.
+    </div>
+    <div class="pushit-bar-actions">
+      <button class="pushit-btn primary">Details</button>
+      <button class="pushit-btn outline">OK</button>
+    </div>
+    <button class="pushit-close">&times;</button>
+  </div>
+</div>
+
+CUSTOM CSS VARIABLES EXAMPLE:
+
+.my-custom-theme {
+  --pushit-primary: #6f42c1;
+  --pushit-primary-dark: #5a2d91;
+  --pushit-border-radius: 1rem;
+  --pushit-font-family: "Comic Sans MS", cursive;
+}
+
+JAVASCRIPT INTEGRATION EXAMPLE:
+
+const notification = document.querySelector('.pushit-notification-bar');
+notification.style.setProperty('--pushit-primary', '#ff6b6b');
+notification.classList.add('show');
+
+setTimeout(() => {
+  notification.classList.remove('show');
+}, 5000);
+*/

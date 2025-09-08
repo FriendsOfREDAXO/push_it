@@ -11,6 +11,11 @@ window.PushItLang.de = {
   'error.unknown_error': 'Unbekannter Fehler',
   'error.generic': 'Fehler: {message}',
   
+  // SSL/Service Worker spezifische Fehler
+  'error.serviceworker_ssl': 'Service Worker kann nicht geladen werden. Dies liegt wahrscheinlich an einem selbst-signierten SSL-Zertifikat.',
+  'error.serviceworker_fetch': 'Service Worker Script kann nicht geladen werden (SSL-Zertifikat Problem)',
+  'error.serviceworker_register': 'Service Worker Registrierung fehlgeschlagen',
+  
   // Erfolgs-/Info-Meldungen
   'success.push_notifications_activated': 'Push-Benachrichtigungen aktiviert:',
   'success.push_notifications_deactivated': 'Push-Benachrichtigungen deaktiviert:',
@@ -38,6 +43,13 @@ window.PushItLang.de = {
   'instructions.chrome': '🔧 Chrome:\n1. Klicken Sie auf das Schloss-Symbol in der Adressleiste\n2. Aktivieren Sie "Benachrichtigungen"\n3. Laden Sie die Seite neu\n\nAlternativ: Chrome → Einstellungen → Datenschutz → Website-Einstellungen → Benachrichtigungen',
   'instructions.firefox': '🔧 Firefox:\n1. Klicken Sie auf das Schild-Symbol in der Adressleiste\n2. Aktivieren Sie "Benachrichtigungen"\n3. Laden Sie die Seite neu\n\nAlternativ: Firefox → Einstellungen → Datenschutz → Berechtigungen → Benachrichtigungen',
   'instructions.generic': '🔧 Browser-Einstellungen:\n1. Suchen Sie nach "Benachrichtigungen" oder "Notifications"\n2. Fügen Sie diese Domain zur Erlaubt-Liste hinzu\n3. Laden Sie die Seite neu',
+  
+  // SSL/Zertifikat-spezifische Anleitungen
+  'instructions.ssl_certificate': '🔐 SSL-Zertifikat Problem:\n\nDas SSL-Zertifikat dieser Website wird nicht vertraut. Für Push-Benachrichtigungen müssen Sie:',
+  'instructions.ssl_chrome': '🔧 Chrome (Selbst-signiertes Zertifikat):\n1. Klicken Sie auf "Erweitert" in der Sicherheitswarnung\n2. Klicken Sie auf "Weiter zu [Domain] (unsicher)"\n3. ODER: Installieren Sie das Zertifikat in den vertrauenswürdigen Stammzertifikaten\n4. Laden Sie die Seite neu und aktivieren Sie Benachrichtigungen',
+  'instructions.ssl_firefox': '🔧 Firefox (Selbst-signiertes Zertifikat):\n1. Klicken Sie auf "Erweitert" in der Sicherheitswarnung\n2. Klicken Sie auf "Ausnahme hinzufügen..."\n3. Bestätigen Sie die Sicherheitsausnahme\n4. Laden Sie die Seite neu und aktivieren Sie Benachrichtigungen',
+  'instructions.ssl_safari': '🔧 Safari (Selbst-signiertes Zertifikat):\n1. Gehen Sie zu Safari → Einstellungen → Erweitert\n2. Aktivieren Sie "Entwicklermenü in der Menüleiste anzeigen"\n3. Entwickeln → Zertifikatsfehler für diese Website ignorieren\n4. ODER: Installieren Sie das Zertifikat im Schlüsselbund\n5. Laden Sie die Seite neu',
+  'instructions.ssl_general': '💡 Allgemeine Lösung:\n• Verwenden Sie ein gültiges SSL-Zertifikat (Let\'s Encrypt, etc.)\n• Oder testen Sie mit HTTP (nicht empfohlen für Produktion)\n• Service Worker funktionieren nur mit HTTPS oder localhost',
   
   // Console Log Messages
   'log.subscription_error': 'Subscription error:',

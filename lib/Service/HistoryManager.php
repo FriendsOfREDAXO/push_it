@@ -395,8 +395,8 @@ class HistoryManager
                 <br><small>' . ($sentTo > 0 ? round(($sentTo / ($sentTo + $errors)) * 100, 1) : 0) . rex_i18n::msg('pushit_success_rate') . '</small>
             </td>
             <td>
-                <strong>' . ($created ? date('d.m.Y', strtotime($created)) : '-') . '</strong><br>
-                <small class="text-muted">' . ($created ? date('H:i:s', strtotime($created)) : '-') . ' Uhr</small>
+                <strong>' . ($created ? $this->formatGermanDate($created, 'd.m.Y') : '-') . '</strong><br>
+                <small class="text-muted">' . ($created ? $this->formatGermanDate($created, 'H:i:s') : '-') . ' Uhr</small>
             </td>
             <td>
                 <small>' . rex_escape($createdBy) . '</small>

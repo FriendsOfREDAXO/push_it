@@ -39,6 +39,18 @@ page:
             subPath: README.md
             itemClass: 'pull-right'
             perm: push_it[]
+        examples:
+            title: translate:pushit_examples
+            icon: rex-icon fa-code
+            subPath: EXAMPLES.md
+            itemClass: 'pull-right'
+            perm: push_it[]
+        api:
+            title: translate:pushit_api_reference
+            icon: rex-icon fa-book
+            subPath: API.md
+            itemClass: 'pull-right'
+            perm: push_it[]
 
 translate:
     - de_de

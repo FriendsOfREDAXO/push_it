@@ -11,6 +11,8 @@ pushit_send = Send
 pushit_history = History
 pushit_backend_notify = Backend Notifications
 pushit_help = Help
+pushit_examples = Examples
+pushit_api_reference = API Reference
 
 # Settings page
 pushit_settings_saved = Settings have been saved.

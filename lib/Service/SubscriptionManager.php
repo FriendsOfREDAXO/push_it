@@ -316,7 +316,12 @@ class SubscriptionManager
             return '<em>ungültig</em>';
         }
         
-        return date('d.m.Y H:i', $timestamp);
+        // Deutsche Zeitzone verwenden
+        $germanTimezone = new \DateTimeZone('Europe/Berlin');
+        $dateTime = new \DateTime('@' . $timestamp);
+        $dateTime->setTimezone($germanTimezone);
+        
+        return $dateTime->format('d.m.Y H:i');
     }
     
     /**

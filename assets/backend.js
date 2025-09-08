@@ -166,10 +166,42 @@
     }
   }
 
+  // Prüfen ob Benutzer eingeloggt ist (nicht auf Login-Seite)
+  function isUserLoggedIn() {
+    // Prüfe auf Login-Seite (verschiedene mögliche URLs)
+    const isLoginPage = window.location.href.includes('page=login') || 
+                       window.location.href.includes('rex_login') ||
+                       document.body.classList.contains('rex-page-login') ||
+                       document.querySelector('.rex-page-login') !== null ||
+                       document.querySelector('#rex-form-login') !== null;
+    
+    if (isLoginPage) {
+      console.log('PushIt: On login page - not showing notifications');
+      return false;
+    }
+    
+    // Prüfe auf rex-User-Objekt oder Backend-Indikatoren
+    const hasUserSession = window.rex && (window.rex.user_id || window.rex.user || window.rex.push_it_user_id);
+    const hasBackendElements = document.querySelector('#rex-js-nav-top') !== null ||
+                              document.querySelector('.rex-page-header') !== null ||
+                              document.querySelector('.rex-page-main') !== null;
+    
+    const isLoggedIn = hasUserSession || hasBackendElements;
+    console.log('PushIt: User logged in check:', { hasUserSession, hasBackendElements, isLoggedIn });
+    
+    return isLoggedIn;
+  }
+
   // Warten bis DOM und REDAXO-spezifische Objekte geladen sind
   document.addEventListener('DOMContentLoaded', async function() {
     // Sprache laden
     await loadTranslations();
+    
+    // Nur wenn Benutzer eingeloggt ist
+    if (!isUserLoggedIn()) {
+      console.log('PushIt: User not logged in or on login page - skipping backend notifications');
+      return;
+    }
     
     // Backend-Benachrichtigungen automatisch aktivieren wenn konfiguriert
     if (window.rex && window.rex.push_it_backend_enabled && window.rex.push_it_public_key) {
@@ -281,7 +313,21 @@
       showBackendMessage(t('backend.notifications_activated'), 'success');
     } catch (error) {
       console.error('Backend subscription error:', error);
-      showBackendMessage(t('backend.activation_error', { message: error.message }), 'error');
+      
+      // Spezielle Behandlung für SSL-Probleme
+      let errorMessage = error.message;
+      if (error.message.includes('Service Worker') || 
+          error.message.includes('fetch') ||
+          error.message.includes('SSL') ||
+          error.message.includes(t('error.serviceworker_ssl'))) {
+        
+        // Ausführliche SSL-Fehlermeldung anzeigen
+        showBackendMessage(errorMessage, 'error');
+        return;
+      }
+      
+      // Normale Fehlermeldung
+      showBackendMessage(t('backend.activation_error', { message: errorMessage }), 'error');
     }
   };
   
@@ -332,18 +378,25 @@
       const alertClass = type === 'success' ? 'alert-success' : 
                         type === 'error' ? 'alert-danger' : 'alert-info';
       
+      // Längere Nachrichten in einem erweiterbaren Format anzeigen
+      const isLongMessage = message.length > 200;
+      const messageContent = isLongMessage ? 
+        `<strong>SSL-Zertifikat Problem:</strong><br><pre style="white-space: pre-wrap; margin-top: 10px; background: rgba(0,0,0,0.1); padding: 10px; border-radius: 3px; font-size: 12px;">${message}</pre>` :
+        message;
+      
       const messageHtml = `
-        <div class="alert ${alertClass} alert-dismissible" role="alert">
+        <div class="alert ${alertClass} alert-dismissible" role="alert" style="max-width: 800px; margin: 15px auto;">
           <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
-          ${message}
+          ${messageContent}
         </div>
       `;
       
       messageContainer.innerHTML = messageHtml;
       
-      // Auto-hide nach 5 Sekunden
+      // Auto-hide nach längerer Zeit für Fehlermeldungen
+      const hideDelay = type === 'error' ? 15000 : 5000;
       setTimeout(() => {
         const alert = messageContainer.querySelector('.alert');
         if (alert) {
@@ -351,7 +404,7 @@
           alert.classList.add('fade');
           setTimeout(() => alert.remove(), 150);
         }
-      }, 5000);
+      }, hideDelay);
     }
   }
   
@@ -394,15 +447,37 @@
     }, 500);
   };
   
-  // Test-Funktion um Banner zu forcieren
+    // Test-Funktion um Banner zu forcieren
   window.PushItTest = function() {
+    if (!isUserLoggedIn()) {
+      console.log('PushIt: Cannot show prompt - user not logged in');
+      alert('Test nur im eingeloggten Backend möglich!');
+      return;
+    }
     console.log('PushIt: Forcing notification prompt for testing');
     showBackendNotificationPrompt();
+  };
+  
+  // Reset-Funktion
+  window.PushItReset = function() {
+    if (!isUserLoggedIn()) {
+      console.log('PushIt: Cannot reset - user not logged in');
+      alert('Reset nur im eingeloggten Backend möglich!');
+      return;
+    }
+    localStorage.removeItem('push_it_backend_asked');
+    console.log('PushIt: Backend ask status reset');
+    alert(t('backend.status_reset'));
+    // Banner erneut anzeigen
+    setTimeout(() => {
+      showBackendNotificationPrompt();
+    }, 500);
   };
   
   // Debug-Funktion um aktuellen Status zu prüfen
   window.PushItDebug = function() {
     console.log('PushIt Debug Info:');
+    console.log('- User logged in:', isUserLoggedIn());
     console.log('- LocalStorage asked:', localStorage.getItem('push_it_backend_asked'));
     console.log('- Backend enabled:', window.rex && window.rex.push_it_backend_enabled);
     console.log('- Public key:', window.rex && window.rex.push_it_public_key ? 'Set' : 'Not set');

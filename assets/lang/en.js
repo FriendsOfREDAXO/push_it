@@ -11,6 +11,11 @@ window.PushItLang.en = {
   'error.unknown_error': 'Unknown error',
   'error.generic': 'Error: {message}',
   
+  // SSL/Service Worker specific errors
+  'error.serviceworker_ssl': 'Service Worker cannot be loaded. This is likely due to a self-signed SSL certificate.',
+  'error.serviceworker_fetch': 'Service Worker script cannot be loaded (SSL certificate problem)',
+  'error.serviceworker_register': 'Service Worker registration failed',
+  
   // Success/Info messages
   'success.push_notifications_activated': 'Push notifications activated:',
   'success.push_notifications_deactivated': 'Push notifications deactivated:',
@@ -38,6 +43,13 @@ window.PushItLang.en = {
   'instructions.chrome': '🔧 Chrome:\n1. Click the lock icon in the address bar\n2. Enable "Notifications"\n3. Reload the page\n\nAlternatively: Chrome → Settings → Privacy → Site Settings → Notifications',
   'instructions.firefox': '🔧 Firefox:\n1. Click the shield icon in the address bar\n2. Enable "Notifications"\n3. Reload the page\n\nAlternatively: Firefox → Settings → Privacy → Permissions → Notifications',
   'instructions.generic': '🔧 Browser Settings:\n1. Search for "Notifications"\n2. Add this domain to the allowed list\n3. Reload the page',
+  
+  // SSL/Certificate-specific instructions
+  'instructions.ssl_certificate': '🔐 SSL Certificate Problem:\n\nThe SSL certificate of this website is not trusted. For push notifications, you need to:',
+  'instructions.ssl_chrome': '🔧 Chrome (Self-signed Certificate):\n1. Click "Advanced" in the security warning\n2. Click "Proceed to [domain] (unsafe)"\n3. OR: Install the certificate in trusted root certificates\n4. Reload the page and enable notifications',
+  'instructions.ssl_firefox': '🔧 Firefox (Self-signed Certificate):\n1. Click "Advanced" in the security warning\n2. Click "Add Exception..."\n3. Confirm the security exception\n4. Reload the page and enable notifications',
+  'instructions.ssl_safari': '🔧 Safari (Self-signed Certificate):\n1. Go to Safari → Preferences → Advanced\n2. Enable "Show Develop menu in menu bar"\n3. Develop → Ignore Certificate Errors for this Website\n4. OR: Install the certificate in Keychain\n5. Reload the page',
+  'instructions.ssl_general': '💡 General Solution:\n• Use a valid SSL certificate (Let\'s Encrypt, etc.)\n• Or test with HTTP (not recommended for production)\n• Service Workers only work with HTTPS or localhost',
   
   // Console Log Messages
   'log.subscription_error': 'Subscription error:',

@@ -5,7 +5,7 @@ $addon = rex_addon::get('push_it');
 
 // Nur Admins haben Zugriff
 if (!rex::getUser() || !rex::getUser()->isAdmin()) {
-    echo rex_view::error('Keine Berechtigung für diese Seite.');
+    echo rex_view::error(rex_i18n::msg('pushit_no_permission_settings'));
     return;
 }
 
@@ -31,9 +31,9 @@ if ($doSave) {
     ];
     
     if ($settingsManager->saveSettings($formData)) {
-        echo rex_view::success('Einstellungen wurden gespeichert.');
+        echo rex_view::success(rex_i18n::msg('pushit_settings_saved'));
     } else {
-        echo rex_view::error('Fehler beim Speichern der Einstellungen.');
+        echo rex_view::error(rex_i18n::msg('pushit_settings_save_error'));
     }
 }
 
@@ -62,19 +62,19 @@ $settings = $settingsManager->getSettings();
 
 // Konfigurations-Status anzeigen
 $statusFragment = new rex_fragment();
-$statusFragment->setVar('title', 'Status', false);
+$statusFragment->setVar('title', rex_i18n::msg('pushit_status_title'), false);
 $statusFragment->setVar('body', $settingsManager->renderConfigStatus(), false);
 echo $statusFragment->parse('core/page/section.php');
 
 // Einstellungsformular anzeigen
 $formFragment = new rex_fragment();
-$formFragment->setVar('title', 'Push-It Einstellungen', false);
+$formFragment->setVar('title', rex_i18n::msg('pushit_settings'), false);
 $formFragment->setVar('body', $settingsManager->renderSettingsForm($settings), false);
 echo $formFragment->parse('core/page/section.php');
 
 // Topic-Sicherheitsinfo anzeigen
 $securityFragment = new rex_fragment();
-$securityFragment->setVar('title', 'Topic-Sicherheit', false);
+$securityFragment->setVar('title', rex_i18n::msg('pushit_topic_security_title'), false);
 $securityFragment->setVar('body', $settingsManager->renderTopicSecurityInfo(), false);
 echo $securityFragment->parse('core/page/section.php');
 
@@ -94,46 +94,46 @@ window.PushItTopics = \'news,updates\';
 </script>
 
 <!-- Buttons für Nutzer -->
-<button onclick="PushIt.requestFrontend()">Benachrichtigungen aktivieren</button>
-<button onclick="PushIt.disable()">Benachrichtigungen deaktivieren</button>';
+<button onclick="PushIt.requestFrontend()">' . rex_i18n::msg('pushit_activate_notifications_button') . '</button>
+<button onclick="PushIt.disable()">' . rex_i18n::msg('pushit_deactivate_notifications_button') . '</button>';
     
-    $content2 = '<p>Fügen Sie diesen Code in Ihr Frontend-Template ein:</p><pre>' . rex_escape(trim($frontendSnippet)) . '</pre>';
+    $content2 = '<p>' . rex_i18n::msg('pushit_frontend_integration_info') . '</p><pre>' . rex_escape(trim($frontendSnippet)) . '</pre>';
     
     $fragment2 = new rex_fragment();
-    $fragment2->setVar('title', 'Frontend-Integration', false);
+    $fragment2->setVar('title', rex_i18n::msg('pushit_frontend_integration_title'), false);
     $fragment2->setVar('body', $content2, false);
     echo $fragment2->parse('core/page/section.php');
 }
 
 // Backend-Integration Info
 if ($settings['publicKey'] && $settings['backend_enabled']) {
-    $backendInfo = '<p>Backend-Benachrichtigungen sind aktiviert. Backend-Nutzer werden automatisch gefragt, ob sie Benachrichtigungen erhalten möchten.</p>
-    <p>Das Backend-JavaScript wird automatisch geladen und ein Benachrichtigungsbutton wird in der Navigation hinzugefügt.</p>';
+    $backendInfo = '<p>' . rex_i18n::msg('pushit_backend_info_active') . '</p>
+    <p>' . rex_i18n::msg('pushit_backend_info_auto_load') . '</p>';
     
     if ($settings['backend_token']) {
         $backendInfo .= '<div class="alert alert-success">
-            <h4><i class="rex-icon fa-check"></i> Backend-Token aktiv</h4>
-            <p>Backend-Subscriptions werden über den konfigurierten Token authentifiziert.</p>
+            <h4><i class="rex-icon fa-check"></i> ' . rex_i18n::msg('pushit_backend_token_active_title') . '</h4>
+            <p>' . rex_i18n::msg('pushit_backend_token_active_info') . '</p>
             <p><code>' . substr($settings['backend_token'], 0, 16) . '...</code> (Token-Vorschau)</p>
         </div>';
     } else {
         $backendInfo .= '<div class="alert alert-warning">
-            <h4><i class="rex-icon fa-warning"></i> Kein Backend-Token</h4>
-            <p>Bitte generieren Sie einen Backend-Token für sichere Backend-Subscriptions.</p>
+            <h4><i class="rex-icon fa-warning"></i> ' . rex_i18n::msg('pushit_no_backend_token_title') . '</h4>
+            <p>' . rex_i18n::msg('pushit_no_backend_token_info') . '</p>
         </div>';
     }
     
     $fragment3 = new rex_fragment();
-    $fragment3->setVar('title', 'Backend-Integration', false);
+    $fragment3->setVar('title', rex_i18n::msg('pushit_backend_integration_title'), false);
     $fragment3->setVar('body', $backendInfo, false);
     echo $fragment3->parse('core/page/section.php');
 }
 
 // Status-Warnungen
 if (!$settings['publicKey']) {
-    echo rex_view::info('Bitte generieren Sie zuerst VAPID-Schlüssel, um Push-Benachrichtigungen zu verwenden.');
+    echo rex_view::info(rex_i18n::msg('pushit_vapid_keys_info'));
 }
 
 if ($settings['backend_enabled'] && !$settings['backend_token']) {
-    echo rex_view::warning('Backend-Benachrichtigungen sind aktiviert, aber es wurde noch kein Backend-Token generiert. Klicken Sie auf "Neu generieren" um einen sicheren Token zu erstellen.');
+    echo rex_view::warning(rex_i18n::msg('pushit_backend_token_warning'));
 }

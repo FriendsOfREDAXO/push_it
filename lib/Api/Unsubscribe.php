@@ -7,6 +7,7 @@ namespace FriendsOfREDAXO\PushIt\Api;
 use rex_api_function;
 use rex_sql;
 use rex_response;
+use rex_i18n;
 
 /**
  * API-Endpunkt zum Abmelden von Push-Benachrichtigungen
@@ -48,7 +49,7 @@ class Unsubscribe extends rex_api_function
             $this->sendSuccessResponse($subscriptionId);
             
         } catch (\Throwable $e) {
-            $this->sendErrorResponse('Server-Fehler: ' . $e->getMessage(), 500);
+            $this->sendErrorResponse(sprintf(rex_i18n::msg('pushit_server_error'), $e->getMessage()), 500);
         }
     }
     

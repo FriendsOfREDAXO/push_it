@@ -6,6 +6,7 @@ use rex_sql;
 use rex_user;
 use rex_formatter;
 use rex_escape;
+use rex_i18n;
 use Exception;
 
 /**
@@ -31,9 +32,9 @@ class SubscriptionManager
                 return $user->getLogin();
             }
             
-            return 'User #' . $userId . ' (gelöscht)';
+            return 'User #' . $userId . ' ' . rex_i18n::msg('pushit_user_deleted');
         } catch (Exception $e) {
-            return 'User #' . $userId . ' (Fehler)';
+            return 'User #' . $userId . ' ' . rex_i18n::msg('pushit_user_error');
         }
     }
     
@@ -158,27 +159,27 @@ class SubscriptionManager
         
         foreach (['frontend', 'backend'] as $type) {
             $typeStats = $stats[$type] ?? ['total' => 0, 'active_count' => 0, 'error_count' => 0];
-            $typeLabel = $type === 'frontend' ? 'Frontend' : 'Backend';
+            $typeLabel = $type === 'frontend' ? rex_i18n::msg('pushit_frontend_subscriptions') : rex_i18n::msg('pushit_backend_subscriptions');
             
             $html .= '
             <div class="col-md-6">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h3 class="panel-title">' . $typeLabel . ' Subscriptions</h3>
+                        <h3 class="panel-title">' . $typeLabel . '</h3>
                     </div>
                     <div class="panel-body">
                         <div class="row">
                             <div class="col-xs-4 text-center">
                                 <h4>' . $typeStats['total'] . '</h4>
-                                <small>Gesamt</small>
+                                <small>' . rex_i18n::msg('pushit_total') . '</small>
                             </div>
                             <div class="col-xs-4 text-center">
                                 <h4 class="text-success">' . $typeStats['active_count'] . '</h4>
-                                <small>Aktiv</small>
+                                <small>' . rex_i18n::msg('pushit_active') . '</small>
                             </div>
                             <div class="col-xs-4 text-center">
                                 <h4 class="text-danger">' . $typeStats['error_count'] . '</h4>
-                                <small>Fehler</small>
+                                <small>' . rex_i18n::msg('pushit_errors') . '</small>
                             </div>
                         </div>
                     </div>
@@ -207,15 +208,15 @@ class SubscriptionManager
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Typ</th>
-                    <th>Benutzer</th>
-                    <th>Endpoint</th>
-                    <th>Topics</th>
-                    <th>Browser</th>
-                    <th>Erstellt</th>
-                    <th>Status</th>
-                    <th>Aktionen</th>
+                    <th>' . rex_i18n::msg('pushit_id') . '</th>
+                    <th>' . rex_i18n::msg('pushit_type') . '</th>
+                    <th>' . rex_i18n::msg('pushit_user') . '</th>
+                    <th>' . rex_i18n::msg('pushit_endpoint') . '</th>
+                    <th>' . rex_i18n::msg('pushit_topics') . '</th>
+                    <th>' . rex_i18n::msg('pushit_browser') . '</th>
+                    <th>' . rex_i18n::msg('pushit_created') . '</th>
+                    <th>' . rex_i18n::msg('pushit_status') . '</th>
+                    <th>' . rex_i18n::msg('pushit_actions') . '</th>
                 </tr>
             </thead>
             <tbody>';
@@ -241,11 +242,11 @@ class SubscriptionManager
     private function renderTableRow(array $subscription, bool $isAdmin): string
     {
         $statusClass = $subscription['active'] ? 'success' : 'danger';
-        $statusText = $subscription['active'] ? 'Aktiv' : 'Inaktiv';
+        $statusText = $subscription['active'] ? rex_i18n::msg('pushit_active_status') : rex_i18n::msg('pushit_inactive_status');
         
         if ($subscription['last_error']) {
             $statusClass = 'warning';
-            $statusText = 'Fehler';
+            $statusText = rex_i18n::msg('pushit_error_status');
         }
         
         $userAgent = $subscription['ua'] ? substr($subscription['ua'], 0, 50) . '...' : '-';
@@ -271,7 +272,7 @@ class SubscriptionManager
             <td>' . $this->formatCreatedDate($subscription['created']) . '</td>
             <td>
                 <span class="label label-' . $statusClass . '">' . $statusText . '</span>
-                ' . ($subscription['last_error'] ? '<br><small class="text-muted" title="' . rex_escape($subscription['last_error']) . '">Fehler</small>' : '') . '
+                ' . ($subscription['last_error'] ? '<br><small class="text-muted" title="' . rex_escape($subscription['last_error']) . '">' . rex_i18n::msg('pushit_error_status') . '</small>' : '') . '
             </td>
             <td>' . $this->renderActionButtons($subscription, $isAdmin) . '</td>
         </tr>';

@@ -24,6 +24,13 @@ window.PushItLang.en = {
   'backend.test_sent': 'Test notification has been sent!',
   'backend.test_error': 'Error sending test notification!',
   'backend.status_reset': 'Backend subscription status has been reset.',
+  'backend.notifications_title': 'Backend Notifications',
+  'backend.notifications_prompt': 'Would you like to activate push notifications for system events?',
+  'backend.activate_button': 'Activate',
+  'backend.decline_button': 'No, thanks',
+  'backend.activate_backend': 'Activate Backend',
+  'backend.deactivate_button': 'Deactivate',
+  'backend.settings_button': 'Settings',
   
   // Browser-specific instructions
   'instructions.notifications_blocked': 'Notifications have been blocked. Please enable them in your browser settings:\n\n',

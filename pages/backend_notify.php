@@ -25,27 +25,27 @@ if ($backendManager->hasVapidKeys()) {
     
     // Backend Subscription Panel
     $backendSubFragment = new rex_fragment();
-    $backendSubFragment->setVar('title', 'Backend-Subscription', false);
+    $backendSubFragment->setVar('title', rex_i18n::msg('pushit_backend_subscription_title'), false);
     $backendSubFragment->setVar('body', $backendManager->renderBackendSubscriptionPanel($isAdmin), false);
     echo $backendSubFragment->parse('core/page/section.php');
     
     // Admin-only: Schnelle System-Benachrichtigungen
     if ($isAdmin) {
         $quickNotifyFragment = new rex_fragment();
-        $quickNotifyFragment->setVar('title', 'Schnelle System-Benachrichtigungen', false);
+        $quickNotifyFragment->setVar('title', rex_i18n::msg('pushit_quick_notifications_title'), false);
         $quickNotifyFragment->setVar('body', $backendManager->renderQuickNotificationPanel(), false);
         echo $quickNotifyFragment->parse('core/page/section.php');
         
         // Automatische Benachrichtigungen konfigurieren (Admin-only)
         $autoNotifyFragment = new rex_fragment();
-        $autoNotifyFragment->setVar('title', 'Automatische Benachrichtigungen', false);
+        $autoNotifyFragment->setVar('title', rex_i18n::msg('pushit_automatic_notifications_title'), false);
         $autoNotifyFragment->setVar('body', $backendManager->renderAutomaticNotificationsInfo($isAdmin), false);
         echo $autoNotifyFragment->parse('core/page/section.php');
     }
     
     // Backend Subscription Statistik
     $statsFragment = new rex_fragment();
-    $statsFragment->setVar('title', 'Backend-Subscription Statistik', false);
+    $statsFragment->setVar('title', rex_i18n::msg('pushit_backend_statistics_title'), false);
     $statsFragment->setVar('body', $backendManager->renderStatisticsPanel($isAdmin), false);
     echo $statsFragment->parse('core/page/section.php');
 }

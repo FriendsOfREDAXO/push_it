@@ -1,0 +1,336 @@
+# PushIt - German translations
+
+# General
+pushit_title = PushIt - Web Push Notifications
+pushit_description = Web Push Notifications für Frontend und Backend
+
+# Page titles
+pushit_settings = Einstellungen
+pushit_subscriptions = Subscriptions
+pushit_send = Senden  
+pushit_history = Verlauf
+pushit_backend_notify = Backend Benachrichtigungen
+pushit_help = Hilfe
+
+# Settings page
+pushit_settings_saved = Einstellungen wurden gespeichert.
+pushit_settings_save_error = Fehler beim Speichern der Einstellungen.
+pushit_no_permission_settings = Keine Berechtigung für diese Seite.
+pushit_vapid_keys_info = Bitte generieren Sie zuerst VAPID-Schlüssel, um Push-Benachrichtigungen zu verwenden.
+pushit_backend_token_warning = Backend-Benachrichtigungen sind aktiviert, aber es wurde noch kein Backend-Token generiert. Klicken Sie auf "Neu generieren" um einen sicheren Token zu erstellen.
+
+# Form labels and help texts
+pushit_subject_label = Subject (mailto: oder URL)
+pushit_subject_help = Erforderlich für VAPID. Verwenden Sie eine mailto:-Adresse oder eine URL Ihrer Domain.
+pushit_vapid_public_key_label = VAPID Public Key
+pushit_vapid_private_key_label = VAPID Private Key
+pushit_vapid_private_key_help = ⚠️ Privater Schlüssel - niemals öffentlich zugänglich machen!
+pushit_webpush_library_warning = ⚠️ WebPush-Library nicht verfügbar. Bitte "composer install" im AddOn-Verzeichnis ausführen.
+pushit_generate_button = Generieren
+pushit_regenerate_button = Neu generieren
+
+# Backend token section
+pushit_backend_token_label = Backend-Token
+pushit_backend_token_help = Sicherer Token zur Authentifizierung von Backend-Subscriptions. Wird automatisch an Backend-JavaScript übertragen.
+pushit_token_present = Token vorhanden
+pushit_no_token_generated = Kein Token generiert
+pushit_backend_token_warning_text = ⚠️ Wichtiger Hinweis: Bei der Neu-Generierung des Backend-Tokens werden alle bestehenden Backend-Subscriptions ungültig. Alle Backend-Nutzer müssen sich nach der Token-Änderung erneut für Push-Benachrichtigungen anmelden.
+pushit_backend_token_confirm = Backend-Token %s?
+pushit_backend_token_confirm_warning = ⚠️ ACHTUNG: Alle Backend-Nutzer müssen sich nach der Token-Änderung erneut für Push-Benachrichtigungen anmelden!
+pushit_backend_token_generated = Backend-Token wurde erfolgreich generiert.
+pushit_backend_token_regenerated = Backend-Token wurde neu generiert. %d bestehende Backend-Subscriptions wurden deaktiviert.
+pushit_backend_token_regenerated_simple = Backend-Token wurde neu generiert.
+pushit_backend_token_generate_error = Fehler beim Generieren des Backend-Tokens: %s
+
+# Feature toggles
+pushit_backend_notifications_enable = Backend-Benachrichtigungen aktivieren
+pushit_backend_notifications_help = Ermöglicht Push-Notifications für REDAXO-Backend-Benutzer.
+pushit_frontend_notifications_enable = Frontend-Benachrichtigungen aktivieren
+pushit_frontend_notifications_help = Ermöglicht Push-Notifications für Website-Besucher.
+pushit_admin_notifications_enable = Automatische Admin-Benachrichtigungen
+pushit_admin_notifications_help = Sendet automatisch Benachrichtigungen bei System-Events (Fehler, Updates, etc.).
+
+# Send page
+pushit_no_permission_send = Sie haben keine Berechtigung für diesen Bereich.
+pushit_admin_images_only = Bilder können nur von Administratoren versendet werden. Nachricht wurde ohne Bilder gesendet.
+pushit_send_notification_title = Push-Notification senden
+pushit_current_subscribers_title = Aktuelle Abonnenten
+pushit_preview_title = Vorschau
+pushit_notification_preview = 📱 Vorschau der Benachrichtigung
+
+# Send form
+pushit_title_label = Titel
+pushit_title_required = Titel *
+pushit_body_label = Nachricht
+pushit_body_required = Nachricht *
+pushit_url_label = Link-URL
+pushit_url_help = Optional: URL die beim Klick auf die Benachrichtigung geöffnet wird
+pushit_user_type_label = Zielgruppe
+pushit_user_type_frontend = Frontend-Nutzer
+pushit_user_type_backend = Backend-Nutzer
+pushit_topics_label = Topics
+pushit_topics_help = Kommagetrennte Liste von Topics für gezielte Benachrichtigungen (optional)
+
+# Advanced options
+pushit_advanced_options = Erweiterte Optionen
+pushit_admin_only = (nur für Administratoren)
+pushit_icon_url_label = Icon-URL
+pushit_icon_url_help = URL zum Icon der Benachrichtigung (192x192px empfohlen)
+pushit_badge_url_label = Badge-URL
+pushit_badge_url_help = URL zum Badge (72x72px, monochrom empfohlen)
+pushit_hero_image_url_label = Hero-Image-URL
+pushit_hero_image_url_help = URL zum großen Bild in der Benachrichtigung
+
+# Buttons
+pushit_send_notification_button = Benachrichtigung senden
+pushit_reset_form_button = Formular zurücksetzen
+pushit_test_functions = Test-Funktionen
+pushit_test_functions_help = Sie können Push-Notifications für sich selbst testen:
+pushit_test_subscription_button = Test-Subscription erstellen
+
+# Subscriptions page
+pushit_no_permission_delete = Keine Berechtigung zum Löschen von Subscriptions.
+pushit_subscription_deleted = Subscription wurde gelöscht.
+pushit_subscription_delete_error = Fehler beim Löschen der Subscription.
+pushit_backend_subscriptions_repaired = %d Backend-Subscriptions wurden mit Ihrer User-ID verknüpft.
+pushit_no_backend_subscriptions_found = Keine Backend-Subscriptions ohne User-ID gefunden.
+pushit_no_subscriptions = Noch keine Push-Subscriptions vorhanden.
+
+# Status and configuration
+pushit_status_title = Status
+pushit_frontend_integration_title = Frontend-Integration
+pushit_backend_integration_title = Backend-Integration
+pushit_topic_security_title = Topic-Sicherheit
+
+# Backend integration info
+pushit_backend_info_active = Backend-Benachrichtigungen sind aktiviert. Backend-Nutzer werden automatisch gefragt, ob sie Benachrichtigungen erhalten möchten.
+pushit_backend_info_auto_load = Das Backend-JavaScript wird automatisch geladen und ein Benachrichtigungsbutton wird in der Navigation hinzugefügt.
+pushit_backend_token_active_title = Backend-Token aktiv
+pushit_backend_token_active_info = Backend-Subscriptions werden über den konfigurierten Token authentifiziert.
+pushit_no_backend_token_title = Kein Backend-Token
+pushit_no_backend_token_info = Bitte generieren Sie einen Backend-Token für sichere Backend-Subscriptions.
+
+# Frontend integration
+pushit_frontend_integration_info = Fügen Sie diesen Code in Ihr Frontend-Template ein:
+
+# VAPID generation messages
+pushit_vapid_keys_generated = VAPID-Schlüssel wurden erfolgreich generiert.
+pushit_vapid_keys_regenerated = VAPID-Schlüssel wurden neu generiert. Alte Subscriptions sind ungültig.
+pushit_vapid_generate_error = Fehler beim Generieren der VAPID-Schlüssel: %s
+
+# Action buttons
+pushit_save_button = Speichern
+pushit_save_settings_button = Einstellungen speichern
+
+# Missing keys for replacements
+pushit_backend_token_confirm_generate = generieren
+pushit_backend_token_confirm_regenerate = neu generieren
+
+# History page  
+pushit_history_statistics_title = Versand-Statistiken
+pushit_history_messages_title = Gesendete Nachrichten
+
+# Backend notify page
+pushit_backend_subscription_title = Backend-Subscription
+pushit_quick_notifications_title = Schnelle System-Benachrichtigungen  
+pushit_automatic_notifications_title = Automatische Benachrichtigungen
+pushit_backend_statistics_title = Backend-Subscription Statistik
+
+# Subscriptions page
+pushit_subscription_statistics_title = Subscription-Statistiken
+pushit_maintenance_title = Wartung
+pushit_all_subscriptions_title = Alle Subscriptions
+
+# Validation messages
+pushit_title_and_body_required = Titel und Nachricht sind erforderlich.
+
+# Configuration status
+pushit_configuration_status = Konfigurations-Status
+pushit_vapid_correctly_configured = VAPID korrekt konfiguriert
+pushit_vapid_incomplete = VAPID unvollständig
+pushit_backend_token_available = Backend-Token verfügbar
+pushit_backend_token_not_generated = Backend-Token nicht generiert
+pushit_backend_enabled = Backend: Aktiviert
+pushit_backend_disabled = Backend: Deaktiviert
+pushit_frontend_enabled = Frontend: Aktiviert
+pushit_frontend_disabled = Frontend: Deaktiviert
+pushit_problems = Probleme
+pushit_subject_not_configured = Subject ist nicht konfiguriert
+pushit_subject_invalid = Subject muss eine gültige E-Mail-Adresse oder URL sein
+pushit_vapid_public_key_not_configured = VAPID Public Key ist nicht konfiguriert
+pushit_vapid_private_key_not_configured = VAPID Private Key ist nicht konfiguriert
+
+# Topic security
+pushit_backend_only_topics_label = Backend-Only Topics
+pushit_topic_security_description = Sicherheitseinstellung: Diese Topics können nur von Backend-Benutzern abonniert werden und sind für Frontend-Benutzer nicht verfügbar.
+pushit_topics_comma_separated = Topics mit Komma trennen (z.B. system,admin,critical). Default: system,admin,critical
+pushit_no_backend_only_topics = Aktuell sind keine Backend-Only Topics konfiguriert. Alle Topics können von Frontend- und Backend-Benutzern abonniert werden.
+pushit_backend_only_topics_info = Diese Topics können nur von Backend-Benutzern abonniert werden und sind für Frontend-Benutzer gesperrt.
+
+# Statistics
+pushit_total = Gesamt
+pushit_active = Aktiv
+pushit_errors = Fehler
+pushit_frontend_subscriptions = Frontend Subscriptions
+pushit_backend_subscriptions = Backend Subscriptions
+
+# Table headers
+pushit_id = ID
+pushit_type = Typ
+pushit_user = Benutzer
+pushit_endpoint = Endpoint
+pushit_topics = Topics
+pushit_browser = Browser
+pushit_created = Erstellt
+pushit_status = Status
+pushit_actions = Aktionen
+pushit_active_status = Aktiv
+pushit_inactive_status = Inaktiv
+pushit_error_status = Fehler
+
+# Backend notifications
+pushit_backend_notifications_info = Hier können Sie Backend-Benachrichtigungen für Ihr Konto aktivieren.
+pushit_admin_additional_access = Als Administrator haben Sie zusätzlich Zugriff auf System-Benachrichtigungen.
+pushit_activate_backend_notifications = Backend-Benachrichtigungen aktivieren
+pushit_activate_push_notifications = Aktivieren Sie Push-Benachrichtigungen für Ihr Backend-Konto:
+pushit_activate_backend_notifications_button = Backend-Benachrichtigungen aktivieren
+pushit_reset_query = Abfrage zurücksetzen
+pushit_reset_query_info = Zurücksetzen: Sie werden beim nächsten Seitenaufruf wieder gefragt, ob Sie Backend-Benachrichtigungen aktivieren möchten.
+pushit_editor_notifications = Redakteur-Benachrichtigungen: Sie erhalten Benachrichtigungen zu redaktionellen Inhalten und Updates.
+pushit_notifications_blocked_help = Benachrichtigungen blockiert? Hilfe für Browser-Einstellungen
+pushit_allow_notifications = Benachrichtigungen
+pushit_desktop_notifications = Desktop-Benachrichtigungen
+pushit_critical_error = Kritischer Fehler
+pushit_system_errors = System-Fehler: Bei kritischen PHP-Fehlern oder Exceptions
+pushit_active_subscriptions = Aktive Subscriptions
+pushit_vapid_keys_required = Um Backend-Benachrichtigungen zu verwenden, müssen erst VAPID-Schlüssel generiert werden.
+
+# User display
+pushit_user_deleted = (gelöscht)
+pushit_user_error = (Fehler)
+
+# Backend notification panel
+pushit_backend_notifications_title = Backend-Benachrichtigungen
+pushit_status_check = Status prüfen
+pushit_disable = Deaktivieren
+pushit_deactivate = Deaktivieren
+
+# Additional backend notification strings
+pushit_editor_notifications_info = Sie erhalten Benachrichtigungen zu redaktionellen Inhalten und Updates.
+pushit_notifications_blocked_help_title = Benachrichtigungen blockiert? Hilfe für Browser-Einstellungen
+pushit_desktop_notifications_setting = Desktop-Benachrichtigungen
+pushit_allow_setting = Erlauben
+pushit_enabled = Aktiviert
+pushit_disabled = Deaktiviert
+
+# Quick notification buttons
+pushit_system_warning = System-Warnung
+pushit_information = Information
+
+# Automatic notifications
+pushit_automatic_events_info = Die folgenden Ereignisse lösen automatisch Benachrichtigungen an Backend-Nutzer aus:
+pushit_addon_changes = AddOn-Änderungen: Installation/Deinstallation von AddOns
+
+# VAPID warnings
+pushit_vapid_keys_missing = VAPID-Schlüssel fehlen
+pushit_generate_vapid_keys = VAPID-Schlüssel generieren
+
+# Send page additional strings
+pushit_notification_sent_success = Benachrichtigung wurde erfolgreich gesendet! Gesendet: %d, Fehler: %d, Gesamt: %d
+pushit_send_error = Fehler beim Senden: %s
+pushit_send_notification_error = Fehler beim Senden der Benachrichtigung: %s
+pushit_title_help = Haupt-Überschrift der Benachrichtigung
+pushit_body_help = Text der Benachrichtigung
+pushit_recipient_type_label = Empfänger-Typ
+pushit_all_users = Alle Benutzer
+pushit_target_group_help = Wählen Sie die Zielgruppe für die Benachrichtigung
+pushit_frontend_subscribers = Frontend-Abonnenten
+pushit_backend_subscribers = Backend-Abonnenten
+pushit_total_active = Gesamt aktiv
+pushit_last_30_days = Letzte 30 Tage
+
+# History page strings
+pushit_invalid_action = Ungültige Aktion
+pushit_message_not_found = Nachricht nicht gefunden
+pushit_message_resent_success = Nachricht wurde erneut gesendet! Empfänger: %d, Fehler: %d
+pushit_resend_error = Fehler beim erneuten Senden: %s
+pushit_notification_deleted_success = Benachrichtigung wurde gelöscht.
+pushit_user_type_filter = User-Typ:
+pushit_all_filter = Alle
+pushit_topics_filter = Topics:
+pushit_topics_placeholder = z.B. system, news
+pushit_date_filter = Datum:
+pushit_count_filter = Anzahl:
+pushit_filter_button = Filtern
+pushit_reset_filter_button = Zurücksetzen
+pushit_sent_messages = Gesendete Nachrichten
+pushit_recipients_reached = Empfänger erreicht
+pushit_delivery_errors = Zustellfehler
+pushit_avg_recipients_per_message = ⌀ Empfänger pro Nachricht
+pushit_no_messages_found = Keine Nachrichten gefunden
+pushit_no_messages_sent_yet = Es wurden noch keine Push-Nachrichten gesendet oder Ihre Filter-Kriterien treffen nicht zu.
+pushit_send_first_message = Erste Nachricht senden
+pushit_showing_messages = Zeige %d von %d Nachrichten
+pushit_page_info = (Seite %d von %d)
+pushit_title_and_message = Titel & Nachricht
+pushit_type_column = Typ
+pushit_delivery_column = Versand
+pushit_sent_on = Gesendet am
+pushit_user_column = Benutzer
+pushit_sent_status = gesendet
+pushit_error_count = Fehler
+pushit_success_rate = % Erfolg
+pushit_resend_button = Erneut senden
+pushit_delete_button = Löschen
+pushit_resend_confirm = Nachricht erneut senden?
+pushit_delete_confirm = Nachricht aus Historie löschen?
+pushit_previous_page = Vorherige
+pushit_next_page = Nächste
+
+# Browser help and additional strings
+pushit_not_available = PushIt ist nicht verfügbar
+pushit_test_subscription_success = Test-Subscription erfolgreich erstellt
+pushit_error_prefix = Fehler
+pushit_server_error = Server-Fehler: %s
+
+# Automatic system notifications
+pushit_system_error_title = System-Fehler aufgetreten
+pushit_system_error_body = Ein Fehler wurde im System registriert. Bitte prüfen Sie das Error-Log.
+
+# Frontend integration buttons
+pushit_activate_notifications_button = Benachrichtigungen aktivieren
+
+# Settings page - additional
+pushit_settings_change = Einstellungen ändern
+
+# Subscriptions page - repair
+pushit_backend_subscriptions_without_user_id = Backend-Subscriptions ohne User-ID
+pushit_backend_subscriptions_found = Es wurden %s Backend-Subscriptions ohne zugeordnete User-ID gefunden.
+pushit_repair_subscriptions_confirm = Möchten Sie diese Subscriptions mit Ihrer User-ID (%s) verknüpfen?
+pushit_repair_button = Reparieren
+pushit_deactivate_notifications_button = Benachrichtigungen deaktivieren
+
+# Browser help instructions
+pushit_safari_step1 = 1. Klicken Sie auf das <strong>Schloss-Symbol</strong> in der Adressleiste
+pushit_safari_step2 = 2. Wählen Sie <strong>"Einstellungen für diese Website"</strong>
+pushit_safari_step3 = 3. Setzen Sie <strong>"Benachrichtigungen" auf "Erlauben"</strong>
+pushit_safari_step4 = 4. Laden Sie die Seite neu
+
+pushit_chrome_step1 = 1. Klicken Sie auf das <strong>Schloss-Symbol</strong> in der Adressleiste
+pushit_chrome_step2 = 2. Aktivieren Sie <strong>"Benachrichtigungen"</strong>
+pushit_chrome_step3 = 3. Laden Sie die Seite neu
+
+pushit_firefox_step1 = 1. Klicken Sie auf das <strong>Schild-Symbol</strong> in der Adressleiste
+pushit_firefox_step2 = 2. Wählen Sie <strong>"Berechtigung bearbeiten"</strong>
+pushit_firefox_step3 = 3. Setzen Sie <strong>"Desktop-Benachrichtigungen" auf "Erlauben"</strong>
+pushit_firefox_step4 = 4. Laden Sie die Seite neu
+
+# Backend statistics
+pushit_backend_subscriptions = Backend-Subscriptions
+pushit_editorial_topic = Editorial-Topic
+pushit_admin_topics = Admin-Topics
+pushit_system_topic = System
+pushit_admin_topic = Admin
+pushit_critical_topic = Critical
+pushit_statistics_temporarily_unavailable = Statistiken temporär nicht verfügbar
+pushit_backend_statistics_loading_error = Die Backend-Statistiken können momentan nicht geladen werden.

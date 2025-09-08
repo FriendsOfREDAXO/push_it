@@ -6,6 +6,7 @@ use rex_sql;
 use rex_escape;
 use rex_url;
 use rex;
+use rex_i18n;
 
 class HistoryManager
 {
@@ -22,7 +23,7 @@ class HistoryManager
             return $this->deleteNotification($id);
         }
         
-        return ['success' => false, 'message' => 'Ungültige Aktion'];
+        return ['success' => false, 'message' => rex_i18n::msg('pushit_invalid_action')];
     }
     
     /**
@@ -34,7 +35,7 @@ class HistoryManager
         $sql->setQuery("SELECT * FROM rex_push_it_notifications WHERE id = ?", [$id]);
         
         if ($sql->getRows() === 0) {
-            return ['success' => false, 'message' => 'Nachricht nicht gefunden'];
+            return ['success' => false, 'message' => rex_i18n::msg('pushit_message_not_found')];
         }
         
         try {
@@ -52,14 +53,14 @@ class HistoryManager
             return [
                 'success' => true,
                 'message' => sprintf(
-                    'Nachricht wurde erneut gesendet! Empfänger: %d, Fehler: %d',
+                    rex_i18n::msg('pushit_message_resent_success'),
                     $result['sent'],
                     $result['errors']
                 )
             ];
             
         } catch (\Exception $e) {
-            return ['success' => false, 'message' => 'Fehler beim erneuten Senden: ' . $e->getMessage()];
+            return ['success' => false, 'message' => sprintf(rex_i18n::msg('pushit_resend_error'), $e->getMessage())];
         }
     }
     
@@ -71,7 +72,7 @@ class HistoryManager
         $sql = rex_sql::factory();
         $sql->setQuery('DELETE FROM rex_push_it_notifications WHERE id = ?', [$id]);
         
-        return ['success' => true, 'message' => 'Benachrichtigung wurde gelöscht.'];
+        return ['success' => true, 'message' => rex_i18n::msg('pushit_notification_deleted_success')];
     }
     
     /**
@@ -181,28 +182,28 @@ class HistoryManager
             <input type="hidden" name="page" value="push_it/history">
             
             <div class="form-group">
-                <label for="filter_user_type">User-Typ:</label>
+                <label for="filter_user_type">' . rex_i18n::msg('pushit_user_type_filter') . '</label>
                 <select name="filter_user_type" id="filter_user_type" class="form-control">
-                    <option value="">Alle</option>
-                    <option value="backend"' . (($filters['user_type'] ?? '') === 'backend' ? ' selected' : '') . '>Backend</option>
-                    <option value="frontend"' . (($filters['user_type'] ?? '') === 'frontend' ? ' selected' : '') . '>Frontend</option>
+                    <option value="">' . rex_i18n::msg('pushit_all_filter') . '</option>
+                    <option value="backend"' . (($filters['user_type'] ?? '') === 'backend' ? ' selected' : '') . '>' . rex_i18n::msg('pushit_user_type_backend') . '</option>
+                    <option value="frontend"' . (($filters['user_type'] ?? '') === 'frontend' ? ' selected' : '') . '>' . rex_i18n::msg('pushit_user_type_frontend') . '</option>
                 </select>
             </div>
             
             <div class="form-group">
-                <label for="filter_topics">Topics:</label>
+                <label for="filter_topics">' . rex_i18n::msg('pushit_topics_filter') . '</label>
                 <input type="text" name="filter_topics" id="filter_topics" class="form-control" 
-                       placeholder="z.B. system, news" value="' . rex_escape($filters['topics'] ?? '') . '">
+                       placeholder="' . rex_i18n::msg('pushit_topics_placeholder') . '" value="' . rex_escape($filters['topics'] ?? '') . '">
             </div>
             
             <div class="form-group">
-                <label for="filter_date">Datum:</label>
+                <label for="filter_date">' . rex_i18n::msg('pushit_date_filter') . '</label>
                 <input type="date" name="filter_date" id="filter_date" class="form-control" 
                        value="' . rex_escape($filters['date'] ?? '') . '">
             </div>
             
             <div class="form-group">
-                <label for="limit">Anzahl:</label>
+                <label for="limit">' . rex_i18n::msg('pushit_count_filter') . '</label>
                 <select name="limit" id="limit" class="form-control">
                     <option value="10"' . ($limit === 10 ? ' selected' : '') . '>10</option>
                     <option value="20"' . ($limit === 20 ? ' selected' : '') . '>20</option>
@@ -212,11 +213,11 @@ class HistoryManager
             </div>
             
             <button type="submit" class="btn btn-primary">
-                <i class="rex-icon fa-search"></i> Filtern
+                <i class="rex-icon fa-search"></i> ' . rex_i18n::msg('pushit_filter_button') . '
             </button>
             
             <a href="' . rex_url::backendPage('push_it/history') . '" class="btn btn-default">
-                <i class="rex-icon fa-refresh"></i> Zurücksetzen
+                <i class="rex-icon fa-refresh"></i> ' . rex_i18n::msg('pushit_reset_filter_button') . '
             </a>
         </form>';
     }
@@ -232,19 +233,19 @@ class HistoryManager
         <div class="row">
             <div class="col-md-3 text-center">
                 <h3>' . $stats['total_notifications'] . '</h3>
-                <p>Gesendete Nachrichten</p>
+                <p>' . rex_i18n::msg('pushit_sent_messages') . '</p>
             </div>
             <div class="col-md-3 text-center">
                 <h3 class="text-success">' . $stats['total_sent'] . '</h3>
-                <p>Empfänger erreicht</p>
+                <p>' . rex_i18n::msg('pushit_recipients_reached') . '</p>
             </div>
             <div class="col-md-3 text-center">
                 <h3 class="text-danger">' . $stats['total_errors'] . '</h3>
-                <p>Zustellfehler</p>
+                <p>' . rex_i18n::msg('pushit_delivery_errors') . '</p>
             </div>
             <div class="col-md-3 text-center">
                 <h3 class="text-info">' . $stats['avg_recipients'] . '</h3>
-                <p>⌀ Empfänger pro Nachricht</p>
+                <p>' . rex_i18n::msg('pushit_avg_recipients_per_message') . '</p>
             </div>
         </div>';
     }
@@ -257,10 +258,10 @@ class HistoryManager
         if (empty($notifications)) {
             return $this->renderFilterForm($filters, $limit) . '
             <div class="alert alert-info text-center">
-                <h4><i class="rex-icon fa-info-circle"></i> Keine Nachrichten gefunden</h4>
-                <p>Es wurden noch keine Push-Nachrichten gesendet oder Ihre Filter-Kriterien treffen nicht zu.</p>
+                <h4><i class="rex-icon fa-info-circle"></i> ' . rex_i18n::msg('pushit_no_messages_found') . '</h4>
+                <p>' . rex_i18n::msg('pushit_no_messages_sent_yet') . '</p>
                 <a href="' . rex_url::backendPage('push_it/send') . '" class="btn btn-primary">
-                    <i class="rex-icon fa-paper-plane"></i> Erste Nachricht senden
+                    <i class="rex-icon fa-paper-plane"></i> ' . rex_i18n::msg('pushit_send_first_message') . '
                 </a>
             </div>';
         }
@@ -270,8 +271,16 @@ class HistoryManager
         // Pagination Info
         $content .= '
         <div class="alert alert-info">
-            <strong>Zeige ' . count($notifications) . ' von ' . $totalNotifications . ' Nachrichten</strong>
-            ' . ($totalNotifications > $limit ? '(Seite ' . (floor($offset / $limit) + 1) . ' von ' . ceil($totalNotifications / $limit) . ')' : '') . '
+            <strong>' . sprintf(
+                rex_i18n::msg('pushit_showing_messages'),
+                count($notifications),
+                $totalNotifications
+            ) . '</strong>
+            ' . ($totalNotifications > $limit ? sprintf(
+                rex_i18n::msg('pushit_page_info'),
+                (floor($offset / $limit) + 1),
+                ceil($totalNotifications / $limit)
+            ) : '') . '
         </div>';
         
         $content .= '
@@ -280,27 +289,27 @@ class HistoryManager
             <thead>
                 <tr>
                     <th width="5%" class="sortable" data-sort="id">
-                        ID <i class="fa fa-sort"></i>
+                        ' . rex_i18n::msg('pushit_id') . ' <i class="fa fa-sort"></i>
                     </th>
                     <th width="25%" class="sortable" data-sort="title">
-                        Titel & Nachricht <i class="fa fa-sort"></i>
+                        ' . rex_i18n::msg('pushit_title_and_message') . ' <i class="fa fa-sort"></i>
                     </th>
                     <th width="12%" class="sortable" data-sort="topics">
-                        Topics <i class="fa fa-sort"></i>
+                        ' . rex_i18n::msg('pushit_topics') . ' <i class="fa fa-sort"></i>
                     </th>
                     <th width="8%" class="sortable" data-sort="type">
-                        Typ <i class="fa fa-sort"></i>
+                        ' . rex_i18n::msg('pushit_type_column') . ' <i class="fa fa-sort"></i>
                     </th>
                     <th width="12%" class="sortable" data-sort="sent">
-                        Versand <i class="fa fa-sort"></i>
+                        ' . rex_i18n::msg('pushit_delivery_column') . ' <i class="fa fa-sort"></i>
                     </th>
                     <th width="18%" class="sortable" data-sort="date">
-                        Gesendet am <i class="fa fa-sort"></i>
+                        ' . rex_i18n::msg('pushit_sent_on') . ' <i class="fa fa-sort"></i>
                     </th>
                     <th width="10%" class="sortable" data-sort="user">
-                        Benutzer <i class="fa fa-sort"></i>
+                        ' . rex_i18n::msg('pushit_user_column') . ' <i class="fa fa-sort"></i>
                     </th>
-                    <th width="10%">Aktionen</th>
+                    <th width="10%">' . rex_i18n::msg('pushit_actions') . '</th>
                 </tr>
             </thead>
             <tbody>';
@@ -379,11 +388,11 @@ class HistoryManager
             </td>
             <td>
                 <span class="label label-' . ($errors > 0 ? 'warning' : 'success') . '">
-                    ' . $sentTo . ' gesendet
+                    ' . $sentTo . ' ' . rex_i18n::msg('pushit_sent_status') . '
                 </span>
                 ' . ($errors > 0 ? 
-                    '<br><span class="label label-danger">' . $errors . ' Fehler</span>' : '') . '
-                <br><small>' . ($sentTo > 0 ? round(($sentTo / ($sentTo + $errors)) * 100, 1) : 0) . '% Erfolg</small>
+                    '<br><span class="label label-danger">' . $errors . ' ' . rex_i18n::msg('pushit_error_count') . '</span>' : '') . '
+                <br><small>' . ($sentTo > 0 ? round(($sentTo / ($sentTo + $errors)) * 100, 1) : 0) . rex_i18n::msg('pushit_success_rate') . '</small>
             </td>
             <td>
                 <strong>' . ($created ? date('d.m.Y', strtotime($created)) : '-') . '</strong><br>
@@ -395,13 +404,13 @@ class HistoryManager
             <td>
                 <div class="btn-group btn-group-xs">
                     <a href="' . rex_url::backendPage('push_it/history', ['action' => 'resend', 'id' => $notificationId]) . '" 
-                       class="btn btn-primary" title="Erneut senden"
-                       onclick="return confirm(\'Nachricht erneut senden?\')">
+                       class="btn btn-primary" title="' . rex_i18n::msg('pushit_resend_button') . '"
+                       onclick="return confirm(\'' . rex_i18n::msg('pushit_resend_confirm') . '\')">
                         <i class="rex-icon fa-repeat"></i>
                     </a>
                     <a href="' . rex_url::backendPage('push_it/history', ['action' => 'delete', 'id' => $notificationId]) . '" 
-                       class="btn btn-danger" title="Löschen"
-                       onclick="return confirm(\'Nachricht aus Historie löschen?\')">
+                       class="btn btn-danger" title="' . rex_i18n::msg('pushit_delete_button') . '"
+                       onclick="return confirm(\'' . rex_i18n::msg('pushit_delete_confirm') . '\')">
                         <i class="rex-icon fa-trash"></i>
                     </a>
                 </div>
@@ -422,7 +431,7 @@ class HistoryManager
         // Vorherige Seite
         if ($currentPage > 1) {
             $prevOffset = ($currentPage - 2) * $limit;
-            $content .= '<li><a href="' . rex_url::backendPage('push_it/history', array_merge($filters, ['offset' => $prevOffset])) . '">&laquo; Vorherige</a></li>';
+            $content .= '<li><a href="' . rex_url::backendPage('push_it/history', array_merge($filters, ['offset' => $prevOffset])) . '">&laquo; ' . rex_i18n::msg('pushit_previous_page') . '</a></li>';
         }
         
         // Seitenzahlen
@@ -435,7 +444,7 @@ class HistoryManager
         // Nächste Seite
         if ($currentPage < $totalPages) {
             $nextOffset = $currentPage * $limit;
-            $content .= '<li><a href="' . rex_url::backendPage('push_it/history', array_merge($filters, ['offset' => $nextOffset])) . '">Nächste &raquo;</a></li>';
+            $content .= '<li><a href="' . rex_url::backendPage('push_it/history', array_merge($filters, ['offset' => $nextOffset])) . '">' . rex_i18n::msg('pushit_next_page') . ' &raquo;</a></li>';
         }
         
         $content .= '</ul></nav>';

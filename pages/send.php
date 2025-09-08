@@ -5,7 +5,7 @@ $addon = rex_addon::get('push_it');
 
 // Berechtigung prüfen
 if (!rex::getUser()->hasPerm('push_it[]')) {
-    echo rex_view::error('Sie haben keine Berechtigung für diesen Bereich.');
+    echo rex_view::error(rex_i18n::msg('pushit_no_permission_send'));
     return;
 }
 
@@ -41,7 +41,7 @@ if ($doSend) {
     
     // Warnung für Nicht-Admins bei Bildverwendung
     if (!$isAdmin && ($formData['icon'] || $formData['badge'] || $formData['image'])) {
-        echo rex_view::warning('Bilder können nur von Administratoren versendet werden. Nachricht wurde ohne Bilder gesendet.');
+        echo rex_view::warning(rex_i18n::msg('pushit_admin_images_only'));
     }
 }
 
@@ -50,7 +50,7 @@ echo $sendManager->renderJavaScript();
 
 // Statistiken anzeigen
 $statsFragment = new rex_fragment();
-$statsFragment->setVar('title', 'Aktuelle Abonnenten', false);
+$statsFragment->setVar('title', rex_i18n::msg('pushit_current_subscribers_title'), false);
 $statsFragment->setVar('body', $sendManager->renderStatisticsPanel(), false);
 echo $statsFragment->parse('core/page/section.php');
 
@@ -59,7 +59,7 @@ if (!empty($formData['title']) || !empty($formData['body'])) {
     $previewContent = $sendManager->renderPreviewPanel($formData);
     if ($previewContent) {
         $previewFragment = new rex_fragment();
-        $previewFragment->setVar('title', 'Vorschau', false);
+        $previewFragment->setVar('title', rex_i18n::msg('pushit_preview_title'), false);
         $previewFragment->setVar('body', $previewContent, false);
         echo $previewFragment->parse('core/page/section.php');
     }
@@ -67,6 +67,6 @@ if (!empty($formData['title']) || !empty($formData['body'])) {
 
 // Send-Formular anzeigen
 $formFragment = new rex_fragment();
-$formFragment->setVar('title', 'Push-Notification senden', false);
+$formFragment->setVar('title', rex_i18n::msg('pushit_send_notification_title'), false);
 $formFragment->setVar('body', $sendManager->renderSendForm($formData, $isAdmin), false);
 echo $formFragment->parse('core/page/section.php');

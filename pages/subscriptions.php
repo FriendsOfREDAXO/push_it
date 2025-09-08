@@ -15,12 +15,12 @@ $id = rex_request('id', 'int');
 
 if ($action === 'delete' && $id > 0) {
     if (!$isAdmin) {
-        echo rex_view::error('Keine Berechtigung zum Löschen von Subscriptions.');
+        echo rex_view::error(rex_i18n::msg('pushit_no_permission_delete'));
     } else {
         if ($subscriptionManager->deleteSubscription($id)) {
-            echo rex_view::success('Subscription wurde gelöscht.');
+            echo rex_view::success(rex_i18n::msg('pushit_subscription_deleted'));
         } else {
-            echo rex_view::error('Fehler beim Löschen der Subscription.');
+            echo rex_view::error(rex_i18n::msg('pushit_subscription_delete_error'));
         }
         
         // Reload um aktualisierte Daten zu zeigen
@@ -34,9 +34,9 @@ if ($action === 'repair' && $isAdmin) {
     if ($currentUser) {
         $repairedCount = $subscriptionManager->repairBackendSubscriptionsWithoutUserId($currentUser->getId());
         if ($repairedCount > 0) {
-            echo rex_view::success("$repairedCount Backend-Subscriptions wurden mit Ihrer User-ID verknüpft.");
+            echo rex_view::success(rex_i18n::msg('pushit_backend_subscriptions_repaired', '', $repairedCount));
         } else {
-            echo rex_view::info('Keine Backend-Subscriptions ohne User-ID gefunden.');
+            echo rex_view::info(rex_i18n::msg('pushit_no_backend_subscriptions_found'));
         }
         
         // Reload um aktualisierte Daten zu zeigen
@@ -52,7 +52,7 @@ $stats = $subscriptionManager->getSubscriptionStats();
 $statsContent = $subscriptionManager->renderStatsHtml($stats);
 
 $fragment = new rex_fragment();
-$fragment->setVar('title', 'Subscription-Statistiken', false);
+$fragment->setVar('title', rex_i18n::msg('pushit_subscription_statistics_title'), false);
 $fragment->setVar('body', $statsContent, false);
 echo $fragment->parse('core/page/section.php');
 
@@ -68,17 +68,17 @@ if ($isAdmin) {
     if ($backendSubscriptionsWithoutUserId > 0) {
         $repairContent = '
         <div class="alert alert-warning">
-            <h4><i class="rex-icon fa-exclamation-triangle"></i> Backend-Subscriptions ohne User-ID</h4>
-            <p>Es wurden ' . $backendSubscriptionsWithoutUserId . ' Backend-Subscriptions ohne zugeordnete User-ID gefunden.</p>
+            <h4><i class="rex-icon fa-exclamation-triangle"></i> ' . rex_i18n::msg('pushit_backend_subscriptions_without_user_id') . '</h4>
+            <p>' . rex_i18n::msg('pushit_backend_subscriptions_found', $backendSubscriptionsWithoutUserId) . '</p>
             <a href="' . rex_url::currentBackendPage(['action' => 'repair']) . '" 
                class="btn btn-warning"
-               onclick="return confirm(\'Möchten Sie diese Subscriptions mit Ihrer User-ID (' . rex::getUser()->getId() . ') verknüpfen?\')">
-                <i class="rex-icon fa-wrench"></i> Reparieren
+               onclick="return confirm(\'' . rex_i18n::msg('pushit_repair_subscriptions_confirm', rex::getUser()->getId()) . '\')">
+                <i class="rex-icon fa-wrench"></i> ' . rex_i18n::msg('pushit_repair_button') . '
             </a>
         </div>';
         
         $fragment = new rex_fragment();
-        $fragment->setVar('title', 'Wartung', false);
+        $fragment->setVar('title', rex_i18n::msg('pushit_maintenance_title'), false);
         $fragment->setVar('body', $repairContent, false);
         echo $fragment->parse('core/page/section.php');
     }
@@ -89,10 +89,10 @@ if (!empty($subscriptions)) {
     $tableContent = $subscriptionManager->renderTableHtml($subscriptions, $isAdmin);
     
     $fragment2 = new rex_fragment();
-    $fragment2->setVar('title', 'Alle Subscriptions (' . count($subscriptions) . ')', false);
+    $fragment2->setVar('title', rex_i18n::msg('pushit_all_subscriptions_title') . ' (' . count($subscriptions) . ')', false);
     $fragment2->setVar('body', $tableContent, false);
     echo $fragment2->parse('core/page/section.php');
     
 } else {
-    echo rex_view::info('Noch keine Push-Subscriptions vorhanden.');
+    echo rex_view::info(rex_i18n::msg('pushit_no_subscriptions'));
 }

@@ -1,0 +1,336 @@
+# PushIt - English translations
+
+# General
+pushit_title = PushIt - Web Push Notifications
+pushit_description = Web Push Notifications for Frontend and Backend
+
+# Page titles
+pushit_settings = Settings
+pushit_subscriptions = Subscriptions
+pushit_send = Send  
+pushit_history = History
+pushit_backend_notify = Backend Notifications
+pushit_help = Help
+
+# Settings page
+pushit_settings_saved = Settings have been saved.
+pushit_settings_save_error = Error saving settings.
+pushit_no_permission_settings = No permission for this page.
+pushit_vapid_keys_info = Please generate VAPID keys first to use push notifications.
+pushit_backend_token_warning = Backend notifications are enabled, but no backend token has been generated yet. Click "Regenerate" to create a secure token.
+
+# Form labels and help texts
+pushit_subject_label = Subject (mailto: or URL)
+pushit_subject_help = Required for VAPID. Use a mailto: address or a URL of your domain.
+pushit_vapid_public_key_label = VAPID Public Key
+pushit_vapid_private_key_label = VAPID Private Key
+pushit_vapid_private_key_help = ⚠️ Private key - never make publicly accessible!
+pushit_webpush_library_warning = ⚠️ WebPush library not available. Please run "composer install" in the addon directory.
+pushit_generate_button = Generate
+pushit_regenerate_button = Regenerate
+
+# Backend token section
+pushit_backend_token_label = Backend Token
+pushit_backend_token_help = Secure token for authenticating backend subscriptions. Automatically transferred to backend JavaScript.
+pushit_token_present = Token present
+pushit_no_token_generated = No token generated
+pushit_backend_token_warning_text = ⚠️ Important note: Regenerating the backend token will invalidate all existing backend subscriptions. All backend users must re-subscribe for push notifications after the token change.
+pushit_backend_token_confirm = %s backend token?
+pushit_backend_token_confirm_warning = ⚠️ WARNING: All backend users must re-subscribe for push notifications after the token change!
+pushit_backend_token_generated = Backend token has been successfully generated.
+pushit_backend_token_regenerated = Backend token has been regenerated. %d existing backend subscriptions have been deactivated.
+pushit_backend_token_regenerated_simple = Backend token has been regenerated.
+pushit_backend_token_generate_error = Error generating backend token: %s
+
+# Feature toggles
+pushit_backend_notifications_enable = Enable backend notifications
+pushit_backend_notifications_help = Enables push notifications for REDAXO backend users.
+pushit_frontend_notifications_enable = Enable frontend notifications
+pushit_frontend_notifications_help = Enables push notifications for website visitors.
+pushit_admin_notifications_enable = Automatic admin notifications
+pushit_admin_notifications_help = Automatically sends notifications for system events (errors, updates, etc.).
+
+# Send page
+pushit_no_permission_send = You do not have permission for this area.
+pushit_admin_images_only = Images can only be sent by administrators. Message was sent without images.
+pushit_send_notification_title = Send Push Notification
+pushit_current_subscribers_title = Current Subscribers
+pushit_preview_title = Preview
+pushit_notification_preview = 📱 Notification Preview
+
+# Send form
+pushit_title_label = Title
+pushit_title_required = Title *
+pushit_body_label = Message
+pushit_body_required = Message *
+pushit_url_label = Link URL
+pushit_url_help = Optional: URL to open when clicking on the notification
+pushit_user_type_label = Target Group
+pushit_user_type_frontend = Frontend Users
+pushit_user_type_backend = Backend Users
+pushit_topics_label = Topics
+pushit_topics_help = Comma-separated list of topics for targeted notifications (optional)
+
+# Advanced options
+pushit_advanced_options = Advanced Options
+pushit_admin_only = (administrators only)
+pushit_icon_url_label = Icon URL
+pushit_icon_url_help = URL to notification icon (192x192px recommended)
+pushit_badge_url_label = Badge URL
+pushit_badge_url_help = URL to badge (72x72px, monochrome recommended)
+pushit_hero_image_url_label = Hero Image URL
+pushit_hero_image_url_help = URL to large image in notification
+
+# Buttons
+pushit_send_notification_button = Send Notification
+pushit_reset_form_button = Reset Form
+pushit_test_functions = Test Functions
+pushit_test_functions_help = You can test push notifications for yourself:
+pushit_test_subscription_button = Create Test Subscription
+
+# Subscriptions page
+pushit_no_permission_delete = No permission to delete subscriptions.
+pushit_subscription_deleted = Subscription has been deleted.
+pushit_subscription_delete_error = Error deleting subscription.
+pushit_backend_subscriptions_repaired = %d backend subscriptions have been linked to your user ID.
+pushit_no_backend_subscriptions_found = No backend subscriptions without user ID found.
+pushit_no_subscriptions = No push subscriptions available yet.
+
+# Status and configuration
+pushit_status_title = Status
+pushit_frontend_integration_title = Frontend Integration
+pushit_backend_integration_title = Backend Integration
+pushit_topic_security_title = Topic Security
+
+# Backend integration info
+pushit_backend_info_active = Backend notifications are enabled. Backend users will be automatically asked if they want to receive notifications.
+pushit_backend_info_auto_load = Backend JavaScript is automatically loaded and a notification button is added to the navigation.
+pushit_backend_token_active_title = Backend Token Active
+pushit_backend_token_active_info = Backend subscriptions are authenticated via the configured token.
+pushit_no_backend_token_title = No Backend Token
+pushit_no_backend_token_info = Please generate a backend token for secure backend subscriptions.
+
+# Frontend integration
+pushit_frontend_integration_info = Add this code to your frontend template:
+
+# VAPID generation messages
+pushit_vapid_keys_generated = VAPID keys have been successfully generated.
+pushit_vapid_keys_regenerated = VAPID keys have been regenerated. Old subscriptions are invalid.
+pushit_vapid_generate_error = Error generating VAPID keys: %s
+
+# Action buttons
+pushit_save_button = Save
+pushit_save_settings_button = Save Settings
+
+# Missing keys for replacements
+pushit_backend_token_confirm_generate = generate
+pushit_backend_token_confirm_regenerate = regenerate
+
+# History page  
+pushit_history_statistics_title = Sending Statistics
+pushit_history_messages_title = Sent Messages
+
+# Backend notify page
+pushit_backend_subscription_title = Backend Subscription
+pushit_quick_notifications_title = Quick System Notifications  
+pushit_automatic_notifications_title = Automatic Notifications
+pushit_backend_statistics_title = Backend Subscription Statistics
+
+# Subscriptions page
+pushit_subscription_statistics_title = Subscription Statistics
+pushit_maintenance_title = Maintenance
+pushit_all_subscriptions_title = All Subscriptions
+
+# Validation messages
+pushit_title_and_body_required = Title and message are required.
+
+# Configuration status
+pushit_configuration_status = Configuration Status
+pushit_vapid_correctly_configured = VAPID correctly configured
+pushit_vapid_incomplete = VAPID incomplete
+pushit_backend_token_available = Backend token available
+pushit_backend_token_not_generated = Backend token not generated
+pushit_backend_enabled = Backend: Enabled
+pushit_backend_disabled = Backend: Disabled
+pushit_frontend_enabled = Frontend: Enabled
+pushit_frontend_disabled = Frontend: Disabled
+pushit_problems = Problems
+pushit_subject_not_configured = Subject is not configured
+pushit_subject_invalid = Subject must be a valid email address or URL
+pushit_vapid_public_key_not_configured = VAPID Public Key is not configured
+pushit_vapid_private_key_not_configured = VAPID Private Key is not configured
+
+# Topic security
+pushit_backend_only_topics_label = Backend-Only Topics
+pushit_topic_security_description = Security setting: These topics can only be subscribed to by backend users and are not available to frontend users.
+pushit_topics_comma_separated = Separate topics with commas (e.g. system,admin,critical). Default: system,admin,critical
+pushit_no_backend_only_topics = Currently no backend-only topics are configured. All topics can be subscribed to by frontend and backend users.
+pushit_backend_only_topics_info = These topics can only be subscribed to by backend users and are blocked for frontend users.
+
+# Statistics
+pushit_total = Total
+pushit_active = Active
+pushit_errors = Errors
+pushit_frontend_subscriptions = Frontend Subscriptions
+pushit_backend_subscriptions = Backend Subscriptions
+
+# Table headers
+pushit_id = ID
+pushit_type = Type
+pushit_user = User
+pushit_endpoint = Endpoint
+pushit_topics = Topics
+pushit_browser = Browser
+pushit_created = Created
+pushit_status = Status
+pushit_actions = Actions
+pushit_active_status = Active
+pushit_inactive_status = Inactive
+pushit_error_status = Error
+
+# Backend notifications
+pushit_backend_notifications_info = Here you can activate backend notifications for your account.
+pushit_admin_additional_access = As an administrator, you also have access to system notifications.
+pushit_activate_backend_notifications = Activate Backend Notifications
+pushit_activate_push_notifications = Activate push notifications for your backend account:
+pushit_activate_backend_notifications_button = Activate Backend Notifications
+pushit_reset_query = Reset Query
+pushit_reset_query_info = Reset: You will be asked again on the next page visit if you want to activate backend notifications.
+pushit_editor_notifications = Editor notifications: You receive notifications about editorial content and updates.
+pushit_notifications_blocked_help = Notifications blocked? Help for browser settings
+pushit_allow_notifications = Allow notifications
+pushit_desktop_notifications = Desktop notifications
+pushit_critical_error = Critical Error
+pushit_system_errors = System errors: For critical PHP errors or exceptions
+pushit_active_subscriptions = Active Subscriptions
+pushit_vapid_keys_required = To use backend notifications, VAPID keys must first be generated.
+
+# User display
+pushit_user_deleted = (deleted)
+pushit_user_error = (error)
+
+# Backend notification panel
+pushit_backend_notifications_title = Backend Notifications
+pushit_status_check = Check Status
+pushit_disable = Disable
+pushit_deactivate = Deactivate
+
+# Additional backend notification strings
+pushit_editor_notifications_info = You receive notifications about editorial content and updates.
+pushit_notifications_blocked_help_title = Notifications blocked? Help for browser settings
+pushit_desktop_notifications_setting = Desktop notifications
+pushit_allow_setting = Allow
+pushit_enabled = Enabled
+pushit_disabled = Disabled
+
+# Quick notification buttons  
+pushit_system_warning = System Warning
+pushit_information = Information
+
+# Automatic notifications
+pushit_automatic_events_info = The following events automatically trigger notifications to backend users:
+pushit_addon_changes = Addon changes: Installation/uninstallation of addons
+
+# VAPID warnings
+pushit_vapid_keys_missing = VAPID Keys Missing
+pushit_generate_vapid_keys = Generate VAPID Keys
+
+# Send page additional strings
+pushit_notification_sent_success = Notification sent successfully! Sent: %d, Errors: %d, Total: %d
+pushit_send_error = Error sending: %s
+pushit_send_notification_error = Error sending notification: %s
+pushit_title_help = Main heading of the notification
+pushit_body_help = Text of the notification
+pushit_recipient_type_label = Recipient Type
+pushit_all_users = All Users
+pushit_target_group_help = Select the target group for the notification
+pushit_frontend_subscribers = Frontend Subscribers
+pushit_backend_subscribers = Backend Subscribers
+pushit_total_active = Total Active
+pushit_last_30_days = Last 30 Days
+
+# History page strings
+pushit_invalid_action = Invalid action
+pushit_message_not_found = Message not found
+pushit_message_resent_success = Message was resent successfully! Recipients: %d, Errors: %d
+pushit_resend_error = Error resending: %s
+pushit_notification_deleted_success = Notification has been deleted.
+pushit_user_type_filter = User Type:
+pushit_all_filter = All
+pushit_topics_filter = Topics:
+pushit_topics_placeholder = e.g. system, news
+pushit_date_filter = Date:
+pushit_count_filter = Count:
+pushit_filter_button = Filter
+pushit_reset_filter_button = Reset
+pushit_sent_messages = Sent Messages
+pushit_recipients_reached = Recipients Reached
+pushit_delivery_errors = Delivery Errors
+pushit_avg_recipients_per_message = ⌀ Recipients per Message
+pushit_no_messages_found = No Messages Found
+pushit_no_messages_sent_yet = No push messages have been sent yet or your filter criteria do not match.
+pushit_send_first_message = Send First Message
+pushit_showing_messages = Showing %d of %d messages
+pushit_page_info = (Page %d of %d)
+pushit_title_and_message = Title & Message
+pushit_type_column = Type
+pushit_delivery_column = Delivery
+pushit_sent_on = Sent On
+pushit_user_column = User
+pushit_sent_status = sent
+pushit_error_count = errors
+pushit_success_rate = % success
+pushit_resend_button = Resend
+pushit_delete_button = Delete
+pushit_resend_confirm = Resend message?
+pushit_delete_confirm = Delete message from history?
+pushit_previous_page = Previous
+pushit_next_page = Next
+
+# Browser help and additional strings
+pushit_not_available = PushIt is not available
+pushit_test_subscription_success = Test subscription created successfully
+pushit_error_prefix = Error
+pushit_server_error = Server error: %s
+
+# Automatic system notifications
+pushit_system_error_title = System Error Occurred
+pushit_system_error_body = An error has been registered in the system. Please check the error log.
+
+# Frontend integration buttons
+pushit_activate_notifications_button = Activate Notifications
+
+# Settings page - additional
+pushit_settings_change = Change Settings
+
+# Subscriptions page - repair
+pushit_backend_subscriptions_without_user_id = Backend Subscriptions without User ID
+pushit_backend_subscriptions_found = %s backend subscriptions without assigned User ID found.
+pushit_repair_subscriptions_confirm = Would you like to link these subscriptions with your User ID (%s)?
+pushit_repair_button = Repair
+pushit_deactivate_notifications_button = Deactivate Notifications
+
+# Browser help instructions
+pushit_safari_step1 = 1. Click the <strong>lock icon</strong> in the address bar
+pushit_safari_step2 = 2. Select <strong>"Settings for this Website"</strong>
+pushit_safari_step3 = 3. Set <strong>"Notifications" to "Allow"</strong>
+pushit_safari_step4 = 4. Reload the page
+
+pushit_chrome_step1 = 1. Click the <strong>lock icon</strong> in the address bar
+pushit_chrome_step2 = 2. Enable <strong>"Notifications"</strong>
+pushit_chrome_step3 = 3. Reload the page
+
+pushit_firefox_step1 = 1. Click the <strong>shield icon</strong> in the address bar
+pushit_firefox_step2 = 2. Select <strong>"Edit Permission"</strong>
+pushit_firefox_step3 = 3. Set <strong>"Desktop Notifications" to "Allow"</strong>
+pushit_firefox_step4 = 4. Reload the page
+
+# Backend statistics
+pushit_backend_subscriptions = Backend Subscriptions
+pushit_editorial_topic = Editorial Topic
+pushit_admin_topics = Admin Topics
+pushit_system_topic = System
+pushit_admin_topic = Admin
+pushit_critical_topic = Critical
+pushit_statistics_temporarily_unavailable = Statistics Temporarily Unavailable
+pushit_backend_statistics_loading_error = Backend statistics cannot be loaded at the moment.

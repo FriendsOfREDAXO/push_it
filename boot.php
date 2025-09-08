@@ -73,8 +73,8 @@ if (rex::isBackend() && $addon->getConfig('admin_notifications')) {
         $addon = rex_addon::get('push_it');
         $service = new \FriendsOfREDAXO\PushIt\Service\NotificationService();
         
-        $title = 'System-Fehler aufgetreten';
-        $body = 'Ein Fehler wurde im System registriert. Bitte prüfen Sie das Error-Log.';
+        $title = rex_i18n::msg('pushit_system_error_title');
+        $body = rex_i18n::msg('pushit_system_error_body');
         
         $service->sendToBackendUsers($title, $body, '/redaxo/index.php?page=system');
     });

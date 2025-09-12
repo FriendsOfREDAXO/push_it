@@ -6,7 +6,7 @@ title: translate:pushit_title
 description: translate:pushit_description
 
 requires:
-    redaxo: '^5.15'
+    redaxo: '^5.19'
     php:
         version: '^8.2'
         

@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `rex_push_it_subscriptions` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` INT UNSIGNED NULL,
   `user_type` ENUM('backend', 'frontend') NOT NULL DEFAULT 'frontend',
-  `endpoint` TEXT NOT NULL,
+  `endpoint` VARCHAR(1000) NOT NULL,
   `p256dh` VARCHAR(255) NOT NULL,
   `auth` VARCHAR(255) NOT NULL,
   `topics` VARCHAR(255) NULL,
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS `rex_push_it_subscriptions` (
   `last_error` TEXT NULL,
   `active` TINYINT(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `endpoint_unique` (`endpoint`(255)),
+  UNIQUE KEY `endpoint_unique` (`endpoint`),
   KEY `user_id` (`user_id`),
   KEY `user_type` (`user_type`),
   KEY `active` (`active`)

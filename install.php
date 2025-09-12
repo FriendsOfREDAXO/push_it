@@ -38,4 +38,3 @@ rex_sql_table::get(rex::getTable('push_it_subscriptions'))
     ->ensureIndex(new rex_sql_index('user_type', ['user_type']))
     ->ensureIndex(new rex_sql_index('active', ['active']))
     ->ensure();
-

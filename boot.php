@@ -1,9 +1,11 @@
 <?php
 $addon = rex_addon::get('push_it');
 
-// Composer Autoloader laden
-if (file_exists($addon->getPath('vendor/autoload.php'))) {
-    require_once $addon->getPath('vendor/autoload.php');
+// Berechtigungen registrieren
+if (rex::isBackend()) {
+    rex_perm::register('push_it[]');
+    rex_perm::register('push_it[subscriptions]');
+    rex_perm::register('push_it[send]');
 }
 
 // Default-Konfiguration setzen
@@ -21,17 +23,11 @@ if (!$addon->hasConfig('error_monitoring_interval')) $addon->setConfig('error_mo
 if (!$addon->hasConfig('error_icon')) $addon->setConfig('error_icon', '');
 if (!$addon->hasConfig('monitoring_mode')) $addon->setConfig('monitoring_mode', 'realtime');
 
-// Berechtigungen registrieren
-if (rex::isBackend()) {
-    rex_perm::register('push_it[]', 'PushIt - Grundberechtigung');
-}
 
 // Cronjob registrieren (falls Cronjob-AddOn verfügbar ist)
 if (rex_addon::exists('cronjob') && rex_addon::get('cronjob')->isAvailable()) {
     rex_cronjob_manager::registerType(\FriendsOfREDAXO\PushIt\Cronjob\SystemMonitoringCronjob::class);
 }
-
-
 
 rex_api_function::register('push_it_subscribe', \FriendsOfREDAXO\PushIt\Api\Subscribe::class);
 rex_api_function::register('push_it_unsubscribe', \FriendsOfREDAXO\PushIt\Api\Unsubscribe::class);

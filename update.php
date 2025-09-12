@@ -1,83 +1,47 @@
 <?php
-/** @var rex_addon $this */
+rex_sql_table::get(rex::getTable('push_it_notifications'))
+    ->ensurePrimaryIdColumn()
+    ->ensureColumn(new rex_sql_column('title', 'varchar(255)'))
+    ->ensureColumn(new rex_sql_column('body', 'text', true))
+    ->ensureColumn(new rex_sql_column('url', 'varchar(500)', true))
+    ->ensureColumn(new rex_sql_column('icon', 'varchar(500)', true))
+    ->ensureColumn(new rex_sql_column('badge', 'varchar(500)', true))
+    ->ensureColumn(new rex_sql_column('image', 'varchar(500)', true))
+    ->ensureColumn(new rex_sql_column('notification_options', 'longtext', true))
+    ->ensureColumn(new rex_sql_column('topics', 'varchar(255)', true))
+    ->ensureColumn(new rex_sql_column('user_type', 'enum(\'backend\',\'frontend\',\'both\')', false, 'frontend'))
+    ->ensureColumn(new rex_sql_column('sent_to', 'int(10) unsigned', false, '0'))
+    ->ensureColumn(new rex_sql_column('delivery_errors', 'int(10) unsigned', false, '0'))
+    ->ensureColumn(new rex_sql_column('created_by', 'int(10) unsigned', true))
+    ->ensureColumn(new rex_sql_column('created', 'datetime'))
+    ->ensureIndex(new rex_sql_index('created', ['created']))
+    ->ensureIndex(new rex_sql_index('user_type', ['user_type']))
+    ->ensure();
 
-// Update Script: Umbenennung von pushi_it zu push_it
+rex_sql_table::get(rex::getTable('push_it_subscriptions'))
+    ->ensurePrimaryIdColumn()
+    ->ensureColumn(new rex_sql_column('user_id', 'int(10) unsigned', true))
+    ->ensureColumn(new rex_sql_column('user_type', 'enum(\'backend\',\'frontend\')', false, 'frontend'))
+    ->ensureColumn(new rex_sql_column('endpoint', 'text'))
+    ->ensureColumn(new rex_sql_column('p256dh', 'varchar(255)'))
+    ->ensureColumn(new rex_sql_column('auth', 'varchar(255)'))
+    ->ensureColumn(new rex_sql_column('topics', 'varchar(255)', true))
+    ->ensureColumn(new rex_sql_column('ua', 'varchar(500)', true))
+    ->ensureColumn(new rex_sql_column('lang', 'varchar(20)', true))
+    ->ensureColumn(new rex_sql_column('domain', 'varchar(255)', true))
+    ->ensureColumn(new rex_sql_column('created', 'datetime'))
+    ->ensureColumn(new rex_sql_column('updated', 'datetime', true))
+    ->ensureColumn(new rex_sql_column('last_error', 'text', true))
+    ->ensureColumn(new rex_sql_column('active', 'tinyint(1)', false, '1'))
+    ->ensureIndex(new rex_sql_index('endpoint_unique', ['endpoint'], rex_sql_index::UNIQUE))
+    ->ensureIndex(new rex_sql_index('user_id', ['user_id']))
+    ->ensureIndex(new rex_sql_index('user_type', ['user_type']))
+    ->ensureIndex(new rex_sql_index('active', ['active']))
+    ->ensure();
 
-$sql = rex_sql::factory();
-
-// Tabellen umbenennen falls sie noch die alten Namen haben
-try {
-    // Prüfen ob alte Tabellen existieren
-    $oldSubsExists = $sql->setQuery("SHOW TABLES LIKE 'rex_pushi_it_subscriptions'")->getRows() > 0;
-    $oldNotifExists = $sql->setQuery("SHOW TABLES LIKE 'rex_pushi_it_notifications'")->getRows() > 0;
-    
-    if ($oldSubsExists) {
-        $sql->setQuery("RENAME TABLE `rex_pushi_it_subscriptions` TO `rex_push_it_subscriptions`");
-        echo "Tabelle rex_pushi_it_subscriptions zu rex_push_it_subscriptions umbenannt.\n";
-    }
-    
-    if ($oldNotifExists) {
-        $sql->setQuery("RENAME TABLE `rex_pushi_it_notifications` TO `rex_push_it_notifications`");
-        echo "Tabelle rex_pushi_it_notifications zu rex_push_it_notifications umbenannt.\n";
-    }
-    
-} catch (rex_sql_exception $e) {
-    // Tabellen existieren vermutlich nicht oder sind bereits umbenannt
-}
-
-// Sicherstellen dass die neuen Tabellen existieren (falls noch nicht erstellt)
-$sql->setQuery("
-CREATE TABLE IF NOT EXISTS `rex_push_it_subscriptions` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `user_id` INT UNSIGNED NULL,
-  `user_type` ENUM('backend', 'frontend') NOT NULL DEFAULT 'frontend',
-  `endpoint` TEXT NOT NULL,
-  `p256dh` VARCHAR(255) NOT NULL,
-  `auth` VARCHAR(255) NOT NULL,
-  `topics` VARCHAR(255) NULL,
-  `ua` VARCHAR(500) NULL,
-  `lang` VARCHAR(20) NULL,
-  `domain` VARCHAR(255) NULL,
-  `created` DATETIME NOT NULL,
-  `updated` DATETIME NULL,
-  `last_error` TEXT NULL,
-  `active` TINYINT(1) NOT NULL DEFAULT 1,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `endpoint_unique` (`endpoint`(255)),
-  KEY `user_id` (`user_id`),
-  KEY `user_type` (`user_type`),
-  KEY `active` (`active`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-");
-
-$sql->setQuery("
-CREATE TABLE IF NOT EXISTS `rex_push_it_notifications` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `title` VARCHAR(255) NOT NULL,
-  `body` TEXT NULL,
-  `url` VARCHAR(500) NULL,
-  `icon` VARCHAR(500) NULL,
-  `topics` VARCHAR(255) NULL,
-  `user_type` ENUM('backend', 'frontend', 'both') NOT NULL DEFAULT 'frontend',
-  `sent_to` INT UNSIGNED NOT NULL DEFAULT 0,
-  `delivery_errors` INT UNSIGNED NOT NULL DEFAULT 0,
-  `created_by` INT UNSIGNED NULL,
-  `created` DATETIME NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `created` (`created`),
-  KEY `user_type` (`user_type`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-");
-
-// Berechtigungen aktualisieren
+// Berechtigungen registrieren
 if (rex::isBackend()) {
     rex_perm::register('push_it[]');
-    
-    // Alte Berechtigung entfernen falls sie existiert
-    try {
-        $sql->setQuery("DELETE FROM rex_user_role_perms WHERE perm = 'pushi_it[]'");
-        $sql->setQuery("DELETE FROM rex_user_perms WHERE perm = 'pushi_it[]'");
-    } catch (Exception $e) {
-        // Ignorieren falls Tabellen nicht existieren
-    }
+    rex_perm::register('push_it[subscriptions]');
+    rex_perm::register('push_it[send]');
 }

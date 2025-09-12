@@ -22,7 +22,7 @@ rex_sql_table::get(rex::getTable('push_it_subscriptions'))
     ->ensurePrimaryIdColumn()
     ->ensureColumn(new rex_sql_column('user_id', 'int(10) unsigned', true))
     ->ensureColumn(new rex_sql_column('user_type', 'enum(\'backend\',\'frontend\')', false, 'frontend'))
-    ->ensureColumn(new rex_sql_column('endpoint', 'text'))
+    ->ensureColumn(new rex_sql_column('endpoint', 'varchar(1000)'))
     ->ensureColumn(new rex_sql_column('p256dh', 'varchar(255)'))
     ->ensureColumn(new rex_sql_column('auth', 'varchar(255)'))
     ->ensureColumn(new rex_sql_column('topics', 'varchar(255)', true))
@@ -38,10 +38,3 @@ rex_sql_table::get(rex::getTable('push_it_subscriptions'))
     ->ensureIndex(new rex_sql_index('user_type', ['user_type']))
     ->ensureIndex(new rex_sql_index('active', ['active']))
     ->ensure();
-
-// Berechtigungen registrieren
-if (rex::isBackend()) {
-    rex_perm::register('push_it[]');
-    rex_perm::register('push_it[subscriptions]');
-    rex_perm::register('push_it[send]');
-}

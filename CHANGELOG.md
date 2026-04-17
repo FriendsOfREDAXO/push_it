@@ -36,12 +36,41 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [1.0.0-beta4] – 2025
+## [1.0.0-beta4] – 2025-09-12
 
-- Initialer Release mit Frontend- und Backend-Push-Notifications
+### Fixed
+- Installationsfehler behoben: MySQL `UNIQUE`-Index auf `TEXT`-Spalte `endpoint` schlug mit SQLSTATE 1170 fehl ([#13](https://github.com/FriendsOfREDAXO/push_it/issues/13), [#14](https://github.com/FriendsOfREDAXO/push_it/pull/14))
+
+---
+
+## [1.0.0-beta3] – 2025-09-08
+
+### Added
+- Gesendete Nachrichten können aus der Historie gelöscht werden
+
+### Changed
+- Nochmals verbesserter Test-Versand
+
+---
+
+## [1.0.0-beta2] – 2025-09-08
+
+### Changed
+- Verbesserter Test-Versand
+
+---
+
+## [1.0.0-beta1] – 2025-09-08
+
+### Added
+- Erster öffentlicher Beta-Release
+- Web Push Notifications für REDAXO 5 (Frontend & Backend)
+- Cross-Browser-Support: Chrome, Firefox, Edge, Safari (iOS 16.4+)
+- Topic-basierte Subscriptions für gezielte Benachrichtigungen
+- Rich Notifications mit Bildern, Actions und benutzerdefinierten Daten
+- iOS PWA Support mit automatischen Installationsanleitungen
+- Mehrsprachiges Frontend (DE/EN) mit Browser-spezifischen Hilfen
 - VAPID-Key-Verwaltung im Backend
-- Topic-basierte Subscriptions
-- System Error Monitoring (Realtime & Cronjob)
-- REST API für externe Integrationen
-- iOS PWA Support
-- Mehrsprachiges Interface (DE/EN)
+- REST API für externe Integrationen und Drittsysteme
+- Umfassendes Admin-Interface mit Subscription-Verwaltung und Verlauf
+- System Error Monitoring als Ersatz für `rex_mailer::errorMail()` (Realtime & Cronjob-Modi)

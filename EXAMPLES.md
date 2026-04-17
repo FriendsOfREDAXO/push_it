@@ -5,14 +5,13 @@ Hier finden Sie praktische Implementierungsbeispiele, detaillierte Anleitungen u
 ## 📋 **Inhaltsverzeichnis**
 
 1. [Frontend Integration](#frontend-integration)
-2. [Backend/PHP Integration](#backend-php-integration)
+2. [Backend/PHP Integration](#backendphp-integration)
 3. [System Error Monitoring](#system-error-monitoring)
 4. [iOS & PWA Setup](#ios--pwa-setup)
-5. [Mehrsprachigkeit](#mehrsprachigkeit)
-6. [Topics & Zielgruppen](#topics--zielgruppen)
-7. [Troubleshooting](#troubleshooting)
-8. [Use Cases & Szenarien](#use-cases--szenarien)
-9. [Migration von rex_mailer](#migration-von-rex_mailer)
+5. [Framework-neutrale UI-Komponente](#framework-neutrale-ui-komponente)
+6. [REDAXO-spezifische Integration](#redaxo-spezifische-integration)
+7. [Erweiterte Beispiele](#erweiterte-beispiele)
+8. [Debugging und Troubleshooting](#debugging-und-troubleshooting)
 
 ## 🚀 **Frontend Integration**
 
@@ -61,6 +60,9 @@ Hier finden Sie praktische Implementierungsbeispiele, detaillierte Anleitungen u
         });
     }
     </script>
+</body>
+</html>
+```
 
 ### iOS-kompatible Implementation
 
@@ -255,7 +257,7 @@ use FriendsOfREDAXO\PushIt\Service\NotificationService;
 $service = new NotificationService();
 
 // Einfache Nachricht an alle
-$service->sendToAll(
+$service->sendToAllUsers(
     'Willkommen!',
     'Herzlich willkommen auf unserer Website',
     'https://example.com/welcome'
@@ -286,6 +288,8 @@ $service->sendNotification(
     'Neuer Artikel verfügbar',
     'Ein spannender neuer Artikel wartet auf Sie',
     'https://example.com/artikel/123',
+    'frontend',  // Zielgruppe: 'frontend', 'backend' oder 'all'
+    ['news'],    // Topics (optional)
     $options
 );
 ?>
@@ -315,12 +319,12 @@ $service->sendToBackendUsers(
     ['system', 'maintenance']
 );
 
-// An spezifische Topics
-$service->sendToTopics(
-    ['breaking-news', 'urgent'],
+// An alle Abonnenten mit bestimmten Topics (Frontend + Backend)
+$service->sendToAllUsers(
     'Eilmeldung',
     'Wichtige Nachricht für alle Abonnenten',
-    '/news/breaking'
+    '/news/breaking',
+    ['breaking-news', 'urgent'] // Nur Abonnenten dieser Topics werden benachrichtigt
 );
 
 // An einen spezifischen Backend-Benutzer (nur Backend-User haben User-IDs)
@@ -329,15 +333,7 @@ $service->sendToUser(
     'Admin-Benachrichtigung',
     'Hallo Admin, wichtige System-Info!',
     '/redaxo/index.php?page=system',
-    ['admin', 'system'] // Optional: nur wenn User diese Topics abonniert hat
-);
-
-// Mit Bedingungen
-$service->sendToUsersWhere(
-    'user_type = "frontend" AND topics LIKE "%premium%"',
-    'Premium Feature',
-    'Neues Feature nur für Premium-Mitglieder',
-    '/premium/new-feature'
+    ['admin', 'system'] // Optional: Topics-Filter
 );
 ?>
 ```
@@ -358,7 +354,7 @@ function notifyNewOrder($orderId, $customerName) {
     );
 }
 
-// Warenkorb-Erinnerung
+// Warenkorb-Erinnerung (nur für Backend-User mit bekannter User-ID)
 function sendCartReminder($userId, $cartItems) {
     $service = new NotificationService();
     
@@ -369,6 +365,7 @@ function sendCartReminder($userId, $cartItems) {
         '🛒 Vergessene Artikel',
         $message,
         '/shop/cart',
+        [], // Topics (leer = alle Topics des Users)
         [
             'tag' => 'cart-reminder',
             'icon' => '/media/cart-icon.png',
@@ -422,11 +419,11 @@ function notifyLowStock($productId, $stock) {
     if ($stock <= 5) {
         $service = new NotificationService();
         
-        $service->sendToTopics(
-            ['admin', 'inventory'],
+        $service->sendToBackendUsers(
             '⚠️ Niedriger Lagerbestand',
             "Produkt #$productId hat nur noch $stock Stück",
-            "/redaxo/index.php?page=shop/products&id=$productId"
+            "/redaxo/index.php?page=shop/products&id=$productId",
+            ['admin', 'inventory']
         );
     }
 }
@@ -435,175 +432,91 @@ function notifyLowStock($productId, $stock) {
 
 ## 🚨 **System Error Monitoring**
 
-### Vollständige Cronjob-Implementierung
+Der Cronjob `SystemMonitoringCronjob` ist bereits im AddOn enthalten und wird automatisch registriert. Sie müssen ihn **nicht** selbst implementieren – er muss nur im REDAXO-Backend unter **Cronjobs** eingerichtet werden.
+
+### Cronjob einrichten
+
+1. REDAXO-Backend → **AddOns → Cronjob**
+2. Neuen Cronjob anlegen: Typ **„Push-It System Monitoring"** wählen
+3. Ausführungsintervall setzen (empfohlen: alle 15–60 Minuten)
+4. Cronjob aktivieren und speichern
+
+Der Cronjob erledigt automatisch:
+- Prüft das REDAXO-Systemlog auf neue Fehler
+- Sendet Push-Benachrichtigungen bei konfigurierten Fehlerschwellen
+- Prüft auf verfügbare AddOn-Updates (falls das `install`-AddOn aktiv ist)
+
+### Cronjob-Status abfragen
 
 ```php
 <?php
-// In boot.php - Cronjob-Modus Setup
+use FriendsOfREDAXO\PushIt\Cronjob\SystemMonitoringCronjob;
+
+// Ist ein aktiver Push-It Cronjob konfiguriert?
+$isConfigured = SystemMonitoringCronjob::isCronjobConfigured();
+
+// Letzte Ausführungsstatistiken abfragen
+$stats = SystemMonitoringCronjob::getCronjobStats();
+// $stats enthält:
+// [
+//   'last_run'      => int (Unix-Timestamp der letzten Ausführung),
+//   'total_runs'    => int (Anzahl Ausführungen gesamt),
+//   'is_configured' => bool
+// ]
+
+if ($stats['last_run'] > 0) {
+    echo 'Letzter Cronjob-Lauf: ' . date('d.m.Y H:i', $stats['last_run']);
+    echo ' (gesamt ' . $stats['total_runs'] . ' Läufe)';
+}
+?>
+```
+
+### Realtime-Monitoring (Alternative zum Cronjob)
+
+```php
+<?php
+// In boot.php – bei jedem Request prüfen (nur wenn Cronjob nicht genutzt wird)
 $addon = rex_addon::get('push_it');
 
 if ($addon->getConfig('error_monitoring_enabled') && 
-    $addon->getConfig('monitoring_mode') === 'cronjob') {
-    
-    // Cronjob-Type registrieren
-    if (rex_addon::get('cronjob')->isAvailable()) {
-        rex_cronjob_manager::registerType(
-            \FriendsOfREDAXO\PushIt\Cronjob\SystemMonitoringCronjob::class
-        );
-    }
-}
-
-// SystemMonitoringCronjob.php - Vollständige Implementierung
-<?php
-namespace FriendsOfREDAXO\PushIt\Cronjob;
-
-use rex_cronjob;
-use FriendsOfREDAXO\PushIt\Service\SystemErrorMonitor;
-
-class SystemMonitoringCronjob extends rex_cronjob
-{
-    public function execute()
-    {
-        $monitor = new SystemErrorMonitor();
-        $result = $monitor->cronCheck();
-        
-        if ($result['success']) {
-            $this->setMessage("Monitoring erfolgreich. " . 
-                            ($result['notifications_sent'] ?? 0) . " Benachrichtigungen gesendet.");
-            return true;
-        } else {
-            $this->setMessage("Monitoring-Fehler: " . ($result['error'] ?? 'Unbekannter Fehler'));
-            return false;
-        }
-    }
-
-    public function getTypeName()
-    {
-        return 'Push-It System Monitoring';
-    }
-
-    public function getParamFields()
-    {
-        return [
-            [
-                'label' => 'Fehler-Schwellenwert',
-                'name' => 'error_threshold',
-                'type' => 'select',
-                'options' => [1 => '1 Fehler', 5 => '5 Fehler', 10 => '10 Fehler'],
-                'default' => 1
-            ],
-            [
-                'label' => 'Debug-Modus',
-                'name' => 'debug_mode',
-                'type' => 'checkbox',
-                'default' => 0
-            ]
-        ];
-    }
-}
-?>
-```
-
-### Realtime-Monitoring Implementation
-
-```php
-<?php
-// In boot.php - Realtime-Modus
-if ($addon->getConfig('error_monitoring_enabled') && 
     $addon->getConfig('monitoring_mode') === 'realtime') {
     
-    rex_extension::register('RESPONSE_SHUTDOWN', function() {
-        $monitor = new SystemErrorMonitor();
+    rex_extension::register('RESPONSE_SHUTDOWN', static function(): void {
+        $monitor = new \FriendsOfREDAXO\PushIt\Service\SystemErrorMonitor();
         $monitor->checkAndSendErrorNotifications();
     }, rex_extension::LATE);
 }
-
-// Custom Error Handler mit Push-Integration
-function customErrorHandler($severity, $message, $file, $line) {
-    // Standard REDAXO Error Handling
-    $logEntry = "PHP Error [$severity]: $message in $file on line $line";
-    rex_logger::logError('system', $logEntry);
-    
-    // Sofortige Push-Benachrichtigung bei kritischen Fehlern
-    if (in_array($severity, [E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR])) {
-        $monitor = new SystemErrorMonitor();
-        $monitor->sendImmediateErrorNotification($logEntry);
-    }
-    
-    return false; // Standardverhalten nicht überschreiben
-}
-
-set_error_handler('customErrorHandler');
 ?>
 ```
 
-### Custom Error Monitoring
+### Monitoring-Einstellungen programmatisch anpassen
 
 ```php
 <?php
 use FriendsOfREDAXO\PushIt\Service\SystemErrorMonitor;
-use FriendsOfREDAXO\PushIt\Service\NotificationService;
 
-// Eigene Fehlerüberwachung implementieren
-class CustomErrorMonitor extends SystemErrorMonitor
-{
-    protected function shouldNotify($errorCount, $lastError) 
-    {
-        // Custom-Logik: Nur bei mehr als 3 Fehlern benachrichtigen
-        if ($errorCount < 3) {
-            return false;
-        }
-        
-        // Nicht nachts benachrichtigen (22:00 - 06:00)
-        $hour = (int)date('H');
-        if ($hour >= 22 || $hour <= 6) {
-            return false;
-        }
-        
-        // Nicht am Wochenende bei nicht-kritischen Fehlern
-        $isWeekend = in_array(date('N'), [6, 7]);
-        $isCritical = strpos($lastError, 'CRITICAL') !== false;
-        
-        if ($isWeekend && !$isCritical) {
-            return false;
-        }
-        
-        return parent::shouldNotify($errorCount, $lastError);
-    }
-    
-    protected function createErrorMessage($errorCount, $lastError) 
-    {
-        $domain = rex::getServerName();
-        $severity = $this->getErrorSeverity($lastError);
-        
-        return [
-            'title' => "🚨 $severity: $errorCount Fehler auf $domain",
-            'body' => $this->shortenError($lastError),
-            'url' => rex_url::backendPage('system/log'),
-            'options' => [
-                'tag' => 'system-error-' . date('Y-m-d-H'),
-                'icon' => '/assets/addons/push_it/error-icon.png',
-                'badge' => '/assets/addons/push_it/error-badge.png',
-                'requireInteraction' => $severity === 'KRITISCH',
-                'actions' => [
-                    ['action' => 'view-log', 'title' => 'Log anzeigen'],
-                    ['action' => 'dismiss', 'title' => 'Verstanden']
-                ]
-            ]
-        ];
-    }
-    
-    private function getErrorSeverity($error) 
-    {
-        if (strpos($error, 'FATAL') !== false || strpos($error, 'E_ERROR') !== false) {
-            return 'KRITISCH';
-        }
-        if (strpos($error, 'WARNING') !== false) {
-            return 'WARNUNG';
-        }
-        return 'INFO';
-    }
+$monitor = new SystemErrorMonitor();
+
+// Aktuellen Status abfragen
+$status = $monitor->getErrorMonitoringStatus();
+// $status enthält u. a.:
+// [
+//   'enabled'     => bool,
+//   'interval'    => int (Sekunden zwischen Checks),
+//   'last_check'  => int (Unix-Timestamp),
+//   'error_count' => int,
+// ]
+
+if ($status['enabled']) {
+    echo 'Monitoring aktiv, letzter Check: ' . date('H:i:s', $status['last_check'] ?? 0);
 }
+
+// Einstellungen ändern
+$monitor->setErrorMonitoringEnabled(true);
+$monitor->setErrorMonitoringInterval(300); // Alle 5 Minuten prüfen
+$monitor->setErrorIcon('custom-error-icon.png'); // Dateiname aus dem Mediapool
+?>
+```
 
 ## 📱 **iOS & PWA Setup**
 
@@ -1032,225 +945,6 @@ function handleNotificationAction(action, data) {
     }
 }
 ```
-
-## 📱 Grundlegende Integration
-
-### Frontend JavaScript Integration
-
-```html
-<!-- Push-It JavaScript einbinden -->
-<script src="/assets/addons/push_it/frontend.js"></script>
-<script>
-// Push-It Konfiguration
-window.PushItPublicKey = 'YOUR_VAPID_PUBLIC_KEY_HERE';
-window.PushItTopics = 'news,updates';
-</script>
-
-<script>
-// Einfache Frontend-Integration
-async function enableNotifications() {
-    try {
-        await PushIt.subscribe('frontend', 'news,offers');
-        alert('Benachrichtigungen wurden aktiviert!');
-    } catch (error) {
-        console.error('Fehler:', error.message);
-        alert('Fehler beim Aktivieren: ' + error.message);
-    }
-}
-
-// Status prüfen
-async function checkStatus() {
-    const status = await PushIt.getStatus();
-    console.log('Notification Status:', status.isSubscribed);
-}
-</script>
-```
-
-### Backend Integration
-
-```html
-<!-- Backend JavaScript (im REDAXO Backend automatisch verfügbar) -->
-<script>
-// Backend-Benachrichtigungen für Administratoren
-async function enableBackendNotifications() {
-    try {
-        await PushIt.subscribe('backend', 'system,admin,critical');
-        alert('Backend-Benachrichtigungen aktiviert!');
-    } catch (error) {
-        alert('Fehler: ' + error.message);
-    }
-}
-</script>
-```
-
-## 🍎 iOS Safari Integration
-
-iOS Safari erfordert spezielle Behandlung, da Push-Nachrichten nur in Web-Apps funktionieren, die zum Homescreen hinzugefügt wurden.
-
-### iOS-kompatible Implementierung
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Meine App">
-    <link rel="apple-touch-icon" href="/assets/addons/push_it/icon.png">
-    <link rel="manifest" href="/manifest.json">
-    
-    <!-- Push-It JavaScript einbinden -->
-    <script src="/assets/addons/push_it/frontend.js"></script>
-    <script>
-        // Push-It Konfiguration
-        window.PushItPublicKey = 'YOUR_VAPID_PUBLIC_KEY_HERE';
-        window.PushItTopics = 'news,updates';
-    </script>
-</head>
-<body>
-    <div id="ios-install-prompt" class="ios-prompt" style="display: none;">
-        <div class="ios-prompt-content">
-            <h3>📱 Installation für iOS</h3>
-            <p>Für Push-Benachrichtigungen auf iOS:</p>
-            <ol>
-                <li>Tippen Sie auf das <strong>Teilen-Symbol</strong> <span style="font-size: 1.2em;">⬆️</span></li>
-                <li>Wählen Sie <strong>"Zum Home-Bildschirm"</strong></li>
-                <li>Bestätigen Sie mit <strong>"Hinzufügen"</strong></li>
-                <li>Öffnen Sie die App vom Home-Bildschirm</li>
-                <li>Aktivieren Sie dann die Benachrichtigungen</li>
-            </ol>
-            <button onclick="hideIOSPrompt()">Verstanden</button>
-        </div>
-    </div>
-
-    <div id="notification-controls">
-        <button id="enable-notifications" onclick="enableNotifications()">
-            🔔 Benachrichtigungen aktivieren
-        </button>
-        <button id="disable-notifications" onclick="disableNotifications()">
-            🔕 Benachrichtigungen deaktivieren
-        </button>
-    </div>
-
-    <script>
-        // Warten bis PushIt geladen ist
-        document.addEventListener('DOMContentLoaded', function() {
-            initializePushFeatures();
-        });
-
-        function initializePushFeatures() {
-            // iOS-Erkennung und Installation
-            if (isInstallable()) {
-                document.getElementById('ios-install-prompt').style.display = 'block';
-                document.getElementById('notification-controls').style.display = 'none';
-            } else {
-                updateButtonStates();
-            }
-        }
-
-        // iOS-Hilfsfunktionen
-        function isIOS() {
-            return /iPad|iPhone|iPod/.test(navigator.userAgent);
-        }
-        
-        function isInStandaloneMode() {
-            return window.navigator.standalone === true;
-        }
-        
-        function isInstallable() {
-            return isIOS() && !isInStandaloneMode();
-        }
-        
-        function hideIOSPrompt() {
-            document.getElementById('ios-install-prompt').style.display = 'none';
-            document.getElementById('notification-controls').style.display = 'block';
-            updateButtonStates();
-        }
-        
-        // Benachrichtigungen aktivieren
-        async function enableNotifications() {
-            // Prüfen ob iOS und nicht installiert
-            if (isInstallable()) {
-                alert('Bitte installieren Sie die App zuerst auf Ihrem Home-Bildschirm.');
-                return;
-            }
-            
-            try {
-                await PushIt.subscribe('frontend', 'news,updates');
-                alert('✅ Benachrichtigungen wurden aktiviert!');
-                updateButtonStates();
-            } catch (error) {
-                console.error('Push-Fehler:', error);
-                alert('❌ Fehler: ' + error.message);
-            }
-        }
-        
-        async function disableNotifications() {
-            try {
-                await PushIt.unsubscribe();
-                alert('✅ Benachrichtigungen wurden deaktiviert!');
-                updateButtonStates();
-            } catch (error) {
-                alert('❌ Fehler: ' + error.message);
-            }
-        }
-        
-        // Button-Status aktualisieren
-        async function updateButtonStates() {
-            try {
-                const status = await PushIt.getStatus();
-                const enableBtn = document.getElementById('enable-notifications');
-                const disableBtn = document.getElementById('disable-notifications');
-                
-                if (status.isSubscribed) {
-                    enableBtn.style.display = 'none';
-                    disableBtn.style.display = 'inline-block';
-                } else {
-                    enableBtn.style.display = 'inline-block';
-                    disableBtn.style.display = 'none';
-                }
-            } catch (error) {
-                console.error('Status-Update-Fehler:', error);
-            }
-        }
-    </script>
-</body>
-</html>
-```
-
-### Web App Manifest (manifest.json)
-
-```json
-{
-    "name": "Meine Push-App",
-    "short_name": "PushApp",
-    "description": "App mit Push-Benachrichtigungen",
-    "start_url": "/",
-    "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#007bff",
-    "orientation": "portrait-primary",
-    "scope": "/",
-    "icons": [
-        {
-            "src": "/assets/addons/push_it/icon-192.png",
-            "sizes": "192x192",
-            "type": "image/png",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "/assets/addons/push_it/icon-512.png",
-            "sizes": "512x512",
-            "type": "image/png",
-            "purpose": "any maskable"
-        }
-    ]
-}
-```
-
-**Hinweis**: Die Manifest-Datei sollte über HTTPS und mit korrektem MIME-Type (`application/manifest+json`) ausgeliefert werden. In REDAXO können Sie sie als statische Datei im `media/` Ordner ablegen oder über eine Template-Route bereitstellen.
 
 ## 🎨 Framework-neutrale UI-Komponente
 

@@ -411,3 +411,7 @@ pushit_monitor_no_cronjob_warning = Kein Push-It Cronjob konfiguriert!
 pushit_monitor_no_cronjob_setup = Cronjob einrichten
 pushit_monitor_disabled_info = Error Monitoring ist deaktiviert. Aktivieren Sie es in den Push-It Einstellungen.
 pushit_monitor_system_error_monitoring = System Error Monitoring
+pushit_addon_updated_title = AddOn Update: %s
+pushit_addon_updated_body = AddOn '%s' wurde von Version %s auf %s aktualisiert.
+pushit_addon_updates_available_title = %d AddOn-Update(s) verfügbar
+pushit_addon_updates_available_body = Es sind %d Update(s) für AddOns verfügbar.

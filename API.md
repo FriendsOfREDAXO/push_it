@@ -1,6 +1,6 @@
 # PushIt - API Documentation
 
-Vollständige API-Referenz für das PushIt AddOn.
+Vollständige API-Referenz für das PushIt AddOn **v1.0.0**.
 
 
 ## 🌐 JavaScript Frontend API
@@ -210,7 +210,7 @@ PushItReset();
 
 ### SendManager
 
-Klasse zum Versenden von Push-Benachrichtigungen.
+Orchestriert Formulardaten des Backend-Sendeformulars und delegiert an `NotificationService`.
 
 ```php
 use FriendsOfREDAXO\PushIt\Service\SendManager;
@@ -220,87 +220,69 @@ $sendManager = new SendManager();
 
 #### Methods
 
-##### `sendNotification(array $data): array`
+##### `sendNotification(array $data, bool $isAdmin): array`
 
-Sendet eine Push-Benachrichtigung.
+Sendet eine Push-Benachrichtigung anhand von Formulardaten.
 
 ```php
-public function sendNotification(array $data): array
+public function sendNotification(array $data, bool $isAdmin): array
 ```
 
 **Parameter:**
 ```php
 $data = [
-    'title' => 'Notification Title',
-    'body' => 'Notification message',
-    'icon' => '/path/to/icon.png',
-    'url' => 'https://example.com/target',
-    'topics' => ['news', 'updates'],
-    'user_types' => ['frontend', 'backend'],
-    'user_ids' => [1, 2, 3], // optional: specific users
-    'ttl' => 3600, // optional: Time-to-live in seconds
-    'priority' => 'high', // optional: 'normal', 'high'
-    'data' => ['custom' => 'data'] // optional: custom data
+    'title'     => 'Benachrichtigungstitel',   // required
+    'body'      => 'Nachrichtentext',          // required
+    'url'       => 'https://example.com',      // optional
+    'user_type' => 'frontend',                 // 'frontend', 'backend' oder 'both'
+    'topics'    => 'news,updates',             // optional: kommagetrennte Topics
+    'icon'      => '/media/icon.png',          // optional
+    'badge'     => '/media/badge.png',         // optional
+    'image'     => '/media/hero.jpg',          // optional
 ];
-
-$result = $sendManager->sendNotification($data);
 ```
 
 **Returns:**
 ```php
 [
     'success' => true,
-    'sent_count' => 42,
-    'failed_count' => 0,
-    'message' => 'Successfully sent to 42 recipients',
-    'details' => [
-        'frontend' => 35,
-        'backend' => 7
-    ]
+    'message' => 'Benachrichtigung wurde an 15 Empfänger gesendet (2 Fehler).',
+    'result'  => [
+        'success' => true,
+        'sent'    => 15,
+        'failed'  => 2,
+        'total'   => 17,
+    ],
 ]
 ```
 
 **Example:**
 ```php
-try {
-    $result = $sendManager->sendNotification([
-        'title' => 'Neue Nachricht',
-        'body' => 'Sie haben eine neue Nachricht erhalten',
-        'icon' => rex_url::assets('addons/push_it/icon.png'),
-        'url' => rex_url::frontend(),
-        'topics' => ['news'],
-        'user_types' => ['frontend']
-    ]);
-    
-    if ($result['success']) {
-        rex_logger::logInfo('push_it', 'Notification sent', $result);
-    }
-} catch (Exception $e) {
-    rex_logger::logError('push_it', 'Send failed: ' . $e->getMessage());
+$sendManager = new SendManager();
+$result = $sendManager->sendNotification([
+    'title'     => 'Neue Nachricht',
+    'body'      => 'Sie haben eine neue Nachricht erhalten',
+    'url'       => rex_url::frontend(),
+    'user_type' => 'frontend',
+    'topics'    => 'news',
+], rex::getUser()->isAdmin());
+
+if ($result['success']) {
+    echo $result['message'];
 }
 ```
 
 ---
 
-##### `sendQuickNotification(string $type, array $options = []): array`
+##### `sendTestNotification(array $formData = []): array`
 
-Sendet vordefinierte Quick-Benachrichtigungen.
+Sendet eine Test-Benachrichtigung an den aktuell eingeloggten Backend-User.
 
 ```php
-public function sendQuickNotification(string $type, array $options = []): array
+public function sendTestNotification(array $formData = []): array
 ```
 
-**Parameter:**
-- `$type`: `'critical_error'`, `'system_warning'`, `'system_info'`
-- `$options`: Zusätzliche Optionen
-
-**Example:**
-```php
-$result = $sendManager->sendQuickNotification('critical_error', [
-    'message' => 'Database connection failed',
-    'url' => rex_url::backendPage('system/log')
-]);
-```
+**Returns:** `['success' => bool, 'message' => string, 'result' => array|null]`
 
 ---
 
@@ -464,11 +446,20 @@ public function getSubscriptionStats(): array
 **Returns:**
 ```php
 [
-    'total' => 150,
-    'frontend' => 120,
-    'backend' => 30,
-    'active' => 145,
-    'inactive' => 5
+    'total'    => 150,   // Alle Subscriptions
+    'active'   => 145,   // Aktive Subscriptions (gesamt)
+    'frontend' => [
+        'user_type'    => 'frontend',
+        'total'        => 120,
+        'active_count' => 118,
+        'error_count'  => 2,
+    ],
+    'backend'  => [
+        'user_type'    => 'backend',
+        'total'        => 30,
+        'active_count' => 27,
+        'error_count'  => 0,
+    ],
 ]
 ```
 
@@ -528,32 +519,40 @@ public function filterTopicsForUserType(array $topics, string $userType): array
 
 ### BackendNotificationManager
 
-Verwaltet Backend-Benachrichtigungen.
+Rendert UI-Komponenten für das Backend-Benachrichtigungs-Panel und liefert Statistiken.
 
 ```php
 use FriendsOfREDAXO\PushIt\Service\BackendNotificationManager;
 
-$backendManager = new BackendNotificationManager();
+$manager = new BackendNotificationManager();
 ```
 
 #### Methods
 
-##### `sendBackendNotification(string $title, string $message, string $priority = 'normal'): array`
+| Methode | Beschreibung |
+|---------|--------------|
+| `hasVapidKeys(): bool` | Prüft ob VAPID-Schlüssel konfiguriert sind |
+| `renderJavaScript(): string` | Gibt `<script>`-Tags für frontend.js / backend.js zurück |
+| `renderInfoPanel(bool $isAdmin): string` | Info-Panel mit Hinweistext |
+| `renderBackendSubscriptionPanel(bool $isAdmin): string` | Panel mit Aktivieren/Deaktivieren-Buttons |
+| `renderQuickNotificationPanel(): string` | Schnell-Versand-Buttons (Admin only) |
+| `renderAutomaticNotificationsInfo(bool $isAdmin): string` | Automatische Events-Info |
+| `getBackendStatistics(): array` | Statistiken für Backend-Subscriptions |
+| `renderStatisticsPanel(bool $isAdmin): string` | Statistik-Panel HTML |
+| `renderVapidWarning(): string` | Warnung bei fehlenden VAPID-Keys |
+| `renderErrorMonitoringInfo(): string` | Status-Panel für SystemErrorMonitor |
 
-Sendet Backend-Benachrichtigung.
-
+**Beispiel `getBackendStatistics()`:**
 ```php
-public function sendBackendNotification(string $title, string $message, string $priority = 'normal'): array
-```
-
----
-
-##### `getBackendUsers(): array`
-
-Ruft alle Backend-Benutzer mit Subscriptions ab.
-
-```php
-public function getBackendUsers(): array
+$stats = $manager->getBackendStatistics();
+// [
+//   'total_backend'        => 30,
+//   'active_backend'       => 27,
+//   'system_subscribers'   => 15,
+//   'admin_subscribers'    => 12,
+//   'editorial_subscribers'=> 20,
+//   'critical_subscribers' => 8,
+// ]
 ```
 
 ---
@@ -628,116 +627,34 @@ Sendet Test-Benachrichtigung (nur Backend).
 
 ---
 
-## 📡 Event System
-
-### PHP Events
-
-#### `PUSH_IT_NOTIFICATION_SENT`
-
-Wird ausgelöst nach dem Versenden einer Benachrichtigung.
-
-```php
-rex_extension::register('PUSH_IT_NOTIFICATION_SENT', function(rex_extension_point $ep) {
-    $result = $ep->getParam('result');
-    $data = $ep->getParam('data');
-    
-    // Custom logging
-    error_log("Push notification sent to {$result['sent_count']} users");
-});
-```
-
-#### `PUSH_IT_SUBSCRIPTION_CREATED`
-
-Wird ausgelöst bei neuer Subscription.
-
-```php
-rex_extension::register('PUSH_IT_SUBSCRIPTION_CREATED', function(rex_extension_point $ep) {
-    $subscription = $ep->getParam('subscription');
-    
-    // Welcome notification
-    if ($subscription['user_type'] === 'frontend') {
-        $sendManager = new SendManager();
-        $sendManager->sendNotification([
-            'title' => 'Willkommen!',
-            'body' => 'Benachrichtigungen wurden aktiviert',
-            'user_ids' => [$subscription['user_id']]
-        ]);
-    }
-});
-```
-
-#### `PUSH_IT_SUBSCRIPTION_DELETED`
-
-Wird ausgelöst beim Löschen einer Subscription.
-
-```php
-rex_extension::register('PUSH_IT_SUBSCRIPTION_DELETED', function(rex_extension_point $ep) {
-    $subscriptionId = $ep->getParam('subscription_id');
-    // Cleanup logic
-});
-```
-
-### JavaScript Events
-
-#### `pushit:subscribed`
-
-Wird ausgelöst nach erfolgreicher Subscription.
-
-```javascript
-document.addEventListener('pushit:subscribed', function(event) {
-    console.log('Subscription details:', event.detail);
-    
-    // Analytics tracking
-    gtag('event', 'push_subscription', {
-        'event_category': 'engagement'
-    });
-});
-```
-
-#### `pushit:unsubscribed`
-
-Wird ausgelöst nach Deabonnierung.
-
-```javascript
-document.addEventListener('pushit:unsubscribed', function(event) {
-    console.log('Unsubscribed:', event.detail);
-});
-```
-
-#### `pushit:error`
-
-Wird bei Fehlern ausgelöst.
-
-```javascript
-document.addEventListener('pushit:error', function(event) {
-    console.error('Push error:', event.detail);
-});
-```
-
----
-
-## ⚙️ Configuration API
+## � Security Considerations
 
 ### REDAXO Config
 
-Zugriff auf AddOn-Konfiguration über `rex_config`.
+Zugriff auf AddOn-Konfiguration über `rex_addon::get('push_it')->getConfig()`.
 
 ```php
+$addon = rex_addon::get('push_it');
+
 // VAPID Keys
-$publicKey = rex_config::get('push_it', 'vapid_public_key');
-$privateKey = rex_config::get('push_it', 'vapid_private_key');
+$publicKey  = $addon->getConfig('publicKey');
+$privateKey = $addon->getConfig('privateKey');
+$subject    = $addon->getConfig('subject');
 
 // Features
-$frontendEnabled = rex_config::get('push_it', 'frontend_enabled', false);
-$backendEnabled = rex_config::get('push_it', 'backend_enabled', false);
+$frontendEnabled = $addon->getConfig('frontend_enabled', false);
+$backendEnabled  = $addon->getConfig('backend_enabled', false);
+
+// Backend-Token
+$backendToken = $addon->getConfig('backend_token');
 
 // Topics
-$defaultTopics = rex_config::get('push_it', 'default_topics', 'news,updates');
-$backendOnlyTopics = rex_config::get('push_it', 'backend_only_topics', []);
+$defaultTopics     = $addon->getConfig('default_topics', 'news,updates');
+$backendOnlyTopics = $addon->getConfig('backend_only_topics', []);
 
-// Notification settings
-$defaultIcon = rex_config::get('push_it', 'default_icon');
-$defaultTTL = rex_config::get('push_it', 'default_ttl', 3600);
+// Error Monitoring
+$monitoringEnabled = $addon->getConfig('error_monitoring_enabled', false);
+$monitoringMode    = $addon->getConfig('monitoring_mode', 'realtime'); // 'realtime' | 'cronjob'
 ```
 
 ### JavaScript Configuration
@@ -766,11 +683,12 @@ Backend-Only Topics sind automatisch vor Frontend-Zugriff geschützt:
 
 ```php
 // In SettingsManager
-public function filterTopicsForUserType(array $topics, string $userType): array
+public function filterTopicsForUserType(string $topics, string $userType): string
 {
     if ($userType === 'frontend') {
-        $backendOnlyTopics = rex_config::get('push_it', 'backend_only_topics', []);
-        $topics = array_diff($topics, $backendOnlyTopics);
+        $backendOnlyTopics = rex_addon::get('push_it')->getConfig('backend_only_topics', []);
+        $topicsArray = array_diff(explode(',', $topics), $backendOnlyTopics);
+        return implode(',', $topicsArray);
     }
     return $topics;
 }
@@ -778,81 +696,16 @@ public function filterTopicsForUserType(array $topics, string $userType): array
 
 ### Backend Authentication
 
-Backend-Subscriptions erfordern gültigen Backend-Token:
+Backend-Subscriptions erfordern einen gültigen Backend-Token, der in den Einstellungen generiert wird:
 
 ```php
-// Token-Validierung in Subscribe API
-if ($userType === 'backend') {
-    $token = rex_request('backend_token', 'string');
-    if (!$this->validateBackendToken($token)) {
-        throw new Exception('Invalid backend token');
-    }
+// Token prüfen (Subscribe API)
+$validToken = rex_addon::get('push_it')->getConfig('backend_token');
+if ($backendToken !== $validToken) {
+    // 403 Forbidden
 }
-```
-
-### Rate Limiting
-
-Implementieren Sie Rate Limiting für API-Endpunkte:
-
-```php
-rex_extension::register('REX_API_CALL', function(rex_extension_point $ep) {
-    if ($ep->getParam('subject') === 'push_it_subscribe') {
-        // Rate limiting logic
-        $ip = $_SERVER['REMOTE_ADDR'];
-        $key = "push_it_rate_limit_$ip";
-        
-        $attempts = rex_config::get('temp', $key, 0);
-        if ($attempts > 10) {
-            throw new rex_api_exception('Rate limit exceeded', 429);
-        }
-        
-        rex_config::set('temp', $key, $attempts + 1);
-    }
-});
 ```
 
 ---
 
-## 📚 Class Reference
-
-### Exception Classes
-
-```php
-// Custom Exceptions
-FriendsOfREDAXO\PushIt\Exception\ConfigurationException
-FriendsOfREDAXO\PushIt\Exception\ValidationException
-FriendsOfREDAXO\PushIt\Exception\SendException
-FriendsOfREDAXO\PushIt\Exception\SubscriptionException
-```
-
-### Data Transfer Objects
-
-```php
-// Notification DTO
-class NotificationData {
-    public string $title;
-    public string $body;
-    public ?string $icon = null;
-    public ?string $url = null;
-    public array $topics = [];
-    public array $userTypes = ['frontend'];
-    public array $userIds = [];
-    public int $ttl = 3600;
-    public string $priority = 'normal';
-    public array $data = [];
-}
-```
-
-### Utility Classes
-
-```php
-// VAPID Helper
-FriendsOfREDAXO\PushIt\Util\VapidHelper::generateKeys(): array
-FriendsOfREDAXO\PushIt\Util\VapidHelper::validateKey(string $key): bool
-
-// URL Helper
-FriendsOfREDAXO\PushIt\Util\UrlHelper::isValidUrl(string $url): bool
-FriendsOfREDAXO\PushIt\Util\UrlHelper::makeAbsolute(string $url): string
-```
-
-Diese API-Referenz bietet eine vollständige Übersicht über alle verfügbaren Funktionen des Push-It AddOns.
+Diese API-Referenz dokumentiert alle öffentlich verwendbaren Klassen und Methoden des PushIt AddOns v1.0.0.

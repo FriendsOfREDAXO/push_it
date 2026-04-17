@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace FriendsOfREDAXO\PushIt\Api;
 
 use rex_api_function;
+use rex_logger;
+use rex_request;
 use rex_sql;
 use rex;
 use rex_addon;
@@ -75,18 +77,19 @@ class Subscribe extends rex_api_function
             // Sicherheitsvalidierung für Backend-Subscriptions
             if ($userType === 'backend') {
                 if (!$validBackendToken || $backendToken !== $validBackendToken) {
-                    // Ungültiger oder fehlender Backend-Token
-                    error_log(sprintf(
-                        'SECURITY WARNING: Invalid backend token attempt from IP %s, provided token: %s',
-                        $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-                        $backendToken ? substr($backendToken, 0, 8) . '...' : 'none'
-                    ));
-                    
+                    if (rex::isDebugMode()) {
+                        rex_logger::logError(E_USER_WARNING, sprintf(
+                            'SECURITY WARNING: Invalid backend token attempt from IP %s, provided token: %s',
+                            rex_request::server('REMOTE_ADDR', 'string', 'unknown'),
+                            $backendToken ? substr($backendToken, 0, 8) . '...' : 'none'
+                        ), __FILE__, __LINE__);
+                    }
+
                     http_response_code(403);
                     echo json_encode([
-                        'success' => false, 
+                        'success' => false,
                         'error' => 'invalid_backend_token',
-                        'message' => 'Ungültiger Backend-Token'
+                        'message' => 'Ungültiger Backend-Token',
                     ]);
                     exit;
                 }
@@ -104,13 +107,15 @@ class Subscribe extends rex_api_function
                 
                 // Zusätzliche Sicherheitsprüfung: User-ID muss mit aktuellem User übereinstimmen
                 if ($currentUser && $userId && $userId !== $currentUser->getId()) {
-                    error_log(sprintf(
-                        'SECURITY WARNING: User ID mismatch from IP %s, provided: %d, current: %d',
-                        $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-                        $userId,
-                        $currentUser->getId()
-                    ));
-                    
+                    if (rex::isDebugMode()) {
+                        rex_logger::logError(E_USER_WARNING, sprintf(
+                            'SECURITY WARNING: User ID mismatch from IP %s, provided: %d, current: %d',
+                            rex_request::server('REMOTE_ADDR', 'string', 'unknown'),
+                            $userId,
+                            $currentUser->getId()
+                        ), __FILE__, __LINE__);
+                    }
+
                     // Verwende immer die ID des aktuell eingeloggten Users
                     $userId = $currentUser->getId();
                 }
@@ -129,9 +134,9 @@ class Subscribe extends rex_api_function
             $topics = $settingsManager->filterTopicsForUserType($topics, $userType);
             
             // Browser-Informationen sammeln
-            $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
-            $lang = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
-            $domain = $_SERVER['HTTP_HOST'] ?? '';
+            $ua     = rex_request::server('HTTP_USER_AGENT', 'string', '');
+            $lang   = rex_request::server('HTTP_ACCEPT_LANGUAGE', 'string', '');
+            $domain = rex_request::server('HTTP_HOST', 'string', '');
             
             // Subscription in Datenbank speichern
             $this->saveSubscription($data, $userType, $userId, $topics, $ua, $lang, $domain);
@@ -146,7 +151,7 @@ class Subscribe extends rex_api_function
             exit;
             
         } catch (\Throwable $e) {
-            error_log('PushIt Subscribe Error: ' . $e->getMessage());
+            rex_logger::logException($e);
             http_response_code(500);
             echo json_encode(['success' => false, 'error' => 'server_error']);
             exit;

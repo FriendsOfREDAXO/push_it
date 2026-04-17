@@ -1,5 +1,5 @@
 package: push_it
-version: '1.0.0-beta4'
+version: '1.0.0'
 author: 'Thomas Skerbis, Friends Of REDAXO'
 supportpage: 'https://github.com/FriendsOfREDAXO/push_it'
 title: translate:pushit_title
@@ -18,6 +18,9 @@ page:
     perm: push_it[]
     icon: rex-icon fa-bell
     subpages:
+        overview:
+            title: translate:pushit_overview
+            perm: push_it[]
         settings:
             title: translate:pushit_settings
             perm: admin

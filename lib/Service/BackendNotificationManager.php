@@ -60,13 +60,12 @@ class BackendNotificationManager
     public function renderBackendSubscriptionPanel(bool $isAdmin): string
     {
         $topics = $isAdmin ? 'system,admin,critical,editorial' : 'editorial';
-        $nonce = \rex_response::getNonce();
-        
+
         $content = '
         <div class="well">
             <h4>' . rex_i18n::msg('pushit_activate_backend_notifications') . '</h4>
             <p>' . rex_i18n::msg('pushit_activate_push_notifications') . '</p>
-            <button class="btn btn-success" id="pushit-subscribe-backend">
+            <button class="btn btn-success" id="pushit-subscribe-backend" data-topics="' . rex_escape($topics) . '">
                 <i class="rex-icon fa-bell"></i> ' . rex_i18n::msg('pushit_activate_backend_notifications_button') . '
             </button>
             <button class="btn btn-default" id="pushit-status-check">
@@ -79,22 +78,7 @@ class BackendNotificationManager
             <button class="btn btn-xs btn-default" id="pushit-reset">
                 <i class="rex-icon fa-refresh"></i> ' . rex_i18n::msg('pushit_reset_query') . '
             </button>
-            <small class="help-block">' . rex_i18n::msg('pushit_reset_query_info') . '</small>
-            
-            <script type="text/javascript" nonce="' . $nonce . '">
-                document.getElementById("pushit-subscribe-backend").addEventListener("click", function() {
-                    PushIt.requestBackend("' . $topics . '");
-                });
-                document.getElementById("pushit-status-check").addEventListener("click", function() {
-                    PushIt.getStatus().then(s => alert(s.isSubscribed ? PushIt.i18n.get("status_active") : PushIt.i18n.get("status_inactive")));
-                });
-                document.getElementById("pushit-disable").addEventListener("click", function() {
-                    PushIt.disable();
-                });
-                document.getElementById("pushit-reset").addEventListener("click", function() {
-                    PushItReset();
-                });
-            </script>';
+            <small class="help-block">' . rex_i18n::msg('pushit_reset_query_info') . '</small>';
 
         if (!$isAdmin) {
             $content .= '
@@ -136,72 +120,31 @@ class BackendNotificationManager
      */
     public function renderQuickNotificationPanel(): string
     {
-        $nonce = \rex_response::getNonce();
-        
         return '
-        <div class="row">
-            <div class="col-md-4">
-                <button class="btn btn-danger btn-block" id="quick-critical">
-                    <i class="rex-icon fa-exclamation-triangle"></i><br>
-                    ' . rex_i18n::msg('pushit_critical_error') . '
-                </button>
+        <div id="pushit-quick-notifications"
+             data-send-url="' . rex_escape(rex_url::backendPage('push_it/send')) . '"
+             data-system-url="' . rex_escape(rex_url::backendPage('system')) . '">
+            <div class="row">
+                <div class="col-md-4">
+                    <button class="btn btn-danger btn-block" id="quick-critical">
+                        <i class="rex-icon fa-exclamation-triangle"></i><br>
+                        ' . rex_i18n::msg('pushit_critical_error') . '
+                    </button>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-warning btn-block" id="quick-warning">
+                        <i class="rex-icon fa-warning"></i><br>
+                        ' . rex_i18n::msg('pushit_system_warning') . '
+                    </button>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-info btn-block" id="quick-info">
+                        <i class="rex-icon fa-info-circle"></i><br>
+                        ' . rex_i18n::msg('pushit_information') . '
+                    </button>
+                </div>
             </div>
-            <div class="col-md-4">
-                <button class="btn btn-warning btn-block" id="quick-warning">
-                    <i class="rex-icon fa-warning"></i><br>
-                    ' . rex_i18n::msg('pushit_system_warning') . '
-                </button>
-            </div>
-            <div class="col-md-4">
-                <button class="btn btn-info btn-block" id="quick-info">
-                    <i class="rex-icon fa-info-circle"></i><br>
-                    ' . rex_i18n::msg('pushit_information') . '
-                </button>
-            </div>
-        </div>
-
-        <script type="text/javascript" nonce="' . $nonce . '">
-        function sendQuickNotification(type, title, body) {
-            if (confirm(PushIt.i18n.get("quick_notification_confirm_prefix") + " " + type.toUpperCase() + "-" + PushIt.i18n.get("quick_notification_confirm_suffix") + "?" + String.fromCharCode(10) + String.fromCharCode(10) + title + String.fromCharCode(10) + body)) {
-                const urlParams = new URLSearchParams({
-                    title: title,
-                    body: body,
-                    url: "' . rex_url::backendPage('system') . '",
-                    user_type: "backend",
-                    topics: "system,admin," + type,
-                    send: "1"
-                });
-                
-                fetch("' . rex_url::backendPage('push_it/send') . '", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded",
-                    },
-                    body: urlParams
-                }).then(response => {
-                    if (response.ok) {
-                        alert(PushIt.i18n.get("notification_sent_success"));
-                    } else {
-                        alert(PushIt.i18n.get("notification_sent_error"));
-                    }
-                }).catch(error => {
-                    alert(PushIt.i18n.get("network_error") + ": " + error.message);
-                });
-            }
-        }
-        
-        document.getElementById("quick-critical").addEventListener("click", function() {
-            sendQuickNotification("critical", PushIt.i18n.get("critical_error_title"), PushIt.i18n.get("critical_error_message"));
-        });
-        
-        document.getElementById("quick-warning").addEventListener("click", function() {
-            sendQuickNotification("warning", PushIt.i18n.get("system_warning_title"), PushIt.i18n.get("system_warning_message"));
-        });
-        
-        document.getElementById("quick-info").addEventListener("click", function() {
-            sendQuickNotification("info", PushIt.i18n.get("system_info_title"), PushIt.i18n.get("system_info_message"));
-        });
-        </script>';
+        </div>';
     }
     
     /**
@@ -374,9 +317,6 @@ class BackendNotificationManager
         ');
     }
 
-    /**
-     * Rendert Status-Informationen für System Error Monitoring
-     */
     public function renderErrorMonitoringInfo(): string
     {
         if (!class_exists('\\FriendsOfREDAXO\\PushIt\\Service\\SystemErrorMonitor')) {
@@ -387,83 +327,97 @@ class BackendNotificationManager
         $status = $errorMonitor->getErrorMonitoringStatus();
 
         $statusClass = $status['enabled'] ? 'success' : 'info';
-        $statusIcon = $status['enabled'] ? 'fa-check-circle' : 'fa-info-circle';
-        $statusText = $status['enabled'] ? 'Aktiviert' : 'Deaktiviert';
+        $statusIcon  = $status['enabled'] ? 'fa-check-circle' : 'fa-info-circle';
+        $statusText  = $status['enabled'] ? rex_i18n::msg('pushit_enabled') : rex_i18n::msg('pushit_disabled');
 
         // Monitoring-Modus ermitteln
         $monitoringMode = $this->addon->getConfig('monitoring_mode', 'realtime');
-        $monitoringModeText = $monitoringMode === 'cronjob' ? 'Cronjob' : 'Echtzeit';
+        $monitoringModeText = $monitoringMode === 'cronjob'
+            ? rex_i18n::msg('pushit_mode_cronjob')
+            : rex_i18n::msg('pushit_mode_realtime');
 
         $intervalText = '';
         if ($status['interval'] >= 3600) {
-            $intervalText = ($status['interval'] / 3600) . ' Stunde(n)';
+            $intervalText = ($status['interval'] / 3600) . ' ' . rex_i18n::msg('pushit_hours');
         } elseif ($status['interval'] >= 60) {
-            $intervalText = ($status['interval'] / 60) . ' Minute(n)';
+            $intervalText = ($status['interval'] / 60) . ' ' . rex_i18n::msg('pushit_minutes');
         } else {
-            $intervalText = $status['interval'] . ' Sekunde(n)';
+            $intervalText = $status['interval'] . ' ' . rex_i18n::msg('pushit_seconds');
         }
 
-        $lastCheckText = $status['last_check'] > 0 
-            ? date('d.m.Y H:i:s', $status['last_check']) 
-            : 'Noch nie';
+        $lastCheckText = $status['last_check'] > 0
+            ? date('d.m.Y H:i:s', $status['last_check'])
+            : rex_i18n::msg('pushit_never');
 
         // Cronjob-Status prüfen
         $cronjobStats = '';
+        $cronStats    = null;
         if ($monitoringMode === 'cronjob') {
-            $cronStats = \FriendsOfREDAXO\PushIt\Cronjob\SystemMonitoringCronjob::getCronjobStats();
+            $cronStats         = \FriendsOfREDAXO\PushIt\Cronjob\SystemMonitoringCronjob::getCronjobStats();
             $cronjobConfigured = $cronStats['is_configured'];
-            $lastRun = $cronStats['last_run'] > 0 ? date('d.m.Y H:i:s', $cronStats['last_run']) : 'Noch nie';
-            
+            $lastRun           = $cronStats['last_run'] > 0
+                ? date('d.m.Y H:i:s', $cronStats['last_run'])
+                : rex_i18n::msg('pushit_never');
+
             if (!$cronjobConfigured) {
                 $statusClass = 'warning';
-                $statusIcon = 'fa-warning';
+                $statusIcon  = 'fa-warning';
             }
-            
-            $cronjobStats = '<br><strong>Cronjob konfiguriert:</strong> ' . ($cronjobConfigured ? 'Ja' : 'Nein') . 
-                           '<br><strong>Letzter Cronjob-Lauf:</strong> ' . $lastRun;
+
+            $cronjobStats = '<br><strong>' . rex_i18n::msg('pushit_monitor_cronjob_configured') . ':</strong> '
+                . ($cronjobConfigured ? rex_i18n::msg('pushit_yes') : rex_i18n::msg('pushit_no'))
+                . '<br><strong>' . rex_i18n::msg('pushit_monitor_last_cronjob') . ':</strong> ' . $lastRun;
+        }
+
+        $errorIconText = $status['error_icon']
+            ? rex_i18n::msg('pushit_configured')
+            : rex_i18n::msg('pushit_use_default');
+
+        $infoText = $status['enabled']
+            ? rex_i18n::msg($monitoringMode === 'cronjob' ? 'pushit_monitor_info_cronjob' : 'pushit_monitor_info_realtime')
+            : null;
+
+        $noCronjobHint = '';
+        if ($monitoringMode === 'cronjob' && $cronStats !== null && !$cronStats['is_configured']) {
+            $noCronjobHint = '<br><strong class="text-warning">&#9888; ' . rex_i18n::msg('pushit_monitor_no_cronjob_warning') . '</strong> '
+                . '<a href="/redaxo/index.php?page=cronjob">' . rex_i18n::msg('pushit_monitor_no_cronjob_setup') . '</a>';
         }
 
         return '
         <div class="panel panel-' . $statusClass . '">
             <div class="panel-heading">
                 <h4 class="panel-title">
-                    <i class="rex-icon ' . $statusIcon . '"></i> 
-                    System Error Monitoring: ' . $statusText . '
+                    <i class="rex-icon ' . $statusIcon . '"></i>
+                    ' . rex_i18n::msg('pushit_monitor_system_error_monitoring') . ': ' . $statusText . '
                 </h4>
             </div>
             <div class="panel-body">
                 <div class="row">
                     <div class="col-sm-6">
-                        <strong>Status:</strong> ' . $statusText . '<br>
-                        <strong>Modus:</strong> ' . $monitoringModeText . '<br>
-                        <strong>Intervall:</strong> ' . $intervalText . '<br>
-                        <strong>Letzte Prüfung:</strong> ' . $lastCheckText . $cronjobStats . '
+                        <strong>' . rex_i18n::msg('pushit_monitor_status') . ':</strong> ' . $statusText . '<br>
+                        <strong>' . rex_i18n::msg('pushit_monitor_mode') . ':</strong> ' . $monitoringModeText . '<br>
+                        <strong>' . rex_i18n::msg('pushit_monitor_interval') . ':</strong> ' . $intervalText . '<br>
+                        <strong>' . rex_i18n::msg('pushit_monitor_last_check') . ':</strong> ' . $lastCheckText . $cronjobStats . '
                     </div>
                     <div class="col-sm-6">
-                        <strong>Abonnenten:</strong> ' . $status['subscriber_count'] . ' Backend-Benutzer<br>
-                        <strong>Error-Icon:</strong> ' . ($status['error_icon'] ? 'Konfiguriert' : 'Standard verwenden') . '
+                        <strong>' . rex_i18n::msg('pushit_monitor_subscribers') . ':</strong> ' . $status['subscriber_count'] . ' ' . rex_i18n::msg('pushit_monitor_backend_users') . '<br>
+                        <strong>' . rex_i18n::msg('pushit_monitor_error_icon') . ':</strong> ' . $errorIconText . '
                     </div>
                 </div>
-                ' . ($status['enabled'] ? '
-                <div class="alert alert-info" style="margin-top: 15px; margin-bottom: 0;">
+                ' . ($status['enabled']
+                    ? '<div class="alert alert-info" style="margin-top: 15px; margin-bottom: 0;">
                     <small>
-                        <i class="rex-icon fa-info-circle"></i> 
-                        Das System überwacht die system.log Datei ' . ($monitoringMode === 'cronjob' ? 'via Cronjob' : 'automatisch bei jedem Request') . ' auf Fehler und sendet 
-                        Push-Benachrichtigungen an Backend-Benutzer mit "system" oder "admin" Topics.
-                        ' . ($monitoringMode === 'cronjob' && !$cronStats['is_configured'] ? 
-                            '<br><strong class="text-warning">⚠️ Kein Push-It Cronjob konfiguriert!</strong> 
-                             <a href="/redaxo/index.php?page=cronjob">Cronjob einrichten</a>' : '') . '
+                        <i class="rex-icon fa-info-circle"></i>
+                        ' . rex_escape($infoText ?? '') . $noCronjobHint . '
                     </small>
-                </div>
-                ' : '
-                <div class="alert alert-warning" style="margin-top: 15px; margin-bottom: 0;">
+                </div>'
+                    : '<div class="alert alert-warning" style="margin-top: 15px; margin-bottom: 0;">
                     <small>
-                        <i class="rex-icon fa-warning"></i> 
-                        Error Monitoring ist deaktiviert. Aktivieren Sie es in den 
-                        <a href="' . rex_url::backendPage('push_it') . '">Push-It Einstellungen</a>.
+                        <i class="rex-icon fa-warning"></i>
+                        ' . rex_i18n::msg('pushit_monitor_disabled_info') . '
+                        <a href="' . rex_url::backendPage('push_it') . '">' . rex_i18n::msg('pushit_settings') . '</a>.
                     </small>
-                </div>
-                ') . '
+                </div>') . '
             </div>
         </div>';
     }

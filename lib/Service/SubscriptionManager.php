@@ -90,9 +90,12 @@ class SubscriptionManager
     }
     
     /**
-     * Holt Subscription-Statistiken gruppiert nach User-Type
+     * Holt Subscription-Statistiken gruppiert nach User-Type.
      * 
-     * @return array
+     * Gibt per-Typ-Stats zurück PLUS aggregierte Top-Level-Keys:
+     * ['total' => int, 'active' => int, 'backend' => int, 'frontend' => int, 'frontend' => [...], 'backend' => [...]]
+     *
+     * @return array<string, mixed>
      */
     public function getSubscriptionStats(): array
     {
@@ -106,19 +109,33 @@ class SubscriptionManager
             FROM rex_push_it_subscriptions 
             GROUP BY user_type
         ");
-        
-        $stats = [];
+
+        $stats = [
+            'total'    => 0,
+            'active'   => 0,
+            'frontend' => ['total' => 0, 'active_count' => 0, 'error_count' => 0],
+            'backend'  => ['total' => 0, 'active_count' => 0, 'error_count' => 0],
+        ];
+
         for ($i = 0; $i < $sql->getRows(); $i++) {
-            $userType = $sql->getValue('user_type');
+            $userType   = (string) $sql->getValue('user_type');
+            $total      = (int) $sql->getValue('total');
+            $activeCount = (int) $sql->getValue('active_count');
+            $errorCount  = (int) $sql->getValue('error_count');
+
             $stats[$userType] = [
-                'user_type' => $userType,
-                'total' => (int)$sql->getValue('total'),
-                'active_count' => (int)$sql->getValue('active_count'),
-                'error_count' => (int)$sql->getValue('error_count')
+                'user_type'   => $userType,
+                'total'       => $total,
+                'active_count' => $activeCount,
+                'error_count'  => $errorCount,
             ];
+
+            $stats['total']  += $total;
+            $stats['active'] += $activeCount;
+
             $sql->next();
         }
-        
+
         return $stats;
     }
     

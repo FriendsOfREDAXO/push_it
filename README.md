@@ -1,16 +1,23 @@
 # PushIt - Web Push Notifications für REDAXO 5
 
- Web Push Notifications in REDAXO 5, das sowohl Frontend- als auch Backend-Benachrichtigungen unterstützt.
+[![Version](https://img.shields.io/badge/version-1.0.0-blue)](CHANGELOG.md)
+[![REDAXO](https://img.shields.io/badge/REDAXO-%5E5.19-orange)](https://redaxo.org)
+[![PHP](https://img.shields.io/badge/PHP-%5E8.2-purple)](https://php.net)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE.md)
+
+Web Push Notifications für REDAXO 5 – mit Frontend- und Backend-Benachrichtigungen, geführter Ersteinrichtung und System Error Monitoring.
 
 ## **Key Features**
 
-### **Web Push Notifications** 
+### **Web Push Notifications**
 - **Cross-Browser Support** für Chrome, Firefox, Edge, Safari (iOS 16.4+)
 - **Frontend & Backend** Unterstützung mit separaten Subscription-Typen
 - **Topic-basierte Subscriptions** für gezielte Benachrichtigungen
 - **Rich Notifications** mit Bildern, Actions und benutzerdefinierten Daten
 
 ### **Advanced Features**
+- **Setup-Wizard** für schnelle Ersteinrichtung (VAPID-Keys → Backend-Token → Service Worker)
+- **Dashboard** mit Übersichtsstatistik (Abonnenten gesamt/aktiv/Frontend/Backend)
 - **iOS PWA Support** mit automatischen Installationsanleitungen
 - **Mehrsprachiges Frontend** (DE/EN) mit browser-spezifischen Hilfen
 - **REST API** für externe Integrationen und Drittsysteme
@@ -27,10 +34,10 @@
 ### Installation
 1. AddOn über den REDAXO Package Manager installieren
 2. AddOn aktivieren
-3. Zu **AddOns → PushIt → Einstellungen** gehen
-4. VAPID-Keys werden automatisch generiert
-5. Subject (E-Mail/Domain) eingeben
-6. Frontend/Backend nach Bedarf aktivieren
+3. Zu **AddOns → PushIt** gehen – der **Setup-Wizard** führt durch die Ersteinrichtung:
+   - **Schritt 1**: VAPID-Keys generieren & Subject (E-Mail/Domain) eingeben
+   - **Schritt 2**: Backend-Token erstellen
+   - **Schritt 3**: Service Worker & JS in das Frontend-Template einbinden
 
 ### Frontend Integration
 ```html
@@ -256,6 +263,7 @@ Das Error Monitoring ersetzt `rex_mailer::errorMail()` mit modernen Push-Notific
 
 - **[📚 EXAMPLES.md](EXAMPLES.md)** - Praktische Implementierungsbeispiele
 - **[📖 API.md](API.md)** - Vollständige API-Referenz
+- **[📝 CHANGELOG.md](CHANGELOG.md)** - Versionshistorie
 - **[AddOns → PushIt → Hilfe](help)** - Backend-Dokumentation
 
 ## **Use Cases**
@@ -273,4 +281,4 @@ Das Error Monitoring ersetzt `rex_mailer::errorMail()` mit modernen Push-Notific
 
 ---
 
-**PushIt** - Moderne Web Push Notifications für REDAXO 5 🚀
+**PushIt 1.0.0** - Moderne Web Push Notifications für REDAXO 5 🚀

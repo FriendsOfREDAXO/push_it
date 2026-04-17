@@ -7,6 +7,7 @@ declare(strict_types=1);
 namespace SpomkyLabs\Pki\ASN1\Type;
 
 use ArrayIterator;
+use function count;
 use Countable;
 use IteratorAggregate;
 use LogicException;
@@ -16,7 +17,6 @@ use SpomkyLabs\Pki\ASN1\Component\Length;
 use SpomkyLabs\Pki\ASN1\Element;
 use SpomkyLabs\Pki\ASN1\Exception\DecodeException;
 use SpomkyLabs\Pki\ASN1\Feature\ElementBase;
-use function count;
 
 /**
  * Base class for the constructed types.
@@ -182,10 +182,7 @@ abstract class Structure extends Element implements Countable, IteratorAggregate
     public function elements(): array
     {
         if (! isset($this->unspecifiedTypes)) {
-            $this->unspecifiedTypes = array_map(
-                static fn (Element $el) => UnspecifiedType::create($el),
-                $this->elements
-            );
+            $this->unspecifiedTypes = array_map(UnspecifiedType::create(...), $this->elements);
         }
         return $this->unspecifiedTypes;
     }

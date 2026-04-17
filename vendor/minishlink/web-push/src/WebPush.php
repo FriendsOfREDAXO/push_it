@@ -1,7 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 /*
  * This file is part of the WebPush library.
  *
@@ -99,7 +96,7 @@ class WebPush
                 throw new \ErrorException('Subscription should have a content encoding');
             }
 
-            $payload = Encryption::padPayload($payload, $this->automaticPadding, $contentEncoding);
+            $payload = Encryption::padPayload($payload, $this->automaticPadding, ContentEncoding::from($contentEncoding));
         }
 
         if (array_key_exists('VAPID', $auth)) {
@@ -128,6 +125,7 @@ class WebPush
      *
      * @return \Generator
      * @throws \ErrorException
+     * @throws \Random\RandomException
      */
     public function flush(?int $batchSize = null): \Generator
     {
@@ -157,9 +155,7 @@ class WebPush
                         /** @var ResponseInterface $response **/
                         return new MessageSentReport($request, $response);
                     })
-                    ->otherwise(function ($reason) {
-                        return $this->createRejectedReport($reason);
-                    });
+                    ->otherwise(fn($reason) => $this->createRejectedReport($reason));
             }
 
             foreach ($promises as $promise) {
@@ -179,7 +175,7 @@ class WebPush
      * @param null|int $batchSize Defaults the value defined in defaultOptions during instantiation (which defaults to 1000).
      * @param null|int $requestConcurrency Defaults the value defined in defaultOptions during instantiation (which defaults to 100).
      */
-    public function flushPooled($callback, ?int $batchSize = null, ?int $requestConcurrency = null): void
+    public function flushPooled(callable $callback, ?int $batchSize = null, ?int $requestConcurrency = null): void
     {
         if (empty($this->notifications)) {
             return;
@@ -199,13 +195,13 @@ class WebPush
         foreach ($batches as $batch) {
             $batch = $this->prepare($batch);
             $pool = new Pool($this->client, $batch, [
-                'requestConcurrency' => $requestConcurrency,
-                'fulfilled' => function (ResponseInterface $response, int $index) use ($callback, $batch) {
+                'concurrency' => $requestConcurrency,
+                'fulfilled' => function (ResponseInterface $response, int $index) use ($callback, $batch): void {
                     /** @var RequestInterface $request **/
                     $request = $batch[$index];
                     $callback(new MessageSentReport($request, $response));
                 },
-                'rejected' => function ($reason) use ($callback) {
+                'rejected' => function ($reason) use ($callback): void {
                     $callback($this->createRejectedReport($reason));
                 },
             ]);
@@ -219,11 +215,7 @@ class WebPush
         }
     }
 
-    /**
-     * @param RequestException|ConnectException $reason
-     * @return MessageSentReport
-     */
-    protected function createRejectedReport($reason): MessageSentReport
+    protected function createRejectedReport(RequestException|ConnectException $reason): MessageSentReport
     {
         if ($reason instanceof RequestException) {
             $response = $reason->getResponse();
@@ -235,8 +227,8 @@ class WebPush
     }
 
     /**
-     * @throws \ErrorException
-     * add back @throws \Random\RandomException when we drop PHP 8.1 support
+     * @throws \ErrorException Thrown on php 8.1
+     * @throws \Random\RandomException Thrown on php 8.2 and higher
      */
     protected function prepare(array $notifications): array
     {
@@ -257,22 +249,22 @@ class WebPush
                     throw new \ErrorException('Subscription should have a content encoding');
                 }
 
-                $encrypted = Encryption::encrypt($payload, $userPublicKey, $userAuthToken, $contentEncoding);
+                $encrypted = Encryption::encrypt($payload, $userPublicKey, $userAuthToken, ContentEncoding::from($contentEncoding));
                 $cipherText = $encrypted['cipherText'];
                 $salt = $encrypted['salt'];
                 $localPublicKey = $encrypted['localPublicKey'];
 
                 $headers = [
-                    'Content-Type' => 'application/octet-stream',
+                    'Content-Type' => $options['contentType'],
                     'Content-Encoding' => $contentEncoding,
                 ];
 
-                if ($contentEncoding === "aesgcm") {
+                if ($contentEncoding === ContentEncoding::aesgcm->value) {
                     $headers['Encryption'] = 'salt='.Base64Url::encode($salt);
                     $headers['Crypto-Key'] = 'dh='.Base64Url::encode($localPublicKey);
                 }
 
-                $encryptionContentCodingHeader = Encryption::getContentCodingHeader($salt, $localPublicKey, $contentEncoding);
+                $encryptionContentCodingHeader = Encryption::getContentCodingHeader($salt, $localPublicKey, ContentEncoding::from($contentEncoding));
                 $content = $encryptionContentCodingHeader.$cipherText;
 
                 $headers['Content-Length'] = (string) Utils::safeStrlen($content);
@@ -300,11 +292,11 @@ class WebPush
                     throw new \ErrorException('Audience "'.$audience.'"" could not be generated.');
                 }
 
-                $vapidHeaders = $this->getVAPIDHeaders($audience, $contentEncoding, $auth['VAPID']);
+                $vapidHeaders = $this->getVAPIDHeaders($audience, ContentEncoding::from($contentEncoding), $auth['VAPID']);
 
                 $headers['Authorization'] = $vapidHeaders['Authorization'];
 
-                if ($contentEncoding === 'aesgcm') {
+                if ($contentEncoding === ContentEncoding::aesgcm->value) {
                     if (array_key_exists('Crypto-Key', $headers)) {
                         $headers['Crypto-Key'] .= ';'.$vapidHeaders['Crypto-Key'];
                     } else {
@@ -384,6 +376,7 @@ class WebPush
         $this->defaultOptions['topic'] = $defaultOptions['topic'] ?? null;
         $this->defaultOptions['batchSize'] = $defaultOptions['batchSize'] ?? 1000;
         $this->defaultOptions['requestConcurrency'] = $defaultOptions['requestConcurrency'] ?? 100;
+        $this->defaultOptions['contentType'] = $defaultOptions['contentType'] ?? 'application/octet-stream';
 
 
         return $this;
@@ -397,13 +390,13 @@ class WebPush
     /**
      * @throws \ErrorException
      */
-    protected function getVAPIDHeaders(string $audience, string $contentEncoding, array $vapid): ?array
+    protected function getVAPIDHeaders(string $audience, ContentEncoding $contentEncoding, array $vapid): ?array
     {
         $vapidHeaders = null;
 
         $cache_key = null;
         if ($this->reuseVAPIDHeaders) {
-            $cache_key = implode('#', [$audience, $contentEncoding, crc32(serialize($vapid))]);
+            $cache_key = implode('#', [$audience, $contentEncoding->value, crc32(serialize($vapid))]);
             if (array_key_exists($cache_key, $this->vapidHeaders)) {
                 $vapidHeaders = $this->vapidHeaders[$cache_key];
             }

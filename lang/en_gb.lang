@@ -3,6 +3,7 @@
 # General
 pushit_title = PushIt - Web Push Notifications
 pushit_description = Web Push Notifications for Frontend and Backend
+pushit_overview = Overview
 
 # Page titles
 pushit_settings = Settings
@@ -336,3 +337,55 @@ pushit_admin_topic = Admin
 pushit_critical_topic = Critical
 pushit_statistics_temporarily_unavailable = Statistics Temporarily Unavailable
 pushit_backend_statistics_loading_error = Backend statistics cannot be loaded at the moment.
+
+# Dashboard
+pushit_dashboard_title = Push-It Overview
+pushit_stat_total = Total
+pushit_stat_active = Active
+pushit_stat_backend = Backend Users
+pushit_stat_frontend = Frontend Users
+pushit_dashboard_send = Send Message
+pushit_dashboard_subscriptions = Manage Subscriptions
+pushit_dashboard_history = History
+pushit_dashboard_settings = Settings
+pushit_monitoring_title = System Monitoring
+
+# Setup-Wizard
+pushit_setup_wizard_title = Initial Setup
+pushit_setup_step1_title = Configure VAPID Keys & Subject
+pushit_setup_step1_desc = Generate VAPID keys and provide a subject URL or email. These keys identify your server to push services.
+pushit_setup_step2_title = Generate Backend Token
+pushit_setup_step2_desc = Create a secure token for authenticating backend subscriptions.
+pushit_setup_step3_title = Include Service Worker
+pushit_setup_step3_desc = Include the frontend JavaScript and service worker in your template. See the help page for details.
+pushit_setup_go_to_settings = Go to Settings
+
+# Library hint
+pushit_library_install_hint = Please run "composer install" in the addon directory to install the WebPush library.
+
+# Error Monitoring Info
+pushit_mode_cronjob = Cronjob
+pushit_mode_realtime = Realtime
+pushit_hours = hour(s)
+pushit_minutes = minute(s)
+pushit_seconds = second(s)
+pushit_never = Never
+pushit_yes = Yes
+pushit_no = No
+pushit_monitor_status = Status
+pushit_monitor_mode = Mode
+pushit_monitor_interval = Interval
+pushit_monitor_last_check = Last Check
+pushit_monitor_subscribers = Subscribers
+pushit_monitor_error_icon = Error Icon
+pushit_monitor_backend_users = Backend Users
+pushit_configured = Configured
+pushit_use_default = Use Default
+pushit_monitor_cronjob_configured = Cronjob Configured
+pushit_monitor_last_cronjob = Last Cronjob Run
+pushit_monitor_info_realtime = The system monitors the system.log file automatically on every request for errors and sends push notifications to backend users with "system" or "admin" topics.
+pushit_monitor_info_cronjob = The system monitors the system.log file via cronjob for errors and sends push notifications to backend users with "system" or "admin" topics.
+pushit_monitor_no_cronjob_warning = No Push-It cronjob configured!
+pushit_monitor_no_cronjob_setup = Set up cronjob
+pushit_monitor_disabled_info = Error monitoring is disabled. Enable it in the Push-It settings.
+pushit_monitor_system_error_monitoring = System Error Monitoring

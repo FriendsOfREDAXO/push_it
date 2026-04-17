@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SpomkyLabs\Pki\X509\CertificationPath\PathValidation;
 
+use function count;
+use function in_array;
 use LogicException;
 use RuntimeException;
 use SpomkyLabs\Pki\CryptoBridge\Crypto;
@@ -11,8 +13,6 @@ use SpomkyLabs\Pki\X509\Certificate\Certificate;
 use SpomkyLabs\Pki\X509\Certificate\Extension\CertificatePolicy\PolicyInformation;
 use SpomkyLabs\Pki\X509\Certificate\TBSCertificate;
 use SpomkyLabs\Pki\X509\CertificationPath\Exception\PathValidationException;
-use function count;
-use function in_array;
 
 /**
  * Implements certification path validation.
@@ -40,8 +40,8 @@ final class PathValidator
      * the end-entity certificate
      */
     private function __construct(
-        protected Crypto $crypto,
-        protected PathValidationConfig $config,
+        private readonly Crypto $crypto,
+        private readonly PathValidationConfig $config,
         Certificate ...$certificates
     ) {
         if (count($certificates) === 0) {
@@ -222,7 +222,7 @@ final class PathValidator
             if ($pk_info->algorithmIdentifier()->oid() !==
                 $state->workingPublicKeyAlgorithm()
                     ->oid()) {
-                $state = $state->withWorkingPublicKeyParameters(null);
+                $state = $state->withWorkingPublicKeyParameters();
             }
         }
         // assign working_public_key_algorithm

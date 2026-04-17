@@ -3,13 +3,16 @@
 # General
 pushit_title = PushIt - Web Push Notifications
 pushit_description = Web Push Notifications für Frontend und Backend
+pushit_overview = Übersicht
 
 # Cronjob
 pushit_cronjob_system_monitoring = Push-It System Monitoring
 pushit_cronjob_monitoring_type = Monitoring-Typ
 
 # Page titles
-pushit_settings = Einstellun# Browser help instructions
+pushit_settings = Einstellungen
+
+# Browser help instructions
 pushit_safari_step1 = 1. Klicken Sie auf das <b>Schloss-Symbol</b> in der Adressleiste
 pushit_safari_step2 = 2. Wählen Sie <b>"Einstellungen für diese Website"</b>
 pushit_safari_step3 = 3. Setzen Sie <b>"Benachrichtigungen" auf "Erlauben"</b>
@@ -17,8 +20,9 @@ pushit_safari_step4 = 4. Laden Sie die Seite neu
 
 pushit_chrome_step1 = 1. Klicken Sie auf das <b>Schloss-Symbol</b> in der Adressleiste
 pushit_chrome_step2 = 2. Aktivieren Sie <b>"Benachrichtigungen"</b>
-pushit_chrome_step3 = 3. Laden Sie die Seite neut_subscriptions = Subscriptions
-pushit_send = Senden  
+pushit_chrome_step3 = 3. Laden Sie die Seite neu
+pushit_subscriptions = Abonnements
+pushit_send = Senden
 pushit_history = Verlauf
 pushit_backend_notify = Backend Benachrichtigungen
 pushit_help = Hilfe
@@ -355,3 +359,55 @@ pushit_backend_statistics_loading_error = Die Backend-Statistiken können moment
 pushit_default_icon_label = Standard-Icon
 pushit_default_icon_help = Wählen Sie ein Standard-Icon aus dem Medienpool, das für Benachrichtigungen ohne spezifisches Icon verwendet wird.
 pushit_default_icon_format_info = Unterstützte Formate: PNG, JPG, SVG (empfohlen: 192x192px oder größer)
+
+# Dashboard
+pushit_dashboard_title = Push-It Übersicht
+pushit_stat_total = Gesamt
+pushit_stat_active = Aktiv
+pushit_stat_backend = Backend-Nutzer
+pushit_stat_frontend = Frontend-Nutzer
+pushit_dashboard_send = Nachricht senden
+pushit_dashboard_subscriptions = Abonnements verwalten
+pushit_dashboard_history = Verlauf
+pushit_dashboard_settings = Einstellungen
+pushit_monitoring_title = System-Monitoring
+
+# Setup-Wizard
+pushit_setup_wizard_title = Ersteinrichtung
+pushit_setup_step1_title = VAPID-Schlüssel & Subject konfigurieren
+pushit_setup_step1_desc = Generieren Sie VAPID-Schlüssel und hinterlegen Sie eine Subject-URL oder E-Mail. Diese Schlüssel identifizieren Ihren Server gegenüber den Push-Diensten.
+pushit_setup_step2_title = Backend-Token generieren
+pushit_setup_step2_desc = Erstellen Sie einen sicheren Token für die Authentifizierung von Backend-Subscriptions.
+pushit_setup_step3_title = Service Worker einbinden
+pushit_setup_step3_desc = Binden Sie das Frontend-JavaScript und den Service Worker in Ihr Template ein. Details finden Sie in der Hilfe.
+pushit_setup_go_to_settings = Zu den Einstellungen
+
+# Library hint
+pushit_library_install_hint = Bitte führen Sie "composer install" im AddOn-Verzeichnis aus um die WebPush-Bibliothek zu installieren.
+
+# Error Monitoring Info
+pushit_mode_cronjob = Cronjob
+pushit_mode_realtime = Echtzeit
+pushit_hours = Stunde(n)
+pushit_minutes = Minute(n)
+pushit_seconds = Sekunde(n)
+pushit_never = Noch nie
+pushit_yes = Ja
+pushit_no = Nein
+pushit_monitor_status = Status
+pushit_monitor_mode = Modus
+pushit_monitor_interval = Intervall
+pushit_monitor_last_check = Letzte Prüfung
+pushit_monitor_subscribers = Abonnenten
+pushit_monitor_error_icon = Error-Icon
+pushit_monitor_backend_users = Backend-Benutzer
+pushit_configured = Konfiguriert
+pushit_use_default = Standard verwenden
+pushit_monitor_cronjob_configured = Cronjob konfiguriert
+pushit_monitor_last_cronjob = Letzter Cronjob-Lauf
+pushit_monitor_info_realtime = Das System überwacht die system.log Datei automatisch bei jedem Request auf Fehler und sendet Push-Benachrichtigungen an Backend-Benutzer mit "system" oder "admin" Topics.
+pushit_monitor_info_cronjob = Das System überwacht die system.log Datei via Cronjob auf Fehler und sendet Push-Benachrichtigungen an Backend-Benutzer mit "system" oder "admin" Topics.
+pushit_monitor_no_cronjob_warning = Kein Push-It Cronjob konfiguriert!
+pushit_monitor_no_cronjob_setup = Cronjob einrichten
+pushit_monitor_disabled_info = Error Monitoring ist deaktiviert. Aktivieren Sie es in den Push-It Einstellungen.
+pushit_monitor_system_error_monitoring = System Error Monitoring

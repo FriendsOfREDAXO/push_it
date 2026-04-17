@@ -3,6 +3,9 @@ use FriendsOfREDAXO\PushIt\Service\BackendNotificationManager;
 
 $addon = rex_addon::get('push_it');
 
+// JS für dieses Panel einbinden
+rex_view::addJsFile($addon->getAssetsUrl('admin-backend-notify.js'));
+
 // Admin-Berechtigung prüfen
 $isAdmin = rex::getUser()->isAdmin();
 

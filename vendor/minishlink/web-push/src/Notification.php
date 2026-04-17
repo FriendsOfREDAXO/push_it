@@ -1,7 +1,4 @@
-<?php
-
-declare(strict_types=1);
-
+<?php declare(strict_types=1);
 /*
  * This file is part of the WebPush library.
  *
@@ -24,8 +21,7 @@ class Notification
         private ?string               $payload,
         private array                 $options,
         private array                 $auth
-    ) {
-    }
+    ) {}
 
     public function getSubscription(): SubscriptionInterface
     {
@@ -43,6 +39,7 @@ class Notification
         $options['TTL'] = array_key_exists('TTL', $options) ? $options['TTL'] : $defaultOptions['TTL'];
         $options['urgency'] = array_key_exists('urgency', $options) ? $options['urgency'] : $defaultOptions['urgency'];
         $options['topic'] = array_key_exists('topic', $options) ? $options['topic'] : $defaultOptions['topic'];
+        $options['contentType'] = array_key_exists('contentType', $options) ? $options['contentType'] : $defaultOptions['contentType'];
 
         return $options;
     }

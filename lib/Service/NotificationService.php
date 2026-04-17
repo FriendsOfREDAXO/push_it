@@ -4,299 +4,248 @@ declare(strict_types=1);
 
 namespace FriendsOfREDAXO\PushIt\Service;
 
+use rex;
 use rex_addon;
+use rex_logger;
 use rex_sql;
 use Minishlink\WebPush\WebPush;
 use Minishlink\WebPush\Subscription;
 
 class NotificationService
 {
-    private $addon;
-    
+    private rex_addon $addon;
+
     public function __construct()
     {
         $this->addon = rex_addon::get('push_it');
     }
-    
+
     /**
      * Sendet eine Benachrichtigung an alle Backend-Nutzer
+     *
+     * @param array<string> $topics
+     * @param array<string, mixed> $options
+     * @return array<string, mixed>
      */
     public function sendToBackendUsers(string $title, string $body, string $url = '', array $topics = [], array $options = []): array
     {
         return $this->sendNotification($title, $body, $url, 'backend', $topics, $options);
     }
-    
+
     /**
      * Sendet eine Benachrichtigung an alle Frontend-Nutzer
+     *
+     * @param array<string> $topics
+     * @param array<string, mixed> $options
+     * @return array<string, mixed>
      */
     public function sendToFrontendUsers(string $title, string $body, string $url = '', array $topics = [], array $options = []): array
     {
         return $this->sendNotification($title, $body, $url, 'frontend', $topics, $options);
     }
-    
+
     /**
      * Sendet eine Benachrichtigung an alle Nutzer
+     *
+     * @param array<string> $topics
+     * @param array<string, mixed> $options
+     * @return array<string, mixed>
      */
     public function sendToAllUsers(string $title, string $body, string $url = '', array $topics = [], array $options = []): array
     {
         return $this->sendNotification($title, $body, $url, 'both', $topics, $options);
     }
-    
+
     /**
-     * Sendet eine Benachrichtigung an einen spezifischen Backend-Benutzer
-     * 
+     * Sendet eine Benachrichtigung an einen spezifischen Backend-Benutzer.
+     *
      * HINWEIS: Funktioniert nur für Backend-User mit REDAXO User-ID.
-     * Frontend-User haben keine User-IDs - nutzen Sie stattdessen Topics.
-     * 
-     * @param int $userId REDAXO Backend User-ID
-     * @param string $title
-     * @param string $body
-     * @param string $url
-     * @param array $topics
-     * @param array $options
-     * @return array
+     * Frontend-User haben keine User-IDs – nutzen Sie stattdessen Topics.
+     *
+     * @param array<string> $topics
+     * @param array<string, mixed> $options
+     * @return array<string, mixed>
+     * @throws \Exception
      */
     public function sendToUser(int $userId, string $title, string $body, string $url = '', array $topics = [], array $options = []): array
     {
-        $publicKey = $this->addon->getConfig('publicKey');
-        $privateKey = $this->addon->getConfig('privateKey');
-        $subject = $this->addon->getConfig('subject');
-        
-        if (!$publicKey || !$privateKey) {
-            throw new \Exception('VAPID-Schlüssel nicht konfiguriert');
-        }
-        
-        // WebPush-Instanz erstellen
-        $webPush = new WebPush([
-            'VAPID' => [
-                'subject' => $subject,
-                'publicKey' => $publicKey,
-                'privateKey' => $privateKey,
-            ]
-        ]);
-        
-        // Subscriptions für spezifischen User abrufen
+        $webPush = $this->createWebPush();
+
         $subscriptions = $this->getSubscriptionsByUserId($userId, $topics);
-        
-        if (empty($subscriptions)) {
+
+        if ($subscriptions === []) {
             return [
                 'success' => false,
                 'message' => 'Keine aktiven Subscriptions für User ID: ' . $userId . ' und Topics: ' . implode(',', $topics),
-                'sent' => 0,
-                'failed' => 0,
-                'total' => 0
+                'sent'    => 0,
+                'failed'  => 0,
+                'total'   => 0,
             ];
         }
-        
-        // Payload erstellen
-        $payload = [
-            'title' => $title,
-            'body' => $body,
-            'url' => $url,
-            'icon' => $options['icon'] ?? '/assets/addons/push_it/icon.svg',
-            'timestamp' => time()
-        ];
-        
-        // Erweiterte Optionen hinzufügen
-        if (isset($options['badge'])) {
-            $payload['badge'] = $options['badge'];
-        }
-        
-        if (isset($options['image'])) {
-            $payload['image'] = $options['image'];
-        }
-        
-        if (isset($options['silent'])) {
-            $payload['silent'] = $options['silent'];
-        }
-        
-        if (isset($options['tag'])) {
-            $payload['tag'] = $options['tag'];
-        }
-        
-        if (isset($options['renotify'])) {
-            $payload['renotify'] = $options['renotify'];
-        }
-        
-        if (isset($options['vibrate']) && is_array($options['vibrate'])) {
-            $payload['vibrate'] = $options['vibrate'];
-        }
-        
-        if (isset($options['actions']) && is_array($options['actions'])) {
-            $payload['actions'] = $options['actions'];
-        }
-        
-        $payloadJson = json_encode($payload);
-        
-        $sent = 0;
-        $errors = 0;
-        
-        // Nachrichten senden
-        foreach ($subscriptions as $sub) {
-            try {
-                $subscription = Subscription::create([
-                    'endpoint' => $sub['endpoint'],
-                    'keys' => [
-                        'p256dh' => $sub['p256dh'],
-                        'auth' => $sub['auth']
-                    ]
-                ]);
-                
-                $result = $webPush->sendOneNotification($subscription, $payloadJson);
-                
-                if ($result->isSuccess()) {
-                    $sent++;
-                    $this->updateSubscriptionSuccess($sub['id']);
-                } else {
-                    $errors++;
-                    $errorMsg = $result->getReason();
-                    $this->updateSubscriptionError($sub['id'], $errorMsg);
-                }
-                
-            } catch (\Exception $e) {
-                $errors++;
-                $this->updateSubscriptionError($sub['id'], $e->getMessage());
-            }
-        }
-        
-        // Log-Eintrag erstellen
+
+        $payloadJson = $this->buildPayload($title, $body, $url, $options);
+        [$sent, $errors] = $this->dispatchToSubscriptions($webPush, $subscriptions, $payloadJson);
+
         $this->logNotification($title, $body, $url, 'user_' . $userId, implode(',', $topics), $sent, $errors, $options);
-        
+
         return [
             'success' => true,
-            'sent' => $sent,
-            'failed' => $errors,
-            'total' => count($subscriptions)
+            'sent'    => $sent,
+            'failed'  => $errors,
+            'total'   => count($subscriptions),
         ];
     }
-    
+
     /**
-     * Hauptfunktion zum Senden von Benachrichtigungen
+     * Hauptfunktion zum Senden von Benachrichtigungen.
+     *
+     * @param array<string> $topics
+     * @param array<string, mixed> $options
+     * @return array<string, mixed>
+     * @throws \Exception
      */
     public function sendNotification(string $title, string $body, string $url = '', string $userType = 'frontend', array $topics = [], array $options = []): array
     {
-        $publicKey = $this->addon->getConfig('publicKey');
-        $privateKey = $this->addon->getConfig('privateKey');
-        $subject = $this->addon->getConfig('subject');
-        
-        if (!$publicKey || !$privateKey) {
-            throw new \Exception('VAPID-Schlüssel nicht konfiguriert');
-        }
-        
-        // WebPush-Instanz erstellen
-        $webPush = new WebPush([
-            'VAPID' => [
-                'subject' => $subject,
-                'publicKey' => $publicKey,
-                'privateKey' => $privateKey,
-            ]
-        ]);
-        
-        // Subscriptions aus Datenbank abrufen
+        $webPush = $this->createWebPush();
+
         $subscriptions = $this->getSubscriptions($userType, $topics);
-        
-        // Debug-Ausgabe
-        error_log('PushIt: Found ' . count($subscriptions) . ' subscriptions for userType: ' . $userType . ', topics: ' . implode(',', $topics));
-        
-        if (empty($subscriptions)) {
+
+        if ($subscriptions === []) {
             return [
                 'success' => false,
                 'message' => 'Keine aktiven Subscriptions gefunden für User-Typ: ' . $userType . ' und Topics: ' . implode(',', $topics),
-                'sent' => 0,
-                'failed' => 0,
-                'total' => 0
+                'sent'    => 0,
+                'failed'  => 0,
+                'total'   => 0,
             ];
         }
-        
-        // Payload erstellen
-        $payload = [
-            'title' => $title,
-            'body' => $body,
-            'url' => $url,
-            'icon' => $options['icon'] ?? '/assets/addons/push_it/icon.svg',
-            'timestamp' => time()
+
+        $payloadJson = $this->buildPayload($title, $body, $url, $options);
+        [$sent, $errors] = $this->dispatchToSubscriptions($webPush, $subscriptions, $payloadJson);
+
+        $this->logNotification($title, $body, $url, $userType, implode(',', $topics), $sent, $errors, $options);
+
+        return [
+            'success' => true,
+            'sent'    => $sent,
+            'failed'  => $errors,
+            'total'   => count($subscriptions),
         ];
-        
-        // Erweiterte Optionen hinzufügen
-        if (isset($options['badge'])) {
-            $payload['badge'] = $options['badge'];
+    }
+
+    /**
+     * Erzeugt eine WebPush-Instanz mit VAPID-Konfiguration.
+     *
+     * @throws \Exception
+     */
+    private function createWebPush(): WebPush
+    {
+        $publicKey  = (string) $this->addon->getConfig('publicKey', '');
+        $privateKey = (string) $this->addon->getConfig('privateKey', '');
+        $subject    = (string) $this->addon->getConfig('subject', '');
+
+        if ($publicKey === '' || $privateKey === '') {
+            throw new \Exception('VAPID-Schlüssel nicht konfiguriert');
         }
-        
-        if (isset($options['image'])) {
-            $payload['image'] = $options['image'];
+
+        return new WebPush([
+            'VAPID' => [
+                'subject'    => $subject,
+                'publicKey'  => $publicKey,
+                'privateKey' => $privateKey,
+            ],
+        ]);
+    }
+
+    /**
+     * Baut das Payload-Array auf und gibt es JSON-kodiert zurück.
+     *
+     * @param array<string, mixed> $options
+     */
+    private function buildPayload(string $title, string $body, string $url, array $options): string
+    {
+        $defaultIcon = (string) $this->addon->getConfig('default_icon', '');
+        $icon = $options['icon'] ?? ($defaultIcon !== '' ? $defaultIcon : '/assets/addons/push_it/icon.svg');
+
+        $payload = [
+            'title'     => $title,
+            'body'      => $body,
+            'url'       => $url,
+            'icon'      => $icon,
+            'timestamp' => time(),
+        ];
+
+        foreach (['badge', 'image', 'silent', 'tag', 'renotify'] as $key) {
+            if (isset($options[$key])) {
+                $payload[$key] = $options[$key];
+            }
         }
-        
-        if (isset($options['silent'])) {
-            $payload['silent'] = $options['silent'];
+
+        foreach (['vibrate', 'actions'] as $key) {
+            if (isset($options[$key]) && is_array($options[$key])) {
+                $payload[$key] = $options[$key];
+            }
         }
-        
-        if (isset($options['tag'])) {
-            $payload['tag'] = $options['tag'];
-        }
-        
-        if (isset($options['renotify'])) {
-            $payload['renotify'] = $options['renotify'];
-        }
-        
-        if (isset($options['vibrate']) && is_array($options['vibrate'])) {
-            $payload['vibrate'] = $options['vibrate'];
-        }
-        
-        if (isset($options['actions']) && is_array($options['actions'])) {
-            $payload['actions'] = $options['actions'];
-        }
-        
-        $payloadJson = json_encode($payload);
-        
-        $sent = 0;
+
+        return (string) json_encode($payload);
+    }
+
+    /**
+     * Sendet Payload an eine Liste von Subscriptions.
+     *
+     * @param array<array<string, mixed>> $subscriptions
+     * @return array{0: int, 1: int} [sent, errors]
+     */
+    private function dispatchToSubscriptions(WebPush $webPush, array $subscriptions, string $payloadJson): array
+    {
+        $sent   = 0;
         $errors = 0;
-        
-        // Nachrichten senden
+
         foreach ($subscriptions as $sub) {
             try {
                 $subscription = Subscription::create([
-                    'endpoint' => $sub['endpoint'],
-                    'keys' => [
-                        'p256dh' => $sub['p256dh'],
-                        'auth' => $sub['auth']
-                    ]
+                    'endpoint' => (string) $sub['endpoint'],
+                    'keys'     => [
+                        'p256dh' => (string) $sub['p256dh'],
+                        'auth'   => (string) $sub['auth'],
+                    ],
                 ]);
-                
+
                 $result = $webPush->sendOneNotification($subscription, $payloadJson);
-                
-                error_log('PushIt: Sending to subscription ' . $sub['id'] . ', endpoint: ' . substr($sub['endpoint'], 0, 50) . '...');
-                
+
                 if ($result->isSuccess()) {
                     $sent++;
-                    error_log('PushIt: Successfully sent to subscription ' . $sub['id']);
-                    $this->updateSubscriptionSuccess($sub['id']);
+                    $this->updateSubscriptionSuccess((int) $sub['id']);
                 } else {
                     $errors++;
-                    $errorMsg = $result->getReason();
-                    error_log('PushIt: Failed to send to subscription ' . $sub['id'] . ': ' . $errorMsg);
-                    $this->updateSubscriptionError($sub['id'], $errorMsg);
+                    $this->updateSubscriptionError((int) $sub['id'], (string) $result->getReason());
+                    if (rex::isDebugMode()) {
+                        rex_logger::factory()->warning('PushIt: send failed for sub {id}: {reason}', [
+                            'id'     => $sub['id'],
+                            'reason' => $result->getReason(),
+                        ]);
+                    }
                 }
-                
             } catch (\Exception $e) {
                 $errors++;
-                error_log('PushIt: Exception sending to subscription ' . $sub['id'] . ': ' . $e->getMessage());
-                $this->updateSubscriptionError($sub['id'], $e->getMessage());
+                $this->updateSubscriptionError((int) $sub['id'], $e->getMessage());
+                if (rex::isDebugMode()) {
+                    rex_logger::factory()->warning('PushIt: exception for sub {id}: {msg}', [
+                        'id'  => $sub['id'],
+                        'msg' => $e->getMessage(),
+                    ]);
+                }
             }
         }
-        
-        // Log-Eintrag erstellen
-        $this->logNotification($title, $body, $url, $userType, implode(',', $topics), $sent, $errors, $options);
-        
-        return [
-            'success' => true,
-            'sent' => $sent,
-            'failed' => $errors,
-            'total' => count($subscriptions)
-        ];
+
+        return [$sent, $errors];
     }
-    
+
     /**
-     * Holt aktive Subscriptions aus der Datenbank
+     * Holt aktive Subscriptions aus der Datenbank.
+     *
+     * @param array<string> $topics
+     * @return array<array<string, mixed>>
      */
     private function getSubscriptions(string $userType, array $topics = []): array
     {
@@ -312,117 +261,116 @@ class NotificationService
             $where[] = "user_type = 'frontend'";
         }
         // bei 'both' keine Einschränkung
-        
-        // Topics Filter
-        if (!empty($topics)) {
+
+        if ($topics !== []) {
             $topicConditions = [];
             foreach ($topics as $topic) {
-                $topicConditions[] = "FIND_IN_SET(?, topics)";
+                $topicConditions[] = 'FIND_IN_SET(?, topics)';
                 $params[] = trim($topic);
             }
-            if (!empty($topicConditions)) {
-                $where[] = '(' . implode(' OR ', $topicConditions) . ')';
-            }
+            $where[] = '(' . implode(' OR ', $topicConditions) . ')';
         }
-        
-        $query = "SELECT id, endpoint, p256dh, auth FROM rex_push_it_subscriptions WHERE " . implode(' AND ', $where);
-        
+
+        $query = 'SELECT id, endpoint, p256dh, auth FROM rex_push_it_subscriptions WHERE ' . implode(' AND ', $where);
+
         $sql->setQuery($query, $params);
-        
+
         $subscriptions = [];
         for ($i = 0; $i < $sql->getRows(); $i++) {
             $subscriptions[] = [
-                'id' => $sql->getValue('id'),
+                'id'       => $sql->getValue('id'),
                 'endpoint' => $sql->getValue('endpoint'),
-                'p256dh' => $sql->getValue('p256dh'),
-                'auth' => $sql->getValue('auth')
+                'p256dh'   => $sql->getValue('p256dh'),
+                'auth'     => $sql->getValue('auth'),
             ];
             $sql->next();
         }
-        
+
         return $subscriptions;
     }
-    
+
     /**
-     * Holt aktive Subscriptions für einen spezifischen Benutzer
+     * Holt aktive Subscriptions für einen spezifischen Benutzer.
+     *
+     * @param array<string> $topics
+     * @return array<array<string, mixed>>
      */
     private function getSubscriptionsByUserId(int $userId, array $topics = []): array
     {
         $sql = rex_sql::factory();
-        
-        $where = ['active = 1', 'user_id = ?', "user_type = 'backend'"];
+
+        $where  = ['active = 1', 'user_id = ?', "user_type = 'backend'"];
         $params = [$userId];
-        
-        // Topics Filter (nur wenn Topics angegeben sind)
-        if (!empty($topics)) {
+
+        if ($topics !== []) {
             $topicConditions = [];
             foreach ($topics as $topic) {
-                $topicConditions[] = "FIND_IN_SET(?, topics)";
+                $topicConditions[] = 'FIND_IN_SET(?, topics)';
                 $params[] = trim($topic);
             }
-            if (!empty($topicConditions)) {
-                $where[] = '(' . implode(' OR ', $topicConditions) . ')';
-            }
+            $where[] = '(' . implode(' OR ', $topicConditions) . ')';
         }
-        
-        $query = "SELECT id, endpoint, p256dh, auth FROM rex_push_it_subscriptions WHERE " . implode(' AND ', $where);
-        
+
+        $query = 'SELECT id, endpoint, p256dh, auth FROM rex_push_it_subscriptions WHERE ' . implode(' AND ', $where);
+
         $sql->setQuery($query, $params);
-        
+
         $subscriptions = [];
         for ($i = 0; $i < $sql->getRows(); $i++) {
             $subscriptions[] = [
-                'id' => $sql->getValue('id'),
+                'id'       => $sql->getValue('id'),
                 'endpoint' => $sql->getValue('endpoint'),
-                'p256dh' => $sql->getValue('p256dh'),
-                'auth' => $sql->getValue('auth')
+                'p256dh'   => $sql->getValue('p256dh'),
+                'auth'     => $sql->getValue('auth'),
             ];
             $sql->next();
         }
-        
+
         return $subscriptions;
     }
-    
+
     /**
-     * Aktualisiert Subscription bei erfolgreichem Versand
+     * Aktualisiert Subscription bei erfolgreichem Versand.
      */
     private function updateSubscriptionSuccess(int $subscriptionId): void
     {
         $sql = rex_sql::factory();
-        $sql->setQuery("UPDATE rex_push_it_subscriptions SET last_error = NULL, updated = NOW() WHERE id = ?", [$subscriptionId]);
+        $sql->setQuery('UPDATE rex_push_it_subscriptions SET last_error = NULL, updated = NOW() WHERE id = ?', [$subscriptionId]);
     }
-    
+
     /**
-     * Aktualisiert Subscription bei Fehler
+     * Aktualisiert Subscription bei Fehler.
      */
     private function updateSubscriptionError(int $subscriptionId, string $error): void
     {
         $sql = rex_sql::factory();
-        $sql->setQuery("UPDATE rex_push_it_subscriptions SET last_error = ?, updated = NOW() WHERE id = ?", [$error, $subscriptionId]);
+        $sql->setQuery('UPDATE rex_push_it_subscriptions SET last_error = ?, updated = NOW() WHERE id = ?', [$error, $subscriptionId]);
     }
-    
+
     /**
-     * Erstellt Log-Eintrag für gesendete Benachrichtigung
+     * Erstellt Log-Eintrag für gesendete Benachrichtigung.
+     *
+     * @param array<string, mixed> $options
      */
     private function logNotification(string $title, string $body, string $url, string $userType, string $topics, int $sent, int $errors, array $options = []): void
     {
         $sql = rex_sql::factory();
-        $sql->setQuery("
+        $sql->setQuery('
             INSERT INTO rex_push_it_notifications (title, body, url, icon, badge, image, notification_options, topics, user_type, sent_to, delivery_errors, created_by, created)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-        ", [
+        ', [
             $title,
             $body,
             $url,
             $options['icon'] ?? '/assets/addons/push_it/icon.svg',
             $options['badge'] ?? null,
             $options['image'] ?? null,
-            !empty($options) ? json_encode($options) : null,
+            $options !== [] ? json_encode($options) : null,
             $topics,
             $userType,
             $sent,
             $errors,
-            \rex::getUser() ? \rex::getUser()->getId() : null
+            rex::getUser()?->getId() ?? null,
         ]);
     }
 }

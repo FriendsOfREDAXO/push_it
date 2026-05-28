@@ -48,6 +48,11 @@ if (rex::isBackend() && $addon->getConfig('backend_enabled')) {
     // Sowohl frontend.js als auch backend.js laden für vollständige Funktionalität
     rex_view::addJsFile($addon->getAssetsUrl('frontend.js'));
     rex_view::addJsFile($addon->getAssetsUrl('backend.js'));
+
+    // Panel-spezifisches JS zentral über boot.php laden (nur auf backend_notify)
+    if (rex_be_controller::getCurrentPage() === 'push_it/backend_notify') {
+        rex_view::addJsFile($addon->getAssetsUrl('admin-backend-notify.js'));
+    }
     
     // Sprache für JavaScript setzen
     rex_view::setJsProperty('push_it_language', $lang);

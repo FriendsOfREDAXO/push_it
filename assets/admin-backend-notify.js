@@ -2,10 +2,20 @@
 (function () {
     'use strict';
 
-    document.addEventListener('DOMContentLoaded', function () {
+    function init() {
         initSubscriptionPanel();
         initQuickNotificationPanel();
-    });
+    }
+
+    if (typeof jQuery !== 'undefined') {
+        jQuery(document).on('rex:ready', init);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init, { once: true });
+    } else {
+        init();
+    }
 
     /* ------------------------------------------------------------------ */
     /* Subscription Panel                                                   */
@@ -16,34 +26,79 @@
         var disableBtn   = document.getElementById('pushit-disable');
         var resetBtn     = document.getElementById('pushit-reset');
 
+        function showPanelMessage(type, text) {
+            var panel = (statusBtn && statusBtn.closest('.well')) || document.querySelector('.well');
+            if (!panel) {
+                alert(text);
+                return;
+            }
+
+            var host = panel.querySelector('.pushit-status-feedback');
+            if (!host) {
+                host = document.createElement('div');
+                host.className = 'pushit-status-feedback';
+                host.style.marginTop = '12px';
+                panel.appendChild(host);
+            }
+
+            var cssClass = type === 'success' ? 'alert-success' : (type === 'warning' ? 'alert-warning' : 'alert-danger');
+            host.innerHTML = '<div class="alert ' + cssClass + '" style="margin-bottom:0;">' + text + '</div>';
+        }
+
         if (subscribeBtn) {
-            subscribeBtn.addEventListener('click', function () {
-                var topics = subscribeBtn.getAttribute('data-topics') || 'editorial';
-                PushIt.requestBackend(topics);
-            });
+            if (subscribeBtn.dataset.pushitBound !== '1') {
+                subscribeBtn.dataset.pushitBound = '1';
+                subscribeBtn.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    var topics = subscribeBtn.getAttribute('data-topics') || 'editorial';
+                    PushIt.requestBackend(topics);
+                });
+            }
         }
 
         if (statusBtn) {
-            statusBtn.addEventListener('click', function () {
-                PushIt.getStatus().then(function (s) {
-                    alert(s.isSubscribed
-                        ? PushIt.i18n.get('status_active')
-                        : PushIt.i18n.get('status_inactive')
-                    );
+            if (statusBtn.dataset.pushitBound !== '1') {
+                statusBtn.dataset.pushitBound = '1';
+                statusBtn.addEventListener('click', function (event) {
+                    event.preventDefault();
+
+                    if (typeof PushIt === 'undefined' || typeof PushIt.getStatus !== 'function') {
+                        showPanelMessage('error', 'PushIt ist nicht initialisiert. Bitte Seite neu laden.');
+                        return;
+                    }
+
+                    PushIt.getStatus().then(function (s) {
+                        var i18n = (PushIt.i18n && typeof PushIt.i18n.get === 'function')
+                            ? PushIt.i18n
+                            : { get: function (key) { return key; } };
+
+                        var message = s.isSubscribed ? i18n.get('status_active') : i18n.get('status_inactive');
+                        showPanelMessage(s.isSubscribed ? 'success' : 'warning', message);
+                    }).catch(function (error) {
+                        showPanelMessage('error', 'Status konnte nicht geprüft werden: ' + (error && error.message ? error.message : 'unbekannter Fehler'));
+                    });
                 });
-            });
+            }
         }
 
         if (disableBtn) {
-            disableBtn.addEventListener('click', function () {
-                PushIt.disable();
-            });
+            if (disableBtn.dataset.pushitBound !== '1') {
+                disableBtn.dataset.pushitBound = '1';
+                disableBtn.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    PushIt.disable();
+                });
+            }
         }
 
         if (resetBtn) {
-            resetBtn.addEventListener('click', function () {
-                PushItReset();
-            });
+            if (resetBtn.dataset.pushitBound !== '1') {
+                resetBtn.dataset.pushitBound = '1';
+                resetBtn.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    PushItReset();
+                });
+            }
         }
     }
 
@@ -94,33 +149,42 @@
         var infoBtn     = document.getElementById('quick-info');
 
         if (criticalBtn) {
-            criticalBtn.addEventListener('click', function () {
-                sendQuickNotification(
-                    'critical',
-                    PushIt.i18n.get('critical_error_title'),
-                    PushIt.i18n.get('critical_error_message')
-                );
-            });
+            if (criticalBtn.dataset.pushitBound !== '1') {
+                criticalBtn.dataset.pushitBound = '1';
+                criticalBtn.addEventListener('click', function () {
+                    sendQuickNotification(
+                        'critical',
+                        PushIt.i18n.get('critical_error_title'),
+                        PushIt.i18n.get('critical_error_message')
+                    );
+                });
+            }
         }
 
         if (warningBtn) {
-            warningBtn.addEventListener('click', function () {
-                sendQuickNotification(
-                    'warning',
-                    PushIt.i18n.get('system_warning_title'),
-                    PushIt.i18n.get('system_warning_message')
-                );
-            });
+            if (warningBtn.dataset.pushitBound !== '1') {
+                warningBtn.dataset.pushitBound = '1';
+                warningBtn.addEventListener('click', function () {
+                    sendQuickNotification(
+                        'warning',
+                        PushIt.i18n.get('system_warning_title'),
+                        PushIt.i18n.get('system_warning_message')
+                    );
+                });
+            }
         }
 
         if (infoBtn) {
-            infoBtn.addEventListener('click', function () {
-                sendQuickNotification(
-                    'info',
-                    PushIt.i18n.get('system_info_title'),
-                    PushIt.i18n.get('system_info_message')
-                );
-            });
+            if (infoBtn.dataset.pushitBound !== '1') {
+                infoBtn.dataset.pushitBound = '1';
+                infoBtn.addEventListener('click', function () {
+                    sendQuickNotification(
+                        'info',
+                        PushIt.i18n.get('system_info_title'),
+                        PushIt.i18n.get('system_info_message')
+                    );
+                });
+            }
         }
     }
 }());

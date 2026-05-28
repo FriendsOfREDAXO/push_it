@@ -19,6 +19,14 @@ All notable changes to this project will be documented in this file.
 	- Input-Limit und Endpoint-Längenprüfung ergänzt
 	- Response-Ausgabe auf konsistentes REDAXO-JSON-Handling umgestellt
 - Redirects in der Subscriptions-Verwaltung auf serverseitige Redirects umgestellt (kein Inline-JS-Redirect mehr).
+- Einbindung von `assets/admin-backend-notify.js` zentral in `boot.php` für `push_it/backend_notify` verlagert.
+- Doppelte Script-Einbindung aus `pages/backend_notify.php` entfernt, um Race-Conditions zu vermeiden.
+- `backend_notify` Panel-Buttons (`Aktivieren`, `Status prüfen`, `Deaktivieren`, `Abfrage zurücksetzen`) auf stabiles Event-Handling mit `rex:ready` + idempotenter Listener-Bindung umgestellt.
+- Panel-Buttons explizit auf `type="button"` gesetzt, damit kein unbeabsichtigtes Submit-Verhalten auftritt.
+
+### Fixed
+- Zeitanzeige in `push_it/subscriptions` korrigiert: DB-Zeit wird für die Anzeige von UTC in die konfigurierte System-Zeitzone umgerechnet.
+- `Status prüfen` im Backend-Panel liefert wieder sichtbares Feedback (Status/Fehler) statt stumm zu bleiben.
 
 ## [1.0.0] – 2026-04-17
 

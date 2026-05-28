@@ -7,6 +7,7 @@ use rex_user;
 use rex_formatter;
 use rex_escape;
 use rex_i18n;
+use rex_config;
 use Exception;
 
 /**
@@ -336,16 +337,17 @@ class SubscriptionManager
             return '<em>unbekannt</em>';
         }
         
-        $timestamp = strtotime($dateString);
-        if ($timestamp === false) {
+        try {
+            $timezoneName = (string) rex_config::get('system', 'timezone', date_default_timezone_get());
+            $displayTimezone = new \DateTimeZone($timezoneName);
+
+            // DB-Zeitstempel stammen in vielen Setups aus UTC (MySQL NOW() bei UTC-Serverzeit).
+            $dateTime = new \DateTimeImmutable($dateString, new \DateTimeZone('UTC'));
+            $dateTime = $dateTime->setTimezone($displayTimezone);
+        } catch (\Throwable $e) {
             return '<em>ungültig</em>';
         }
-        
-        // Deutsche Zeitzone verwenden
-        $germanTimezone = new \DateTimeZone('Europe/Berlin');
-        $dateTime = new \DateTime('@' . $timestamp);
-        $dateTime->setTimezone($germanTimezone);
-        
+
         return $dateTime->format('d.m.Y H:i');
     }
     

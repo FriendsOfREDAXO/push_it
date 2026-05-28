@@ -33,12 +33,16 @@ class BackendNotificationManager
         $publicKey = $this->addon->getConfig('publicKey');
         $currentUser = rex::getUser();
         $userId = $currentUser ? $currentUser->getId() : null;
-        
-        return '<script src="' . $this->addon->getAssetsUrl('frontend.js') . '"></script>
-        <script src="' . $this->addon->getAssetsUrl('backend.js') . '"></script>
-        <script type="text/javascript" nonce="' . \rex_response::getNonce() . '">
-            window.PushItPublicKey = ' . json_encode($publicKey) . ';
-            window.PushItUserId = ' . json_encode($userId) . ';
+
+        // frontend.js und backend.js werden zentral in boot.php eingebunden.
+        // Hier nur Fallback-Werte setzen, falls sie noch nicht vorhanden sind.
+        return '<script type="text/javascript" nonce="' . \rex_response::getNonce() . '">
+            if (typeof window.PushItPublicKey === "undefined") {
+                window.PushItPublicKey = ' . json_encode($publicKey) . ';
+            }
+            if (typeof window.PushItUserId === "undefined") {
+                window.PushItUserId = ' . json_encode($userId) . ';
+            }
         </script>';
     }
     
@@ -65,17 +69,17 @@ class BackendNotificationManager
         <div class="well">
             <h4>' . rex_i18n::msg('pushit_activate_backend_notifications') . '</h4>
             <p>' . rex_i18n::msg('pushit_activate_push_notifications') . '</p>
-            <button class="btn btn-success" id="pushit-subscribe-backend" data-topics="' . rex_escape($topics) . '">
+            <button type="button" class="btn btn-success" id="pushit-subscribe-backend" data-topics="' . rex_escape($topics) . '">
                 <i class="rex-icon fa-bell"></i> ' . rex_i18n::msg('pushit_activate_backend_notifications_button') . '
             </button>
-            <button class="btn btn-default" id="pushit-status-check">
+            <button type="button" class="btn btn-default" id="pushit-status-check">
                 <i class="rex-icon fa-info"></i> ' . rex_i18n::msg('pushit_status_check') . '
             </button>
-            <button class="btn btn-warning" id="pushit-disable">
+            <button type="button" class="btn btn-warning" id="pushit-disable">
                 <i class="rex-icon fa-bell-slash"></i> ' . rex_i18n::msg('pushit_deactivate') . '
             </button>
             <br><br>
-            <button class="btn btn-xs btn-default" id="pushit-reset">
+            <button type="button" class="btn btn-xs btn-default" id="pushit-reset">
                 <i class="rex-icon fa-refresh"></i> ' . rex_i18n::msg('pushit_reset_query') . '
             </button>
             <small class="help-block">' . rex_i18n::msg('pushit_reset_query_info') . '</small>';

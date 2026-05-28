@@ -7,6 +7,7 @@ namespace FriendsOfREDAXO\PushIt\Api;
 use rex_api_function;
 use rex_logger;
 use rex_request;
+use rex_response;
 use rex_sql;
 use rex;
 use rex_addon;
@@ -20,6 +21,10 @@ use FriendsOfREDAXO\PushIt\Service\SettingsManager;
 class Subscribe extends rex_api_function
 {
     protected $published = true;
+    private const MAX_INPUT_BYTES = 16384;
+    private const MAX_ENDPOINT_LENGTH = 1000;
+    private const MAX_KEY_LENGTH = 255;
+    private const MAX_TOPICS_LENGTH = 255;
     
     /**
      * CSRF-Schutz deaktivieren für externe Aufrufe
@@ -38,37 +43,42 @@ class Subscribe extends rex_api_function
      */
     public function execute(): void
     {
-        // Content-Type für JSON-Response setzen
-        header('Content-Type: application/json; charset=utf-8');
+        rex_response::cleanOutputBuffers();
+        rex_response::setHeader('Content-Type', 'application/json; charset=utf-8');
+
+        if (rex_request_method() !== 'post') {
+            $this->sendJson(['success' => false, 'error' => 'method_not_allowed'], 405);
+        }
         
         try {
             // JSON-Input validieren
             $input = file_get_contents('php://input');
             if ($input === false || $input === '') {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'error' => 'no_input_data']);
-                exit;
+                $this->sendJson(['success' => false, 'error' => 'no_input_data'], 400);
+            }
+
+            if (strlen($input) > self::MAX_INPUT_BYTES) {
+                $this->sendJson(['success' => false, 'error' => 'payload_too_large'], 413);
             }
             
             $data = json_decode($input, true);
             if (!is_array($data) || !isset($data['endpoint'], $data['keys']['p256dh'], $data['keys']['auth'])) {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'error' => 'invalid_subscription_data']);
-                exit;
+                $this->sendJson(['success' => false, 'error' => 'invalid_subscription_data'], 400);
+            }
+
+            if (!$this->isValidSubscriptionPayload($data)) {
+                $this->sendJson(['success' => false, 'error' => 'invalid_subscription_payload'], 400);
             }
             
-            // Topics aus GET-Parameter und validieren
-            $topics = '';
-            if (isset($_GET['topics']) && is_string($_GET['topics'])) {
-                $topics = trim($_GET['topics']);
-            }
+            // Topics aus Query-Parametern und validieren
+            $topics = $this->normalizeTopics(trim(rex_request('topics', 'string', '')));
             
             // SettingsManager für Topic-Validierung
             $settingsManager = new SettingsManager();
             
             // User-Type validieren mit Token-basierter Backend-Authentifizierung
-            $userType = $_GET['user_type'] ?? 'frontend';
-            $backendToken = $_GET['backend_token'] ?? '';
+            $userType = rex_request('user_type', 'string', 'frontend');
+            $backendToken = rex_request('backend_token', 'string', '');
             
             // Backend-Token aus AddOn-Konfiguration laden
             $addon = rex_addon::get('push_it');
@@ -85,13 +95,11 @@ class Subscribe extends rex_api_function
                         ), __FILE__, __LINE__);
                     }
 
-                    http_response_code(403);
-                    echo json_encode([
+                    $this->sendJson([
                         'success' => false,
                         'error' => 'invalid_backend_token',
                         'message' => 'Ungültiger Backend-Token',
-                    ]);
-                    exit;
+                    ], 403);
                 }
                 
                 // Backend-Subscription mit gültigem Token
@@ -99,8 +107,9 @@ class Subscribe extends rex_api_function
                 
                 // User-ID aus Parameter oder aktuellem User ermitteln
                 $userId = null;
-                if (isset($_GET['user_id']) && is_numeric($_GET['user_id'])) {
-                    $userId = (int)$_GET['user_id'];
+                $requestedUserId = rex_request('user_id', 'int', 0);
+                if ($requestedUserId > 0) {
+                    $userId = $requestedUserId;
                 } elseif ($currentUser) {
                     $userId = $currentUser->getId();
                 }
@@ -142,19 +151,16 @@ class Subscribe extends rex_api_function
             $this->saveSubscription($data, $userType, $userId, $topics, $ua, $lang, $domain);
             
             // Erfolgs-Response
-            echo json_encode([
+            $this->sendJson([
                 'success' => true, 
                 'user_type' => $userType,
                 'user_id' => $userId,
                 'timestamp' => time()
             ]);
-            exit;
             
         } catch (\Throwable $e) {
             rex_logger::logException($e);
-            http_response_code(500);
-            echo json_encode(['success' => false, 'error' => 'server_error']);
-            exit;
+            $this->sendJson(['success' => false, 'error' => 'server_error'], 500);
         }
     }
     
@@ -173,10 +179,11 @@ class Subscribe extends rex_api_function
     private function saveSubscription(array $data, string $userType, ?int $userId, string $topics, string $ua, string $lang, string $domain): void
     {
         $sql = rex_sql::factory();
+        $table = rex::getTable('push_it_subscriptions');
         
         // Prüfen ob Subscription bereits existiert (basierend auf endpoint - da UNIQUE constraint)
         $sql->setQuery(
-            "SELECT id, user_type, user_id, topics FROM rex_push_it_subscriptions WHERE endpoint = ?",
+            'SELECT id, user_type, user_id, topics FROM ' . $table . ' WHERE endpoint = ?',
             [$data['endpoint']]
         );
         
@@ -191,7 +198,7 @@ class Subscribe extends rex_api_function
                 // Frontend->Backend: Upgrade zur Backend-Subscription
                 $newTopics = $this->mergeTopics($existingTopics, $topics);
                 $sql->setQuery("
-                    UPDATE rex_push_it_subscriptions 
+                    UPDATE " . $table . "
                     SET active = 1, user_type = ?, user_id = ?, topics = ?, 
                         ua = ?, lang = ?, domain = ?, updated = NOW(), last_error = NULL
                     WHERE endpoint = ?
@@ -208,7 +215,7 @@ class Subscribe extends rex_api_function
                 // Backend->Frontend: Topics zu bestehender Backend-Subscription hinzufügen
                 $newTopics = $this->mergeTopics($existingTopics, $topics);
                 $sql->setQuery("
-                    UPDATE rex_push_it_subscriptions 
+                    UPDATE " . $table . "
                     SET active = 1, topics = ?, ua = ?, lang = ?, domain = ?, updated = NOW(), last_error = NULL
                     WHERE endpoint = ?
                 ", [
@@ -224,7 +231,7 @@ class Subscribe extends rex_api_function
                 $updateUserId = ($userType === 'backend') ? $userId : $existingUserId;
                 
                 $sql->setQuery("
-                    UPDATE rex_push_it_subscriptions 
+                    UPDATE " . $table . "
                     SET active = 1, user_id = ?, topics = ?, ua = ?, lang = ?, domain = ?, updated = NOW(), last_error = NULL
                     WHERE endpoint = ?
                 ", [
@@ -239,7 +246,7 @@ class Subscribe extends rex_api_function
         } else {
             // Neue Subscription erstellen
             $sql->setQuery("
-                INSERT INTO rex_push_it_subscriptions 
+                INSERT INTO " . $table . "
                 (user_id, user_type, endpoint, p256dh, auth, topics, ua, lang, domain, active, created, updated)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())
             ", [
@@ -254,6 +261,35 @@ class Subscribe extends rex_api_function
                 $domain
             ]);
         }
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function isValidSubscriptionPayload(array $data): bool
+    {
+        $endpoint = $data['endpoint'] ?? '';
+        $p256dh = $data['keys']['p256dh'] ?? '';
+        $auth = $data['keys']['auth'] ?? '';
+
+        if (!is_string($endpoint) || trim($endpoint) === '') {
+            return false;
+        }
+
+        $endpoint = trim($endpoint);
+        if (strlen($endpoint) > self::MAX_ENDPOINT_LENGTH || filter_var($endpoint, FILTER_VALIDATE_URL) === false) {
+            return false;
+        }
+
+        if (!is_string($p256dh) || $p256dh === '' || strlen($p256dh) > self::MAX_KEY_LENGTH) {
+            return false;
+        }
+
+        if (!is_string($auth) || $auth === '' || strlen($auth) > self::MAX_KEY_LENGTH) {
+            return false;
+        }
+
+        return true;
     }
     
     /**
@@ -272,5 +308,39 @@ class Subscribe extends rex_api_function
         $merged = array_unique(array_merge($existingArray, $newArray));
         
         return implode(',', array_map('trim', $merged));
+    }
+
+    private function normalizeTopics(string $topics): string
+    {
+        if ($topics === '') {
+            return '';
+        }
+
+        $parts = array_filter(array_map('trim', explode(',', $topics)));
+        $cleaned = [];
+
+        foreach ($parts as $topic) {
+            if (preg_match('/^[a-z0-9_-]{1,40}$/i', $topic) === 1) {
+                $cleaned[] = $topic;
+            }
+        }
+
+        $value = implode(',', array_unique($cleaned));
+        if (strlen($value) > self::MAX_TOPICS_LENGTH) {
+            $value = substr($value, 0, self::MAX_TOPICS_LENGTH);
+            $value = rtrim($value, ',');
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function sendJson(array $data, int $statusCode = 200): void
+    {
+        rex_response::setStatus($statusCode);
+        rex_response::sendJson($data);
+        exit;
     }
 }

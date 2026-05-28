@@ -7,6 +7,8 @@ use rex_view;
 use rex_escape;
 use rex_url;
 use rex_i18n;
+use rex_csrf_token;
+use rex_request;
 use Exception;
 
 /**
@@ -180,9 +182,15 @@ class SettingsManager
     {
         $libAvailable = $this->isLibraryAvailable();
         $hasBackendToken = !empty($settings['backend_token']);
+        $csrfToken = rex_csrf_token::factory('push_it_settings');
+        $csrfParams = $csrfToken->getUrlParams();
+        $csrfName = (string) array_key_first($csrfParams);
+        $csrfValue = $csrfName !== '' ? (string) ($csrfParams[$csrfName] ?? '') : '';
         
         return '
         <form action="' . rex_url::currentBackendPage() . '" method="post">
+            <input type="hidden" name="page" value="' . rex_escape((string) \rex_be_controller::getCurrentPage()) . '">
+            <input type="hidden" name="' . rex_escape($csrfName) . '" value="' . rex_escape($csrfValue) . '">
             <fieldset class="rex-form-col-1">
                 ' . $this->renderVapidSection($settings, $libAvailable) . '
                 ' . $this->renderBackendTokenSection($settings, $hasBackendToken) . '
@@ -503,7 +511,7 @@ class SettingsManager
             error_log(sprintf(
                 'SECURITY WARNING: Frontend user attempted to subscribe to backend-only topics: %s from IP %s',
                 implode(',', $blockedTopics),
-                $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+                rex_request::server('REMOTE_ADDR', 'string', 'unknown')
             ));
         }
         

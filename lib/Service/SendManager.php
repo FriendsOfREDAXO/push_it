@@ -9,6 +9,7 @@ use rex_escape;
 use rex_url;
 use rex_sql;
 use rex_i18n;
+use rex_csrf_token;
 
 /**
  * Service-Klasse für das Senden von Push-Notifications
@@ -234,9 +235,15 @@ class SendManager
         
         // Verfügbare User-Typen ermitteln
         $availableUserTypes = $this->getAvailableUserTypes();
+        $csrfToken = rex_csrf_token::factory('push_it_send');
+        $csrfParams = $csrfToken->getUrlParams();
+        $csrfName = (string) array_key_first($csrfParams);
+        $csrfValue = $csrfName !== '' ? (string) ($csrfParams[$csrfName] ?? '') : '';
         
         $content = '
         <form action="' . rex_url::currentBackendPage() . '" method="post">
+            <input type="hidden" name="page" value="' . rex_escape((string) \rex_be_controller::getCurrentPage()) . '">
+            <input type="hidden" name="' . rex_escape($csrfName) . '" value="' . rex_escape($csrfValue) . '">
             <fieldset class="rex-form-col-1">
                 <div class="rex-form-group form-group">
                     <label class="control-label" for="title">' . rex_i18n::msg('pushit_title_required') . '</label>

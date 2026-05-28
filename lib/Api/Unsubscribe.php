@@ -8,6 +8,8 @@ use rex_api_function;
 use rex_sql;
 use rex_response;
 use rex_i18n;
+use rex_request;
+use rex;
 
 /**
  * API-Endpunkt zum Abmelden von Push-Benachrichtigungen
@@ -17,6 +19,13 @@ use rex_i18n;
 class Unsubscribe extends rex_api_function
 {
     protected $published = true;
+    private const MAX_INPUT_BYTES = 4096;
+    private const MAX_ENDPOINT_LENGTH = 1000;
+
+    public function requiresCsrfProtection(): bool
+    {
+        return false;
+    }
     
     /**
      * Führt die Abmeldung von Push-Benachrichtigungen aus
@@ -25,8 +34,13 @@ class Unsubscribe extends rex_api_function
      */
     public function execute(): void
     {
+        rex_response::cleanOutputBuffers();
         // Content-Type für JSON-Response setzen
         rex_response::setHeader('Content-Type', 'application/json; charset=utf-8');
+
+        if (rex_request_method() !== 'post') {
+            $this->sendErrorResponse('method_not_allowed', 405);
+        }
         
         try {
             // Request-Daten validieren
@@ -49,7 +63,7 @@ class Unsubscribe extends rex_api_function
             $this->sendSuccessResponse($subscriptionId);
             
         } catch (\Throwable $e) {
-            $this->sendErrorResponse(sprintf(rex_i18n::msg('pushit_server_error'), $e->getMessage()), 500);
+            $this->sendErrorResponse(rex_i18n::msg('pushit_server_error'), 500);
         }
     }
     
@@ -61,7 +75,7 @@ class Unsubscribe extends rex_api_function
     private function getValidatedRequestData(): ?array
     {
         // Content-Type prüfen
-        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        $contentType = rex_request::server('CONTENT_TYPE', 'string', '');
         if (!str_contains($contentType, 'application/json')) {
             return null;
         }
@@ -69,6 +83,10 @@ class Unsubscribe extends rex_api_function
         // JSON-Body parsen
         $input = file_get_contents('php://input');
         if ($input === false || $input === '') {
+            return null;
+        }
+
+        if (strlen($input) > self::MAX_INPUT_BYTES) {
             return null;
         }
         
@@ -80,6 +98,10 @@ class Unsubscribe extends rex_api_function
         // Endpoint validieren
         $endpoint = $data['endpoint'] ?? '';
         if (!is_string($endpoint) || trim($endpoint) === '') {
+            return null;
+        }
+
+        if (strlen(trim($endpoint)) > self::MAX_ENDPOINT_LENGTH) {
             return null;
         }
         
@@ -100,10 +122,11 @@ class Unsubscribe extends rex_api_function
     private function findAndDeactivateSubscription(string $endpoint): ?int
     {
         $sql = rex_sql::factory();
+        $table = rex::getTable('push_it_subscriptions');
         
         // Subscription suchen
         $sql->setQuery(
-            "SELECT id FROM rex_push_it_subscriptions WHERE endpoint = ? AND active = 1",
+            'SELECT id FROM ' . $table . ' WHERE endpoint = ? AND active = 1',
             [$endpoint]
         );
         
@@ -116,9 +139,9 @@ class Unsubscribe extends rex_api_function
         // Subscription deaktivieren (nicht löschen für History)
         $updateSql = rex_sql::factory();
         $updateSql->setQuery(
-            "UPDATE rex_push_it_subscriptions 
+            'UPDATE ' . $table . '
              SET active = 0, updated = NOW(), last_error = NULL 
-             WHERE id = ?",
+             WHERE id = ?',
             [$subscriptionId]
         );
         
@@ -139,9 +162,8 @@ class Unsubscribe extends rex_api_function
             'subscription_id' => $subscriptionId,
             'timestamp' => time()
         ];
-        
-        echo json_encode($response, JSON_THROW_ON_ERROR);
-        exit;
+
+        $this->sendJson($response, 200);
     }
     
     /**
@@ -153,15 +175,22 @@ class Unsubscribe extends rex_api_function
      */
     private function sendErrorResponse(string $message, int $httpCode): void
     {
-        rex_response::setStatus($httpCode);
-        
         $response = [
             'success' => false,
             'error' => $message,
             'timestamp' => time()
         ];
-        
-        echo json_encode($response, JSON_THROW_ON_ERROR);
+
+        $this->sendJson($response, $httpCode);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function sendJson(array $data, int $statusCode): void
+    {
+        rex_response::setStatus($statusCode);
+        rex_response::sendJson($data);
         exit;
     }
 }

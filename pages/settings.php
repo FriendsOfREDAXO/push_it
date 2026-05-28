@@ -11,11 +11,20 @@ if (!rex::getUser() || !rex::getUser()->isAdmin()) {
 
 // SettingsManager initialisieren
 $settingsManager = new SettingsManager();
+$csrfToken = rex_csrf_token::factory('push_it_settings');
 
 // Request-Parameter
 $doSave = rex_request('save', 'bool');
 $doGenerate = rex_request('generate', 'bool');
 $doGenerateToken = rex_request('generate_token', 'bool');
+$hasAction = $doSave || $doGenerate || $doGenerateToken;
+
+if ($hasAction && (rex_request_method() !== 'post' || !$csrfToken->isValid())) {
+    echo rex_view::error('CSRF-Fehler bei der Verarbeitung der Einstellungen.');
+    $doSave = false;
+    $doGenerate = false;
+    $doGenerateToken = false;
+}
 
 // Actions verarbeiten
 if ($doSave) {

@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1] – 2026-05-28
+
+### Security
+- Backend-Seiten für mutierende Aktionen auf POST + CSRF umgestellt (Einstellungen, Versand, Subscriptions-Delete/Reparatur).
+- Subscriptions-Aktionen im Backend von GET-Links auf sichere POST-Formulare mit CSRF-Token umgestellt.
+
+### Changed
+- `Subscribe` API gehärtet:
+	- nur noch POST erlaubt
+	- Request- und Payload-Limits ergänzt
+	- strengere Validierung für Endpoint, Keys und Topics
+	- Topics werden normalisiert und auf erlaubte Zeichen/Länge begrenzt
+- `Unsubscribe` API gehärtet:
+	- nur noch POST erlaubt
+	- Input-Limit und Endpoint-Längenprüfung ergänzt
+	- Response-Ausgabe auf konsistentes REDAXO-JSON-Handling umgestellt
+- Redirects in der Subscriptions-Verwaltung auf serverseitige Redirects umgestellt (kein Inline-JS-Redirect mehr).
+
 ## [1.0.0] – 2026-04-17
 
 ### Added

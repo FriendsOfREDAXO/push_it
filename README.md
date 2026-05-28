@@ -1,6 +1,6 @@
 # PushIt - Web Push Notifications für REDAXO 5
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.0.1-blue)](CHANGELOG.md)
 [![REDAXO](https://img.shields.io/badge/REDAXO-%5E5.19-orange)](https://redaxo.org)
 [![PHP](https://img.shields.io/badge/PHP-%5E8.2-purple)](https://php.net)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE.md)

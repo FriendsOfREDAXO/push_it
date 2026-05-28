@@ -14,6 +14,7 @@ $isAdmin = rex::getUser()->isAdmin();
 
 // SendManager initialisieren
 $sendManager = new SendManager();
+$csrfToken = rex_csrf_token::factory('push_it_send');
 
 // Request-Parameter sammeln
 $formData = [
@@ -29,6 +30,11 @@ $formData = [
 
 $doSend = rex_request('send', 'bool');
 $testMode = rex_request('test_mode', 'bool');
+
+if ($doSend && (rex_request_method() !== 'post' || !$csrfToken->isValid())) {
+    echo rex_view::error('CSRF-Fehler beim Senden der Benachrichtigung.');
+    $doSend = false;
+}
 
 // Send-Action verarbeiten
 if ($doSend) {

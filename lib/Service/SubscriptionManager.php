@@ -215,7 +215,7 @@ class SubscriptionManager
      * @param bool $isAdmin
      * @return string
      */
-    public function renderTableHtml(array $subscriptions, bool $isAdmin): string
+    public function renderTableHtml(array $subscriptions, bool $isAdmin, string $csrfName = '', string $csrfValue = ''): string
     {
         if (empty($subscriptions)) {
             return '';
@@ -239,7 +239,7 @@ class SubscriptionManager
             <tbody>';
         
         foreach ($subscriptions as $subscription) {
-            $html .= $this->renderTableRow($subscription, $isAdmin);
+            $html .= $this->renderTableRow($subscription, $isAdmin, $csrfName, $csrfValue);
         }
         
         $html .= '
@@ -256,7 +256,7 @@ class SubscriptionManager
      * @param bool $isAdmin
      * @return string
      */
-    private function renderTableRow(array $subscription, bool $isAdmin): string
+    private function renderTableRow(array $subscription, bool $isAdmin, string $csrfName, string $csrfValue): string
     {
         $statusClass = $subscription['active'] ? 'success' : 'danger';
         $statusText = $subscription['active'] ? rex_i18n::msg('pushit_active_status') : rex_i18n::msg('pushit_inactive_status');
@@ -291,7 +291,7 @@ class SubscriptionManager
                 <span class="label label-' . $statusClass . '">' . $statusText . '</span>
                 ' . ($subscription['last_error'] ? '<br><small class="text-muted" title="' . rex_escape($subscription['last_error']) . '">' . rex_i18n::msg('pushit_error_status') . '</small>' : '') . '
             </td>
-            <td>' . $this->renderActionButtons($subscription, $isAdmin) . '</td>
+            <td>' . $this->renderActionButtons($subscription, $isAdmin, $csrfName, $csrfValue) . '</td>
         </tr>';
     }
     
@@ -302,18 +302,26 @@ class SubscriptionManager
      * @param bool $isAdmin
      * @return string
      */
-    private function renderActionButtons(array $subscription, bool $isAdmin): string
+    private function renderActionButtons(array $subscription, bool $isAdmin, string $csrfName, string $csrfValue): string
     {
         if (!$isAdmin) {
             return '<span class="text-muted"><i class="rex-icon fa-lock"></i> Nur Admin</span>';
         }
-        
+
+        if ($csrfName === '' || $csrfValue === '') {
+            return '<span class="text-danger"><i class="rex-icon fa-warning"></i> CSRF fehlt</span>';
+        }
+
         return '
-        <a href="' . \rex_url::currentBackendPage(['action' => 'delete', 'id' => $subscription['id']]) . '" 
-           class="btn btn-xs btn-danger" 
-           onclick="return confirm(\'Subscription wirklich löschen?\')">
-            <i class="rex-icon fa-trash"></i> Löschen
-        </a>';
+        <form method="post" action="' . rex_escape((string) \rex_url::currentBackendPage()) . '" style="display:inline;" onsubmit="return confirm(\'Subscription wirklich löschen?\')">
+            <input type="hidden" name="page" value="' . rex_escape((string) \rex_be_controller::getCurrentPage()) . '">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="id" value="' . (int) $subscription['id'] . '">
+            <input type="hidden" name="' . rex_escape($csrfName) . '" value="' . rex_escape($csrfValue) . '">
+            <button type="submit" class="btn btn-xs btn-danger">
+                <i class="rex-icon fa-trash"></i> Löschen
+            </button>
+        </form>';
     }
     
     /**

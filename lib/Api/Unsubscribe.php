@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace FriendsOfREDAXO\PushIt\Api;
 
 use rex_api_function;
+use rex_api_result;
 use rex_sql;
 use rex_response;
 use rex_i18n;
@@ -30,9 +31,9 @@ class Unsubscribe extends rex_api_function
     /**
      * Führt die Abmeldung von Push-Benachrichtigungen aus
      * 
-     * @return void
+    * @return rex_api_result
      */
-    public function execute(): void
+    public function execute(): rex_api_result
     {
         rex_response::cleanOutputBuffers();
         // Content-Type für JSON-Response setzen
@@ -48,7 +49,7 @@ class Unsubscribe extends rex_api_function
             
             if ($requestData === null) {
                 $this->sendErrorResponse('Ungültige Request-Daten', 400);
-                return;
+                return new rex_api_result(false);
             }
             
             // Subscription in Datenbank suchen und deaktivieren
@@ -56,7 +57,7 @@ class Unsubscribe extends rex_api_function
             
             if ($subscriptionId === null) {
                 $this->sendErrorResponse('Subscription nicht gefunden', 404);
-                return;
+                return new rex_api_result(false);
             }
             
             // Erfolgsmeldung senden
@@ -65,6 +66,8 @@ class Unsubscribe extends rex_api_function
         } catch (\Throwable $e) {
             $this->sendErrorResponse(rex_i18n::msg('pushit_server_error'), 500);
         }
+
+        return new rex_api_result(true);
     }
     
     /**
@@ -189,7 +192,7 @@ class Unsubscribe extends rex_api_function
      */
     private function sendJson(array $data, int $statusCode): void
     {
-        rex_response::setStatus($statusCode);
+        rex_response::setStatus((string) $statusCode);
         rex_response::sendJson($data);
         exit;
     }

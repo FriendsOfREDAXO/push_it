@@ -1,0 +1,24 @@
+.pushit-send-ux .pushit-send-intro {
+	margin-bottom: 16px;
+}
+
+.pushit-send-ux .pushit-template-box {
+	border: 1px solid #d8e2ea;
+	border-radius: 6px;
+	background: #f8fbfd;
+	padding: 12px;
+	margin-bottom: 16px;
+}
+
+.pushit-send-ux .pushit-template-title {
+	font-weight: 600;
+	margin-bottom: 8px;
+}
+
+.pushit-send-ux .pushit-template-btn {
+	margin-right: 6px;
+}
+
+.pushit-send-ux #pushit-body-counter {
+	font-weight: 700;
+}

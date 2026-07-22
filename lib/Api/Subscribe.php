@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace FriendsOfREDAXO\PushIt\Api;
 
 use rex_api_function;
+use rex_api_result;
 use rex_logger;
 use rex_request;
 use rex_response;
@@ -39,9 +40,9 @@ class Subscribe extends rex_api_function
     /**
      * Führt die Subscription aus
      * 
-     * @return void
+    * @return rex_api_result
      */
-    public function execute(): void
+    public function execute(): rex_api_result
     {
         rex_response::cleanOutputBuffers();
         rex_response::setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -53,9 +54,10 @@ class Subscribe extends rex_api_function
         try {
             // JSON-Input validieren
             $input = file_get_contents('php://input');
-            if ($input === false || $input === '') {
+            if (!is_string($input) || $input === '') {
                 $this->sendJson(['success' => false, 'error' => 'no_input_data'], 400);
             }
+            $input = (string) $input;
 
             if (strlen($input) > self::MAX_INPUT_BYTES) {
                 $this->sendJson(['success' => false, 'error' => 'payload_too_large'], 413);
@@ -162,6 +164,8 @@ class Subscribe extends rex_api_function
             rex_logger::logException($e);
             $this->sendJson(['success' => false, 'error' => 'server_error'], 500);
         }
+
+        return new rex_api_result(true);
     }
     
     /**
@@ -180,6 +184,8 @@ class Subscribe extends rex_api_function
     {
         $sql = rex_sql::factory();
         $table = rex::getTable('push_it_subscriptions');
+        $subscriptionId = null;
+        $newTopics = $topics;
         
         // Prüfen ob Subscription bereits existiert (basierend auf endpoint - da UNIQUE constraint)
         $sql->setQuery(
@@ -189,9 +195,10 @@ class Subscribe extends rex_api_function
         
         if ($sql->getRows() > 0) {
             // Existierende Subscription gefunden
-            $existingUserType = $sql->getValue('user_type');
+            $subscriptionId = (int) $sql->getValue('id');
+            $existingUserType = (string) $sql->getValue('user_type');
             $existingUserId = $sql->getValue('user_id');
-            $existingTopics = $sql->getValue('topics') ?: '';
+            $existingTopics = (string) ($sql->getValue('topics') ?: '');
             
             // Entscheiden ob update oder error
             if ($userType === 'backend' && $existingUserType === 'frontend') {
@@ -260,6 +267,12 @@ class Subscribe extends rex_api_function
                 $lang,
                 $domain
             ]);
+
+            $subscriptionId = (int) $sql->getLastId();
+        }
+
+        if ($subscriptionId > 0) {
+            $this->syncSubscriptionTopics($subscriptionId, $newTopics);
         }
     }
 
@@ -334,12 +347,47 @@ class Subscribe extends rex_api_function
         return $value;
     }
 
+    private function hasTopicTable(): bool
+    {
+        $sql = rex_sql::factory();
+        $sql->setQuery('SHOW TABLES LIKE ?', [rex::getTable('push_it_subscription_topics')]);
+
+        return $sql->getRows() > 0;
+    }
+
+    private function syncSubscriptionTopics(int $subscriptionId, string $topics): void
+    {
+        if (!$this->hasTopicTable()) {
+            return;
+        }
+
+        $table = rex::getTable('push_it_subscription_topics');
+        $sql = rex_sql::factory();
+        $sql->setQuery('DELETE FROM ' . $table . ' WHERE subscription_id = ?', [$subscriptionId]);
+
+        if ($topics === '') {
+            return;
+        }
+
+        $values = array_unique(array_filter(array_map('trim', explode(',', strtolower($topics)))));
+        foreach ($values as $topic) {
+            if (preg_match('/^[a-z0-9_-]{1,40}$/', $topic) !== 1) {
+                continue;
+            }
+
+            $sql->setQuery(
+                'INSERT IGNORE INTO ' . $table . ' (subscription_id, topic) VALUES (?, ?)',
+                [$subscriptionId, $topic]
+            );
+        }
+    }
+
     /**
      * @param array<string, mixed> $data
      */
     private function sendJson(array $data, int $statusCode = 200): void
     {
-        rex_response::setStatus($statusCode);
+        rex_response::setStatus((string) $statusCode);
         rex_response::sendJson($data);
         exit;
     }

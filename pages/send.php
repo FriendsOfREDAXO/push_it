@@ -2,15 +2,16 @@
 use FriendsOfREDAXO\PushIt\Service\SendManager;
 
 $addon = rex_addon::get('push_it');
+$user = rex::getUser();
 
 // Berechtigung prüfen
-if (!rex::getUser()->hasPerm('push_it[]')) {
+if (!$user || !$user->hasPerm('push_it[]')) {
     echo rex_view::error(rex_i18n::msg('pushit_no_permission_send'));
     return;
 }
 
 // Prüfen ob User Admin ist (für erweiterte Features)
-$isAdmin = rex::getUser()->isAdmin();
+$isAdmin = $user->isAdmin();
 
 // SendManager initialisieren
 $sendManager = new SendManager();
@@ -45,7 +46,7 @@ if ($doSend) {
         if ($result['success']) {
             echo rex_view::success('✅ Test-Benachrichtigung erfolgreich gesendet!');
         } else {
-            echo rex_view::error('❌ Fehler beim Senden der Test-Benachrichtigung: ' . $result['message']);
+            echo rex_view::error('❌ Fehler beim Senden der Test-Benachrichtigung: ' . ($result['message'] ?? rex_i18n::msg('pushit_send_unknown_error')));
         }
     } else {
         // Normaler Versand

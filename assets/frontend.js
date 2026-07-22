@@ -1,5 +1,8 @@
 (function() {
   'use strict';
+
+  const PUSHIT_SW_PATH = '/assets/addons/push_it/sw.js';
+  const PUSHIT_SW_SCOPE = '/assets/addons/push_it/';
   
   // i18n-System für Frontend-Texte mit dynamischem Laden
   let translationsLoaded = false;
@@ -98,11 +101,11 @@
     
     try {
       // Service Worker registrieren oder vorhandenen abrufen
-      let reg = await navigator.serviceWorker.getRegistration('/assets/addons/push_it/sw.js');
+      let reg = await navigator.serviceWorker.getRegistration(PUSHIT_SW_SCOPE);
       if (!reg) {
         try {
-          reg = await navigator.serviceWorker.register('/assets/addons/push_it/sw.js', {
-            scope: '/assets/addons/push_it/'
+          reg = await navigator.serviceWorker.register(PUSHIT_SW_PATH, {
+            scope: PUSHIT_SW_SCOPE
           });
         } catch (registerError) {
           // Spezifische Behandlung für SSL/Fetch-Probleme
@@ -293,7 +296,7 @@
   
   async function unsubscribe() {
     try {
-      const reg = await navigator.serviceWorker.getRegistration('/assets/addons/push_it/');
+      const reg = await navigator.serviceWorker.getRegistration(PUSHIT_SW_SCOPE);
       const subscription = await reg?.pushManager.getSubscription();
       
       if (!subscription) {
@@ -328,7 +331,7 @@
   
   async function getSubscriptionStatus() {
     try {
-      const reg = await navigator.serviceWorker.getRegistration('/assets/addons/push_it/');
+      const reg = await navigator.serviceWorker.getRegistration(PUSHIT_SW_SCOPE);
       const subscription = await reg?.pushManager.getSubscription();
       return {
         isSubscribed: !!subscription,

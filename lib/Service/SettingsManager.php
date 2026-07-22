@@ -3,6 +3,7 @@
 namespace FriendsOfREDAXO\PushIt\Service;
 
 use rex_addon;
+use rex_addon_interface;
 use rex_view;
 use rex_escape;
 use rex_url;
@@ -16,7 +17,7 @@ use Exception;
  */
 class SettingsManager
 {
-    private rex_addon $addon;
+    private rex_addon_interface $addon;
     
     public function __construct()
     {
@@ -36,7 +37,7 @@ class SettingsManager
     /**
      * Speichert die Einstellungen
      * 
-     * @param array $data
+    * @param array<string, mixed> $data
      * @return bool
      */
     public function saveSettings(array $data): bool
@@ -67,7 +68,7 @@ class SettingsManager
     /**
      * Generiert neue VAPID-Schlüssel
      * 
-     * @return array ['success' => bool, 'message' => string, 'keys' => array|null]
+    * @return array{success: bool, message: string, keys: array<string, string>|null}
      */
     public function generateVapidKeys(): array
     {
@@ -102,7 +103,7 @@ class SettingsManager
     /**
      * Generiert einen neuen Backend-Token
      * 
-     * @return array ['success' => bool, 'message' => string, 'token' => string|null]
+    * @return array{success: bool, message: string, token: string|null}
      */
     public function generateBackendToken(): array
     {
@@ -150,7 +151,21 @@ class SettingsManager
     /**
      * Lädt alle aktuellen Einstellungen
      * 
-     * @return array
+    * @return array{
+    *   subject: string,
+    *   publicKey: string,
+    *   privateKey: string,
+    *   backend_token: string,
+    *   backend_enabled: bool,
+    *   frontend_enabled: bool,
+    *   admin_notifications: bool,
+    *   backend_only_topics: string,
+    *   default_icon: string,
+    *   error_monitoring_enabled: bool,
+    *   error_monitoring_interval: int,
+    *   error_icon: string,
+    *   monitoring_mode: string
+    * }
      */
     public function getSettings(): array
     {
@@ -175,7 +190,7 @@ class SettingsManager
     /**
      * Erstellt das HTML für das Einstellungsformular
      * 
-     * @param array $settings
+    * @param array<string, mixed> $settings
      * @return string
      */
     public function renderSettingsForm(array $settings): string
@@ -203,7 +218,7 @@ class SettingsManager
     /**
      * Erstellt den VAPID-Bereich des Formulars
      * 
-     * @param array $settings
+    * @param array<string, mixed> $settings
      * @param bool $libAvailable
      * @return string
      */
@@ -243,7 +258,7 @@ class SettingsManager
     /**
      * Erstellt den Backend-Token-Bereich des Formulars
      * 
-     * @param array $settings
+    * @param array<string, mixed> $settings
      * @param bool $hasToken
      * @return string
      */
@@ -288,7 +303,7 @@ class SettingsManager
     /**
      * Erstellt den Feature-Bereich des Formulars
      * 
-     * @param array $settings
+    * @param array<string, mixed> $settings
      * @return string
      */
     private function renderFeatureSection(array $settings): string
@@ -451,7 +466,7 @@ class SettingsManager
     /**
      * Gibt die Liste der Backend-Only Topics zurück
      * 
-     * @return array
+    * @return array<string>
      */
     public function getBackendOnlyTopics(): array
     {
@@ -508,11 +523,13 @@ class SettingsManager
         $blockedTopics = array_intersect($requestedTopics, $backendOnlyTopics);
         if (!empty($blockedTopics)) {
             // Sicherheitswarnung loggen
-            error_log(sprintf(
-                'SECURITY WARNING: Frontend user attempted to subscribe to backend-only topics: %s from IP %s',
-                implode(',', $blockedTopics),
-                rex_request::server('REMOTE_ADDR', 'string', 'unknown')
-            ));
+            \rex_logger::factory()->warning(
+                'SECURITY WARNING: Frontend user attempted to subscribe to backend-only topics: {topics} from IP {ip}',
+                [
+                    'topics' => implode(',', $blockedTopics),
+                    'ip' => rex_request::server('REMOTE_ADDR', 'string', 'unknown'),
+                ]
+            );
         }
         
         $allowedTopics = array_diff($requestedTopics, $backendOnlyTopics);
@@ -523,7 +540,7 @@ class SettingsManager
     /**
      * Validiert die VAPID-Konfiguration
      * 
-     * @return array ['valid' => bool, 'issues' => array]
+    * @return array{valid: bool, issues: array<string>}
      */
     public function validateVapidConfig(): array
     {

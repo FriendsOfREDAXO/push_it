@@ -34,6 +34,9 @@ rex_api_function::register('push_it_unsubscribe', \FriendsOfREDAXO\PushIt\Api\Un
 
 // Backend Assets hinzufügen wenn Backend aktiviert ist
 if (rex::isBackend() && $addon->getConfig('backend_enabled')) {
+    $currentPage = (string) rex_be_controller::getCurrentPage();
+    $requestedPage = rex_request('page', 'string');
+
     // Sprache ermitteln
     $lang = rex::getUser() ? rex::getUser()->getLanguage() : 'de';
     $supportedLangs = ['de', 'en'];
@@ -49,9 +52,14 @@ if (rex::isBackend() && $addon->getConfig('backend_enabled')) {
     rex_view::addJsFile($addon->getAssetsUrl('frontend.js'));
     rex_view::addJsFile($addon->getAssetsUrl('backend.js'));
 
-    // Panel-spezifisches JS zentral über boot.php laden (nur auf backend_notify)
-    if (rex_be_controller::getCurrentPage() === 'push_it/backend_notify') {
+    // Panel-spezifische Assets zentral über boot.php laden
+    if ($currentPage === 'push_it/backend_notify' || $requestedPage === 'push_it/backend_notify') {
         rex_view::addJsFile($addon->getAssetsUrl('admin-backend-notify.js'));
+    }
+
+    if ($currentPage === 'push_it/send' || $requestedPage === 'push_it/send') {
+        rex_view::addCssFile($addon->getAssetsUrl('admin-send.css'));
+        rex_view::addJsFile($addon->getAssetsUrl('admin-send.js'));
     }
     
     // Sprache für JavaScript setzen
@@ -121,21 +129,40 @@ if ($addon->getConfig('admin_notifications') && $addon->getConfig('monitoring_mo
         $newContent = '';
         if ($lastLogSize > 0) {
             $file = fopen($logFile, 'r');
-            fseek($file, $lastLogSize);
-            $newContent = fread($file, $currentLogSize - $lastLogSize);
-            fclose($file);
+            $length = max(0, $currentLogSize - $lastLogSize);
+
+            if (is_resource($file) && $length > 0 && fseek($file, $lastLogSize) === 0) {
+                $chunk = fread($file, $length);
+                if (is_string($chunk)) {
+                    $newContent = $chunk;
+                }
+            }
+
+            if (is_resource($file)) {
+                fclose($file);
+            }
         } else {
             // Bei erstem Lauf nur die letzten 10KB lesen
             $file = fopen($logFile, 'r');
-            fseek($file, max(0, $currentLogSize - 10240));
-            $newContent = fread($file, 10240);
-            fclose($file);
+            $offset = max(0, $currentLogSize - 10240);
+            $length = min(10240, $currentLogSize);
+
+            if (is_resource($file) && $length > 0 && fseek($file, $offset) === 0) {
+                $chunk = fread($file, $length);
+                if (is_string($chunk)) {
+                    $newContent = $chunk;
+                }
+            }
+
+            if (is_resource($file)) {
+                fclose($file);
+            }
         }
         
         $addon->setConfig('last_log_size', $currentLogSize);
         
         // Nach Update-Meldungen suchen
-        if (preg_match('/AddOn\s+(\w+)\s+updated\s+from\s+([\d\.]+)\s+to\s+version\s+([\d\.]+)/i', $newContent, $matches)) {
+        if ($newContent !== '' && preg_match('/AddOn\s+(\w+)\s+updated\s+from\s+([\d\.]+)\s+to\s+version\s+([\d\.]+)/i', $newContent, $matches) === 1) {
             $addonName = $matches[1];
             $oldVersion = $matches[2];
             $newVersion = $matches[3];

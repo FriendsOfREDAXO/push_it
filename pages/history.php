@@ -2,9 +2,10 @@
 use FriendsOfREDAXO\PushIt\Service\HistoryManager;
 
 $addon = rex_addon::get('push_it');
+$user = rex::getUser();
 
 // Berechtigung prüfen
-if (!rex::getUser()->hasPerm('push_it[]')) {
+if (!$user || !$user->hasPerm('push_it[]')) {
     echo rex_view::error(rex_i18n::msg('pushit_no_permission_send'));
     return;
 }
@@ -27,17 +28,15 @@ if ($action) {
         $result = ['success' => false, 'message' => 'Ungültige Aktion oder fehlende ID'];
     }
     
-    if (isset($result)) {
-        if ($result['success']) {
-            echo rex_view::success($result['message']);
-        } else {
-            echo rex_view::error($result['message']);
-        }
-        
-        // Bei Delete-Actions redirect
-        if (in_array($action, ['delete', 'delete_all', 'delete_filtered']) && $result['success']) {
-            echo '<script>window.location.href = "' . rex_url::backendPage('push_it/history') . '";</script>';
-        }
+    if ($result['success']) {
+        echo rex_view::success($result['message']);
+    } else {
+        echo rex_view::error($result['message']);
+    }
+
+    // Bei Delete-Actions redirect
+    if (in_array($action, ['delete', 'delete_all', 'delete_filtered'], true) && $result['success']) {
+        echo '<script>window.location.href = "' . rex_url::backendPage('push_it/history') . '";</script>';
     }
 }
 

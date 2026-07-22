@@ -6,6 +6,7 @@ namespace FriendsOfREDAXO\PushIt\Service;
 
 use rex;
 use rex_addon;
+use rex_addon_interface;
 use rex_logger;
 use rex_sql;
 use Minishlink\WebPush\WebPush;
@@ -13,7 +14,8 @@ use Minishlink\WebPush\Subscription;
 
 class NotificationService
 {
-    private rex_addon $addon;
+    private rex_addon_interface $addon;
+    private ?bool $topicTableAvailable = null;
 
     public function __construct()
     {
@@ -218,11 +220,17 @@ class NotificationService
                     $this->updateSubscriptionSuccess((int) $sub['id']);
                 } else {
                     $errors++;
-                    $this->updateSubscriptionError((int) $sub['id'], (string) $result->getReason());
+                    $reason = (string) $result->getReason();
+                    $this->updateSubscriptionError((int) $sub['id'], $reason);
+
+                    if ($this->shouldDeactivateSubscription($result, $reason)) {
+                        $this->deactivateSubscription((int) $sub['id']);
+                    }
+
                     if (rex::isDebugMode()) {
                         rex_logger::factory()->warning('PushIt: send failed for sub {id}: {reason}', [
                             'id'     => $sub['id'],
-                            'reason' => $result->getReason(),
+                            'reason' => $reason,
                         ]);
                     }
                 }
@@ -250,28 +258,40 @@ class NotificationService
     private function getSubscriptions(string $userType, array $topics = []): array
     {
         $sql = rex_sql::factory();
-        
-        $where = ['active = 1'];
+        $subscriptionTable = rex::getTable('push_it_subscriptions');
+        $where = ['s.active = 1'];
         $params = [];
-        
+
         // User Type Filter
         if ($userType === 'backend') {
-            $where[] = "user_type = 'backend'";
+            $where[] = "s.user_type = 'backend'";
         } elseif ($userType === 'frontend') {
-            $where[] = "user_type = 'frontend'";
+            $where[] = "s.user_type = 'frontend'";
         }
         // bei 'both' keine Einschränkung
 
-        if ($topics !== []) {
+        $normalizedTopics = $this->normalizeTopics($topics);
+        $query = 'SELECT DISTINCT s.id, s.endpoint, s.p256dh, s.auth FROM ' . $subscriptionTable . ' s';
+
+        if ($normalizedTopics !== [] && $this->hasTopicTable()) {
+            $topicTable = rex::getTable('push_it_subscription_topics');
+            $query .= ' INNER JOIN ' . $topicTable . ' st ON st.subscription_id = s.id';
+
+            $topicPlaceholders = implode(',', array_fill(0, count($normalizedTopics), '?'));
+            $where[] = 'st.topic IN (' . $topicPlaceholders . ')';
+            foreach ($normalizedTopics as $topic) {
+                $params[] = $topic;
+            }
+        } elseif ($normalizedTopics !== []) {
             $topicConditions = [];
-            foreach ($topics as $topic) {
-                $topicConditions[] = 'FIND_IN_SET(?, topics)';
-                $params[] = trim($topic);
+            foreach ($normalizedTopics as $topic) {
+                $topicConditions[] = 'FIND_IN_SET(?, s.topics)';
+                $params[] = $topic;
             }
             $where[] = '(' . implode(' OR ', $topicConditions) . ')';
         }
 
-        $query = 'SELECT id, endpoint, p256dh, auth FROM rex_push_it_subscriptions WHERE ' . implode(' AND ', $where);
+        $query .= ' WHERE ' . implode(' AND ', $where);
 
         $sql->setQuery($query, $params);
 
@@ -298,20 +318,32 @@ class NotificationService
     private function getSubscriptionsByUserId(int $userId, array $topics = []): array
     {
         $sql = rex_sql::factory();
+        $subscriptionTable = rex::getTable('push_it_subscriptions');
 
-        $where  = ['active = 1', 'user_id = ?', "user_type = 'backend'"];
+        $where  = ['s.active = 1', 's.user_id = ?', "s.user_type = 'backend'"];
         $params = [$userId];
+        $normalizedTopics = $this->normalizeTopics($topics);
+        $query = 'SELECT DISTINCT s.id, s.endpoint, s.p256dh, s.auth FROM ' . $subscriptionTable . ' s';
 
-        if ($topics !== []) {
+        if ($normalizedTopics !== [] && $this->hasTopicTable()) {
+            $topicTable = rex::getTable('push_it_subscription_topics');
+            $query .= ' INNER JOIN ' . $topicTable . ' st ON st.subscription_id = s.id';
+
+            $topicPlaceholders = implode(',', array_fill(0, count($normalizedTopics), '?'));
+            $where[] = 'st.topic IN (' . $topicPlaceholders . ')';
+            foreach ($normalizedTopics as $topic) {
+                $params[] = $topic;
+            }
+        } elseif ($normalizedTopics !== []) {
             $topicConditions = [];
-            foreach ($topics as $topic) {
-                $topicConditions[] = 'FIND_IN_SET(?, topics)';
-                $params[] = trim($topic);
+            foreach ($normalizedTopics as $topic) {
+                $topicConditions[] = 'FIND_IN_SET(?, s.topics)';
+                $params[] = $topic;
             }
             $where[] = '(' . implode(' OR ', $topicConditions) . ')';
         }
 
-        $query = 'SELECT id, endpoint, p256dh, auth FROM rex_push_it_subscriptions WHERE ' . implode(' AND ', $where);
+        $query .= ' WHERE ' . implode(' AND ', $where);
 
         $sql->setQuery($query, $params);
 
@@ -335,7 +367,7 @@ class NotificationService
     private function updateSubscriptionSuccess(int $subscriptionId): void
     {
         $sql = rex_sql::factory();
-        $sql->setQuery('UPDATE rex_push_it_subscriptions SET last_error = NULL, updated = NOW() WHERE id = ?', [$subscriptionId]);
+        $sql->setQuery('UPDATE ' . rex::getTable('push_it_subscriptions') . ' SET last_error = NULL, updated = NOW() WHERE id = ?', [$subscriptionId]);
     }
 
     /**
@@ -344,7 +376,79 @@ class NotificationService
     private function updateSubscriptionError(int $subscriptionId, string $error): void
     {
         $sql = rex_sql::factory();
-        $sql->setQuery('UPDATE rex_push_it_subscriptions SET last_error = ?, updated = NOW() WHERE id = ?', [$error, $subscriptionId]);
+        $sql->setQuery('UPDATE ' . rex::getTable('push_it_subscriptions') . ' SET last_error = ?, updated = NOW() WHERE id = ?', [$error, $subscriptionId]);
+    }
+
+    /**
+     * Markiert eine Subscription als inaktiv und räumt Topic-Zuordnungen auf.
+     */
+    private function deactivateSubscription(int $subscriptionId): void
+    {
+        $sql = rex_sql::factory();
+        $sql->setQuery(
+            'UPDATE ' . rex::getTable('push_it_subscriptions') . ' SET active = 0, updated = NOW() WHERE id = ?',
+            [$subscriptionId]
+        );
+
+        if ($this->hasTopicTable()) {
+            $topicSql = rex_sql::factory();
+            $topicSql->setQuery(
+                'DELETE FROM ' . rex::getTable('push_it_subscription_topics') . ' WHERE subscription_id = ?',
+                [$subscriptionId]
+            );
+        }
+    }
+
+    /**
+     * Erkennt abgelaufene/ungültige Push-Endpoints und markiert sie zum Deaktivieren.
+     *
+     * @param object $result Web-Push Resultatobjekt
+     */
+    private function shouldDeactivateSubscription(object $result, string $reason): bool
+    {
+        if (method_exists($result, 'isSubscriptionExpired') && $result->isSubscriptionExpired()) {
+            return true;
+        }
+
+        $reasonLc = strtolower($reason);
+        foreach ([' 404 ', ' 410 ', 'expired', 'unregistered', 'gone'] as $needle) {
+            if (str_contains(' ' . $reasonLc . ' ', $needle)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array<string> $topics
+     * @return array<string>
+     */
+    private function normalizeTopics(array $topics): array
+    {
+        $cleaned = [];
+
+        foreach ($topics as $topic) {
+            $value = trim(strtolower($topic));
+            if ($value !== '') {
+                $cleaned[] = $value;
+            }
+        }
+
+        return array_values(array_unique($cleaned));
+    }
+
+    private function hasTopicTable(): bool
+    {
+        if ($this->topicTableAvailable !== null) {
+            return $this->topicTableAvailable;
+        }
+
+        $sql = rex_sql::factory();
+        $sql->setQuery('SHOW TABLES LIKE ?', [rex::getTable('push_it_subscription_topics')]);
+        $this->topicTableAvailable = $sql->getRows() > 0;
+
+        return $this->topicTableAvailable;
     }
 
     /**

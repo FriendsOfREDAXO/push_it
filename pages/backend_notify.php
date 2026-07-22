@@ -2,9 +2,10 @@
 use FriendsOfREDAXO\PushIt\Service\BackendNotificationManager;
 
 $addon = rex_addon::get('push_it');
+$user = rex::getUser();
 
 // Admin-Berechtigung prüfen
-$isAdmin = rex::getUser()->isAdmin();
+$isAdmin = $user?->isAdmin() ?? false;
 
 // BackendNotificationManager initialisieren
 $backendManager = new BackendNotificationManager();

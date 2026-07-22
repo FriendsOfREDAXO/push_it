@@ -259,7 +259,7 @@
       const hasAnswered = localStorage.getItem('push_it_backend_asked');
       console.log('PushIt: User has answered before:', hasAnswered);
       
-      if (!status.isSubscribed && !hasAnswered) {
+      if (!status.isSubscribed && !hasAnswered && shouldShowBackendPromptOnCurrentPage()) {
         console.log('PushIt: Showing backend notification prompt...');
         // Zeige eine Info-Nachricht anstatt automatisch zu fragen
         showBackendNotificationPrompt();
@@ -270,8 +270,26 @@
       console.warn('Backend Subscription Check failed:', error);
     }
   }
+
+  function shouldShowBackendPromptOnCurrentPage() {
+    const page = new URL(window.location.href).searchParams.get('page') || '';
+
+    // Auf arbeitsintensiven Seiten keinen Opt-in-Block einblenden.
+    const blockedPages = [
+      'push_it/send',
+      'push_it/history',
+      'push_it/subscriptions'
+    ];
+
+    return blockedPages.indexOf(page) === -1;
+  }
   
   function showBackendNotificationPrompt() {
+    const existingPrompt = document.getElementById('pushit-backend-optin-prompt');
+    if (existingPrompt) {
+      return;
+    }
+
     // Info-Banner in das Message-Container einfügen (Bootstrap 3 kompatibel)
     let messageContainer = document.getElementById('rex-message-container');
     
@@ -285,24 +303,26 @@
     }
     
     const promptHtml = `
-      <div class="alert alert-info alert-dismissible" role="alert" style="margin: 15px; display: block !important; visibility: visible !important;">
+      <div id="pushit-backend-optin-prompt" class="alert alert-info alert-dismissible" role="alert" style="margin: 6px 15px 10px; padding: 8px 32px 8px 10px; max-width: none;">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="declineBackendNotifications()">
           <span aria-hidden="true">&times;</span>
         </button>
-        <h4><i class="rex-icon fa-bell"></i> ${t('backend.notifications_title')}</h4>
-        <p>${t('backend.notifications_prompt')}</p>
-        <div class="btn-group" role="group" style="margin-top: 10px;">
-          <button type="button" class="btn btn-success btn-sm" onclick="activateBackendNotifications()">
-            <i class="rex-icon fa-bell"></i> ${t('backend.activate_button')}
-          </button>
-          <button type="button" class="btn btn-default btn-sm" onclick="declineBackendNotifications()">
-            ${t('backend.decline_button')}
-          </button>
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <strong style="margin-right: 4px;"><i class="rex-icon fa-bell"></i> ${t('backend.notifications_title')}:</strong>
+          <span>${t('backend.notifications_prompt')}</span>
+          <div class="btn-group btn-group-xs" role="group" style="margin-left: auto;">
+            <button type="button" class="btn btn-success" onclick="activateBackendNotifications()">
+              <i class="rex-icon fa-bell"></i> ${t('backend.activate_button')}
+            </button>
+            <button type="button" class="btn btn-default" onclick="declineBackendNotifications()">
+              ${t('backend.decline_button')}
+            </button>
+          </div>
         </div>
       </div>
     `;
     
-    messageContainer.innerHTML = promptHtml;
+    messageContainer.insertAdjacentHTML('afterbegin', promptHtml);
   }
   
   // Globale Funktionen für die Buttons
@@ -334,7 +354,7 @@
   window.declineBackendNotifications = function() {
     localStorage.setItem('push_it_backend_asked', 'declined');
     // Alert schließen
-    const alert = document.querySelector('#rex-message-container .alert');
+    const alert = document.getElementById('pushit-backend-optin-prompt');
     if (alert) {
       alert.remove();
     }

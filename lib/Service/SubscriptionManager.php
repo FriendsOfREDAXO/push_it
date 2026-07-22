@@ -42,7 +42,7 @@ class SubscriptionManager
     /**
      * Holt alle Subscriptions aus der Datenbank mit Username-Auflösung
      * 
-     * @return array
+        * @return array<int, array<string, mixed>>
      */
     public function getAllSubscriptions(): array
     {
@@ -60,18 +60,19 @@ class SubscriptionManager
         
         $subscriptions = [];
         for ($i = 0; $i < $sql->getRows(); $i++) {
-            $userId = $sql->getValue('user_id');
-            $username = $sql->getValue('username');
+            $userIdRaw = $sql->getValue('user_id');
+            $userId = is_numeric($userIdRaw) ? (int) $userIdRaw : null;
+            $username = (string) $sql->getValue('username');
             
             // Fallback wenn kein Username aus JOIN verfügbar
-            if (!$username && $userId) {
+            if ($username === '' && $userId !== null) {
                 $username = $this->getUsernameById($userId);
             }
             
             $subscriptions[] = [
                 'id' => $sql->getValue('id'),
                 'user_id' => $userId,
-                'username' => $username ?: '-',
+                'username' => $username !== '' ? $username : '-',
                 'user_type' => $sql->getValue('user_type'),
                 'endpoint' => $sql->getValue('endpoint'),
                 'endpoint_short' => $sql->getValue('endpoint_short'),
@@ -143,22 +144,22 @@ class SubscriptionManager
     /**
      * Formatiert die Benutzer-Anzeige für die Tabelle
      * 
-     * @param array $subscription
+        * @param array<string, mixed> $subscription
      * @return string
      */
     public function formatUserDisplay(array $subscription): string
     {
-        $userDisplay = $subscription['username'];
+        $userDisplay = (string) ($subscription['username'] ?? '-');
         
-        if ($subscription['user_type'] === 'backend') {
-            if ($subscription['user_id'] && $subscription['username'] !== '-') {
+        if (($subscription['user_type'] ?? '') === 'backend') {
+            if (($subscription['user_id'] ?? null) && ($subscription['username'] ?? '-') !== '-') {
                 $userDisplay .= ' <small class="text-muted">(ID: ' . $subscription['user_id'] . ')</small>';
-            } elseif ($subscription['user_id'] && $subscription['username'] === '-') {
+            } elseif (($subscription['user_id'] ?? null) && ($subscription['username'] ?? '-') === '-') {
                 $userDisplay = 'User #' . $subscription['user_id'] . ' <small class="text-warning">(gelöscht)</small>';
             } else {
                 $userDisplay = '<span class="text-warning"><em>Backend-User (keine ID)</em></span>';
             }
-        } elseif ($subscription['user_type'] === 'frontend') {
+        } elseif (($subscription['user_type'] ?? '') === 'frontend') {
             $userDisplay = '<em class="text-muted">Frontend-User</em>';
         }
         
@@ -168,7 +169,7 @@ class SubscriptionManager
     /**
      * Erstellt HTML für Subscription-Statistiken
      * 
-     * @param array $stats
+    * @param array<string, mixed> $stats
      * @return string
      */
     public function renderStatsHtml(array $stats): string
@@ -212,7 +213,7 @@ class SubscriptionManager
     /**
      * Erstellt HTML für die Subscription-Tabelle
      * 
-     * @param array $subscriptions
+    * @param array<int, array<string, mixed>> $subscriptions
      * @param bool $isAdmin
      * @return string
      */
@@ -253,44 +254,45 @@ class SubscriptionManager
     /**
      * Erstellt HTML für eine Tabellenzeile
      * 
-     * @param array $subscription
+    * @param array<string, mixed> $subscription
      * @param bool $isAdmin
      * @return string
      */
     private function renderTableRow(array $subscription, bool $isAdmin, string $csrfName, string $csrfValue): string
     {
-        $statusClass = $subscription['active'] ? 'success' : 'danger';
-        $statusText = $subscription['active'] ? rex_i18n::msg('pushit_active_status') : rex_i18n::msg('pushit_inactive_status');
+        $statusClass = !empty($subscription['active']) ? 'success' : 'danger';
+        $statusText = !empty($subscription['active']) ? rex_i18n::msg('pushit_active_status') : rex_i18n::msg('pushit_inactive_status');
         
-        if ($subscription['last_error']) {
+        if (!empty($subscription['last_error'])) {
             $statusClass = 'warning';
             $statusText = rex_i18n::msg('pushit_error_status');
         }
         
-        $userAgent = $subscription['ua'] ? substr($subscription['ua'], 0, 50) . '...' : '-';
-        $topics = $subscription['topics'] ?: '-';
+        $userAgentValue = (string) ($subscription['ua'] ?? '');
+        $userAgent = $userAgentValue !== '' ? substr($userAgentValue, 0, 50) . '...' : '-';
+        $topics = (string) (($subscription['topics'] ?? '') !== '' ? $subscription['topics'] : '-');
         $userDisplay = $this->formatUserDisplay($subscription);
         
         return '
         <tr>
             <td>' . $subscription['id'] . '</td>
             <td>
-                <span class="label label-' . ($subscription['user_type'] === 'backend' ? 'primary' : 'default') . '">
-                    ' . ucfirst($subscription['user_type']) . '
+                <span class="label label-' . (($subscription['user_type'] ?? '') === 'backend' ? 'primary' : 'default') . '">
+                    ' . ucfirst((string) ($subscription['user_type'] ?? '')) . '
                 </span>
             </td>
             <td>' . $userDisplay . '</td>
             <td>
-                <small title="' . rex_escape($subscription['endpoint']) . '">
-                    ' . rex_escape($subscription['endpoint_short']) . '...
+                <small title="' . rex_escape((string) ($subscription['endpoint'] ?? '')) . '">
+                    ' . rex_escape((string) ($subscription['endpoint_short'] ?? '')) . '...
                 </small>
             </td>
             <td>' . rex_escape($topics) . '</td>
             <td><small>' . rex_escape($userAgent) . '</small></td>
-            <td>' . $this->formatCreatedDate($subscription['created']) . '</td>
+            <td>' . $this->formatCreatedDate(isset($subscription['created']) ? (string) $subscription['created'] : null) . '</td>
             <td>
                 <span class="label label-' . $statusClass . '">' . $statusText . '</span>
-                ' . ($subscription['last_error'] ? '<br><small class="text-muted" title="' . rex_escape($subscription['last_error']) . '">' . rex_i18n::msg('pushit_error_status') . '</small>' : '') . '
+                ' . (!empty($subscription['last_error']) ? '<br><small class="text-muted" title="' . rex_escape((string) $subscription['last_error']) . '">' . rex_i18n::msg('pushit_error_status') . '</small>' : '') . '
             </td>
             <td>' . $this->renderActionButtons($subscription, $isAdmin, $csrfName, $csrfValue) . '</td>
         </tr>';
@@ -299,7 +301,7 @@ class SubscriptionManager
     /**
      * Erstellt HTML für Aktions-Buttons
      * 
-     * @param array $subscription
+    * @param array<string, mixed> $subscription
      * @param bool $isAdmin
      * @return string
      */
@@ -317,7 +319,7 @@ class SubscriptionManager
         <form method="post" action="' . rex_escape((string) \rex_url::currentBackendPage()) . '" style="display:inline;" onsubmit="return confirm(\'Subscription wirklich löschen?\')">
             <input type="hidden" name="page" value="' . rex_escape((string) \rex_be_controller::getCurrentPage()) . '">
             <input type="hidden" name="action" value="delete">
-            <input type="hidden" name="id" value="' . (int) $subscription['id'] . '">
+            <input type="hidden" name="id" value="' . (int) ($subscription['id'] ?? 0) . '">
             <input type="hidden" name="' . rex_escape($csrfName) . '" value="' . rex_escape($csrfValue) . '">
             <button type="submit" class="btn btn-xs btn-danger">
                 <i class="rex-icon fa-trash"></i> Löschen

@@ -38,3 +38,47 @@ rex_sql_table::get(rex::getTable('push_it_subscriptions'))
     ->ensureIndex(new rex_sql_index('user_type', ['user_type']))
     ->ensureIndex(new rex_sql_index('active', ['active']))
     ->ensure();
+
+rex_sql_table::get(rex::getTable('push_it_subscription_topics'))
+    ->ensurePrimaryIdColumn()
+    ->ensureColumn(new rex_sql_column('subscription_id', 'int(10) unsigned'))
+    ->ensureColumn(new rex_sql_column('topic', 'varchar(40)'))
+    ->ensureIndex(new rex_sql_index('subscription_id', ['subscription_id']))
+    ->ensureIndex(new rex_sql_index('topic', ['topic']))
+    ->ensureIndex(new rex_sql_index('subscription_topic_unique', ['subscription_id', 'topic'], rex_sql_index::UNIQUE))
+    ->ensure();
+
+// Legacy CSV-Topics in Pivot-Tabelle synchronisieren.
+$subscriptionTable = rex::getTable('push_it_subscriptions');
+$topicTable = rex::getTable('push_it_subscription_topics');
+$sql = rex_sql::factory();
+$topicSql = rex_sql::factory();
+
+$sql->setQuery('SELECT id, topics FROM ' . $subscriptionTable . ' WHERE topics IS NOT NULL AND topics <> ""');
+for ($i = 0; $i < $sql->getRows(); ++$i) {
+    $subscriptionId = (int) $sql->getValue('id');
+    $topicsRaw = (string) $sql->getValue('topics');
+    $topics = array_unique(array_filter(array_map('trim', explode(',', strtolower($topicsRaw)))));
+
+    $topicSql->setQuery('DELETE FROM ' . $topicTable . ' WHERE subscription_id = ?', [$subscriptionId]);
+
+    $normalizedTopics = [];
+    foreach ($topics as $topic) {
+        if (preg_match('/^[a-z0-9_-]{1,40}$/', $topic) !== 1) {
+            continue;
+        }
+
+        $normalizedTopics[] = $topic;
+        $topicSql->setQuery(
+            'INSERT IGNORE INTO ' . $topicTable . ' (subscription_id, topic) VALUES (?, ?)',
+            [$subscriptionId, $topic]
+        );
+    }
+
+    $topicSql->setQuery(
+        'UPDATE ' . $subscriptionTable . ' SET topics = ? WHERE id = ?',
+        [implode(',', $normalizedTopics), $subscriptionId]
+    );
+
+    $sql->next();
+}

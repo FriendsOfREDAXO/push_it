@@ -14,9 +14,9 @@ $backendManager  = new BackendNotificationManager();
 $subManager      = new SubscriptionManager();
 
 $settings     = $settingsManager->getSettings();
-$hasVapidKeys = ($settings['publicKey'] ?? '') !== '' && ($settings['privateKey'] ?? '') !== '';
-$hasSubject   = ($settings['subject'] ?? '') !== '';
-$hasToken     = ($settings['backend_token'] ?? '') !== '';
+$hasVapidKeys = $settings['publicKey'] !== '' && $settings['privateKey'] !== '';
+$hasSubject   = $settings['subject'] !== '';
+$hasToken     = $settings['backend_token'] !== '';
 $libraryOk    = $settingsManager->isLibraryAvailable();
 
 // Setup-Schritte ermitteln

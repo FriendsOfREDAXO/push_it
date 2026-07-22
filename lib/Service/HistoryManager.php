@@ -12,6 +12,8 @@ class HistoryManager
 {
     /**
      * Verarbeitet Aktionen (resend, delete, delete_all)
+    *
+    * @return array{success: bool, message: string}
      */
     public function processAction(string $action, int $id): array
     {
@@ -41,6 +43,8 @@ class HistoryManager
     
     /**
      * Sendet eine Nachricht erneut
+        *
+        * @return array{success: bool, message: string}
      */
     private function resendNotification(int $id): array
     {
@@ -53,13 +57,14 @@ class HistoryManager
         
         try {
             $service = new NotificationService();
-            $topics = $sql->getValue('topics') ? explode(',', $sql->getValue('topics')) : [];
+            $topicsRaw = (string) $sql->getValue('topics');
+            $topics = $topicsRaw !== '' ? array_values(array_filter(array_map('trim', explode(',', $topicsRaw)))) : [];
             
             $result = $service->sendNotification(
-                $sql->getValue('title'),
-                $sql->getValue('body'),
-                $sql->getValue('url'),
-                $sql->getValue('user_type'),
+                (string) $sql->getValue('title'),
+                (string) $sql->getValue('body'),
+                (string) $sql->getValue('url'),
+                (string) $sql->getValue('user_type'),
                 $topics
             );
             
@@ -67,8 +72,8 @@ class HistoryManager
                 'success' => true,
                 'message' => sprintf(
                     rex_i18n::msg('pushit_message_resent_success'),
-                    $result['sent'],
-                    $result['errors']
+                    (int) ($result['sent'] ?? 0),
+                    (int) ($result['failed'] ?? 0)
                 )
             ];
             
@@ -79,6 +84,8 @@ class HistoryManager
     
     /**
      * Löscht eine Nachricht aus der Historie
+        *
+        * @return array{success: bool, message: string}
      */
     private function deleteNotification(int $id): array
     {
@@ -90,6 +97,8 @@ class HistoryManager
     
     /**
      * Löscht alle Nachrichten aus der Historie
+        *
+        * @return array{success: bool, message: string}
      */
     private function deleteAllFiltered(): array
     {
@@ -109,6 +118,9 @@ class HistoryManager
     
     /**
      * Löscht gefilterte Nachrichten aus der Historie
+        *
+        * @param array{user_type?: string, topics?: string, date?: string} $filters
+        * @return array{success: bool, message: string}
      */
     private function deleteFilteredNotifications(array $filters): array
     {
@@ -127,9 +139,7 @@ class HistoryManager
                 $topicConditions[] = "FIND_IN_SET(?, topics) > 0";
                 $params[] = $topic;
             }
-            if (!empty($topicConditions)) {
-                $whereConditions[] = '(' . implode(' OR ', $topicConditions) . ')';
-            }
+            $whereConditions[] = '(' . implode(' OR ', $topicConditions) . ')';
         }
         
         if (!empty($filters['date'])) {
@@ -159,6 +169,9 @@ class HistoryManager
     
     /**
      * Lädt gefilterte Nachrichten mit Pagination
+        *
+        * @param array{user_type?: string, topics?: string, date?: string} $filters
+        * @return array{notifications: array<int, array<string, mixed>>, total: int, count: int}
      */
     public function getNotifications(array $filters = [], int $limit = 20, int $offset = 0): array
     {
@@ -185,7 +198,7 @@ class HistoryManager
         // Gesamt-Anzahl für Pagination
         $sqlCount = rex_sql::factory();
         $sqlCount->setQuery("SELECT COUNT(*) as total FROM rex_push_it_notifications $whereClause", $params);
-        $totalNotifications = $sqlCount->getValue('total');
+        $totalNotifications = (int) $sqlCount->getValue('total');
         
         // Nachrichten mit Pagination abrufen
         $sql = rex_sql::factory();
@@ -222,6 +235,8 @@ class HistoryManager
     
     /**
      * Lädt Versand-Statistiken
+        *
+        * @return array{total_notifications: int, total_sent: int, total_errors: int, avg_recipients: float|int}
      */
     public function getStatistics(): array
     {
@@ -256,6 +271,8 @@ class HistoryManager
     
     /**
      * Rendert das Filter-Formular
+        *
+        * @param array{user_type?: string, topics?: string, date?: string} $filters
      */
     public function renderFilterForm(array $filters = [], int $limit = 20): string
     {
@@ -409,6 +426,9 @@ class HistoryManager
     
     /**
      * Rendert die Nachrichten-Tabelle
+        *
+        * @param array<int, array<string, mixed>> $notifications
+        * @param array{user_type?: string, topics?: string, date?: string} $filters
      */
     public function renderNotificationsTable(array $notifications, int $totalNotifications, int $limit, int $offset, array $filters = []): string
     {
@@ -493,6 +513,8 @@ class HistoryManager
     
     /**
      * Rendert eine Tabellenzeile für eine Nachricht
+        *
+        * @param array<string, mixed> $notification
      */
     private function renderNotificationRow(array $notification): string
     {
@@ -577,6 +599,8 @@ class HistoryManager
     
     /**
      * Rendert die Pagination
+        *
+        * @param array{user_type?: string, topics?: string, date?: string} $filters
      */
     private function renderPagination(int $totalNotifications, int $limit, int $offset, array $filters): string
     {

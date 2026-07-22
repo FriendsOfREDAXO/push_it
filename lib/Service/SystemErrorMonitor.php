@@ -7,6 +7,7 @@ namespace FriendsOfREDAXO\PushIt\Service;
 use LimitIterator;
 use rex;
 use rex_addon;
+use rex_addon_interface;
 use rex_formatter;
 use rex_i18n;
 use rex_log_entry;
@@ -24,7 +25,7 @@ use IntlDateFormatter;
  */
 class SystemErrorMonitor
 {
-    private rex_addon $addon;
+    private rex_addon_interface $addon;
     private NotificationService $notificationService;
 
     public function __construct()
@@ -90,7 +91,7 @@ class SystemErrorMonitor
         // Debug-Log (nur in Debug-Modus)
         if (rex::isDebugMode()) {
             $mode = $isCronjobMode ? 'Cronjob' : 'Realtime';
-            rex_logger::factory()->info('Push-It Error Monitor (' . $mode . '): Starte Fehlerprüfung');
+            rex_logger::factory()->info('Push-It Error Monitor ({mode}): Starte Fehlerprüfung', ['mode' => $mode]);
         }
 
         $logFile = rex_path::log('system.log');
@@ -112,8 +113,8 @@ class SystemErrorMonitor
 
         // Debug: Aktuelle Log-Größe
         if (rex::isDebugMode()) {
-            rex_logger::factory()->info('Push-It Error Monitor: Log-Datei Größe: ' . filesize($logFile) . ' Bytes');
-            rex_logger::factory()->info('Push-It Error Monitor: Letzte Push-Zeit: ' . date('Y-m-d H:i:s', $lastSendTime));
+            rex_logger::factory()->info('Push-It Error Monitor: Log-Datei Größe: {bytes} Bytes', ['bytes' => filesize($logFile)]);
+            rex_logger::factory()->info('Push-It Error Monitor: Letzte Push-Zeit: {time}', ['time' => date('Y-m-d H:i:s', $lastSendTime)]);
         }
 
         /** @var rex_log_entry $entry */
@@ -150,7 +151,7 @@ class SystemErrorMonitor
 
         // Debug: Gefundene neue Fehler
         if (rex::isDebugMode()) {
-            rex_logger::factory()->info('Push-It Error Monitor: ' . $newErrorCount . ' neue Fehler seit letztem Push gefunden');
+            rex_logger::factory()->info('Push-It Error Monitor: {count} neue Fehler seit letztem Push gefunden', ['count' => $newErrorCount]);
         }
 
         // Wenn keine neuen Fehler gefunden wurden, beenden
@@ -176,7 +177,10 @@ class SystemErrorMonitor
         // Debug-Log
         if (rex::isDebugMode()) {
             $mode = $isCronjobMode ? 'Cronjob' : 'Realtime';
-            rex_logger::factory()->info('Push-It Error Monitor (' . $mode . '): Sende Benachrichtigung für ' . $newErrorCount . ' neue Fehler');
+            rex_logger::factory()->info(
+                'Push-It Error Monitor ({mode}): Sende Benachrichtigung für {count} neue Fehler',
+                ['mode' => $mode, 'count' => $newErrorCount]
+            );
         }
 
         // Push-Benachrichtigung senden
@@ -187,7 +191,9 @@ class SystemErrorMonitor
     }
 
     /**
-     * Sendet Push-Benachrichtigung für System-Fehler
+    * Sendet Push-Benachrichtigung für System-Fehler.
+    *
+    * @param array<int, array<string, mixed>> $errorMessages
      */
     private function sendErrorNotification(array $errorMessages, int $errorCount): void
     {
@@ -196,8 +202,8 @@ class SystemErrorMonitor
         
         // URL-Informationen aus dem neuesten Fehler extrahieren
         $latestError = $errorMessages[0];
-        $errorUrl = $latestError['url'] ?? '';
-        $errorFile = $latestError['file'] ?? '';
+        $errorUrl = (string) ($latestError['url'] ?? '');
+        $errorFile = (string) ($latestError['file'] ?? '');
         
         // Domain und URL-Info für die Nachricht aufbereiten
         $locationInfo = '';
@@ -269,7 +275,9 @@ class SystemErrorMonitor
     }
 
     /**
-     * Sendet Push-Benachrichtigung an alle Backend-Benutzer mit System-Topic
+    * Sendet Push-Benachrichtigung an alle Backend-Benutzer mit System-Topic.
+    *
+    * @param array<string, mixed> $pushData
      */
     private function sendToSystemSubscribers(array $pushData): void
     {
@@ -344,7 +352,9 @@ class SystemErrorMonitor
     }
 
     /**
-     * Liefert aktuellen Status des Error Monitoring
+    * Liefert aktuellen Status des Error Monitoring.
+    *
+    * @return array{enabled: bool, interval: int, last_check: int, error_icon: string, subscriber_count: int}
      */
     public function getErrorMonitoringStatus(): array
     {
@@ -363,14 +373,32 @@ class SystemErrorMonitor
     private function getSystemSubscriberCount(): int
     {
         $sql = rex_sql::factory();
-        $sql->setQuery("
-            SELECT COUNT(*) as count 
-            FROM rex_push_it_subscriptions 
-            WHERE active = 1 
-            AND user_type = 'backend' 
-            AND (topics LIKE '%system%' OR topics LIKE '%admin%')
-        ");
-        
+        $subscriptionTable = rex::getTable('push_it_subscriptions');
+        $topicTable = rex::getTable('push_it_subscription_topics');
+
+        $sql->setQuery('SHOW TABLES LIKE ?', [$topicTable]);
+        if ($sql->getRows() > 0) {
+            $sql->setQuery(
+                'SELECT COUNT(DISTINCT s.id) as count
+                 FROM ' . $subscriptionTable . ' s
+                 INNER JOIN ' . $topicTable . ' st ON st.subscription_id = s.id
+                 WHERE s.active = 1
+                 AND s.user_type = ?
+                 AND st.topic IN (?, ?)',
+                ['backend', 'system', 'admin']
+            );
+
+            return (int) $sql->getValue('count');
+        }
+
+        $sql->setQuery(
+            'SELECT COUNT(*) as count
+             FROM ' . $subscriptionTable . "
+             WHERE active = 1
+             AND user_type = 'backend'
+             AND (topics LIKE '%system%' OR topics LIKE '%admin%')"
+        );
+
         return (int) $sql->getValue('count');
     }
 
@@ -404,21 +432,39 @@ class SystemErrorMonitor
         $newContent = '';
         if ($lastLogSize > 0) {
             $file = fopen($logFile, 'r');
-            fseek($file, $lastLogSize);
-            $newContent = fread($file, $currentLogSize - $lastLogSize);
-            fclose($file);
+            $length = max(0, $currentLogSize - $lastLogSize);
+            if (is_resource($file) && $length > 0 && fseek($file, $lastLogSize) === 0) {
+                $chunk = fread($file, $length);
+                if (is_string($chunk)) {
+                    $newContent = $chunk;
+                }
+            }
+
+            if (is_resource($file)) {
+                fclose($file);
+            }
         } else {
             // Bei erstem Lauf nur die letzten 10KB lesen
             $file = fopen($logFile, 'r');
-            fseek($file, max(0, $currentLogSize - 10240));
-            $newContent = fread($file, 10240);
-            fclose($file);
+            $offset = max(0, $currentLogSize - 10240);
+            $length = min(10240, $currentLogSize);
+
+            if (is_resource($file) && $length > 0 && fseek($file, $offset) === 0) {
+                $chunk = fread($file, $length);
+                if (is_string($chunk)) {
+                    $newContent = $chunk;
+                }
+            }
+
+            if (is_resource($file)) {
+                fclose($file);
+            }
         }
         
         $this->addon->setConfig('last_log_size', $currentLogSize);
         
         // Nach Update-Meldungen suchen
-        if (preg_match('/AddOn\s+(\w+)\s+updated\s+from\s+([\d\.]+)\s+to\s+version\s+([\d\.]+)/i', $newContent, $matches)) {
+        if ($newContent !== '' && preg_match('/AddOn\s+(\w+)\s+updated\s+from\s+([\d\.]+)\s+to\s+version\s+([\d\.]+)/i', $newContent, $matches) === 1) {
             $addonName = $matches[1];
             $oldVersion = $matches[2];
             $newVersion = $matches[3];

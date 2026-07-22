@@ -2,9 +2,10 @@
 use FriendsOfREDAXO\PushIt\Service\SubscriptionManager;
 
 $addon = rex_addon::get('push_it');
+$user = rex::getUser();
 
 // Admin-Berechtigung prüfen
-$isAdmin = rex::getUser()->isAdmin();
+$isAdmin = $user?->isAdmin() ?? false;
 
 // SubscriptionManager initialisieren
 $subscriptionManager = new SubscriptionManager();
@@ -78,7 +79,7 @@ if ($isAdmin) {
         <div class="alert alert-warning">
             <h4><i class="rex-icon fa-exclamation-triangle"></i> ' . rex_i18n::msg('pushit_backend_subscriptions_without_user_id') . '</h4>
             <p>' . rex_i18n::msg('pushit_backend_subscriptions_found', $backendSubscriptionsWithoutUserId) . '</p>
-            <form method="post" action="' . rex_escape(rex_url::currentBackendPage()) . '" style="display:inline;" onsubmit="return confirm(\'' . rex_i18n::msg('pushit_repair_subscriptions_confirm', rex::getUser()->getId()) . '\')">
+            <form method="post" action="' . rex_escape(rex_url::currentBackendPage()) . '" style="display:inline;" onsubmit="return confirm(\'' . rex_i18n::msg('pushit_repair_subscriptions_confirm', $user->getId()) . '\')">
                 <input type="hidden" name="page" value="' . rex_escape(rex_be_controller::getCurrentPage()) . '">
                 <input type="hidden" name="action" value="repair">
                 <input type="hidden" name="' . rex_escape($csrfName) . '" value="' . rex_escape($csrfValue) . '">

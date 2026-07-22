@@ -5,12 +5,13 @@ use rex_sql;
 use rex_fragment;
 use rex_url;
 use rex_addon;
+use rex_addon_interface;
 use rex_i18n;
 use rex;
 
 class BackendNotificationManager
 {
-    private $addon;
+    private rex_addon_interface $addon;
     
     public function __construct()
     {
@@ -179,13 +180,22 @@ class BackendNotificationManager
             </li>
         </ul>
 
-        <p><a href="' . rex_url::backendPage('push_it') . '" class="btn btn-default">
+        <p><a href="' . rex_url::backendPage('push_it/settings') . '" class="btn btn-default">
             <i class="rex-icon fa-cog"></i> ' . rex_i18n::msg('pushit_settings_change') . '
         </a></p>';
     }
     
     /**
      * Lädt Backend-Subscription Statistiken
+        *
+        * @return array{
+        *   total_backend: int,
+        *   active_backend: int,
+        *   system_subscribers: int,
+        *   admin_subscribers: int,
+        *   editorial_subscribers: int,
+        *   critical_subscribers: int
+        * }
      */
     public function getBackendStatistics(): array
     {
@@ -209,25 +219,10 @@ class BackendNotificationManager
                 $activeBackend = (int) $sql->getValue('active_backend');
             }
             
-            // Separate Abfragen für Topics um LIKE-Performance zu verbessern
-            $systemCount = 0;
-            $adminCount = 0;
-            $editorialCount = 0;
-            $criticalCount = 0;
-            
-            if ($totalBackend > 0) {
-                $sql->setQuery("SELECT COUNT(*) as count FROM rex_push_it_subscriptions WHERE user_type = 'backend' AND active = 1 AND topics LIKE '%system%'");
-                if ($sql->getRows() > 0) $systemCount = (int) $sql->getValue('count');
-                
-                $sql->setQuery("SELECT COUNT(*) as count FROM rex_push_it_subscriptions WHERE user_type = 'backend' AND active = 1 AND topics LIKE '%admin%'");
-                if ($sql->getRows() > 0) $adminCount = (int) $sql->getValue('count');
-                
-                $sql->setQuery("SELECT COUNT(*) as count FROM rex_push_it_subscriptions WHERE user_type = 'backend' AND active = 1 AND topics LIKE '%editorial%'");
-                if ($sql->getRows() > 0) $editorialCount = (int) $sql->getValue('count');
-                
-                $sql->setQuery("SELECT COUNT(*) as count FROM rex_push_it_subscriptions WHERE user_type = 'backend' AND active = 1 AND topics LIKE '%critical%'");
-                if ($sql->getRows() > 0) $criticalCount = (int) $sql->getValue('count');
-            }
+            $systemCount = $this->countActiveTopicSubscribers('system');
+            $adminCount = $this->countActiveTopicSubscribers('admin');
+            $editorialCount = $this->countActiveTopicSubscribers('editorial');
+            $criticalCount = $this->countActiveTopicSubscribers('critical');
             
             return [
                 'total_backend' => $totalBackend,
@@ -249,6 +244,33 @@ class BackendNotificationManager
                 'critical_subscribers' => 0
             ];
         }
+    }
+
+    private function countActiveTopicSubscribers(string $topic): int
+    {
+        $sql = rex_sql::factory();
+        $subscriptionTable = rex::getTable('push_it_subscriptions');
+        $topicTable = rex::getTable('push_it_subscription_topics');
+
+        $sql->setQuery('SHOW TABLES LIKE ?', [$topicTable]);
+        if ($sql->getRows() > 0) {
+            $sql->setQuery(
+                'SELECT COUNT(DISTINCT s.id) AS count
+                 FROM ' . $subscriptionTable . ' s
+                 INNER JOIN ' . $topicTable . ' st ON st.subscription_id = s.id
+                 WHERE s.user_type = ? AND s.active = 1 AND st.topic = ?',
+                ['backend', strtolower(trim($topic))]
+            );
+
+            return $sql->getRows() > 0 ? (int) $sql->getValue('count') : 0;
+        }
+
+        $sql->setQuery(
+            'SELECT COUNT(*) AS count FROM ' . $subscriptionTable . " WHERE user_type = 'backend' AND active = 1 AND topics LIKE ?",
+            ['%' . trim($topic) . '%']
+        );
+
+        return $sql->getRows() > 0 ? (int) $sql->getValue('count') : 0;
     }
     
     /**
@@ -315,7 +337,7 @@ class BackendNotificationManager
         return \rex_view::warning('
             <h4>' . rex_i18n::msg('pushit_vapid_keys_missing') . '</h4>
             <p>' . rex_i18n::msg('pushit_vapid_keys_required') . '</p>
-            <p><a href="' . rex_url::backendPage('push_it') . '" class="btn btn-primary">
+            <p><a href="' . rex_url::backendPage('push_it/settings') . '" class="btn btn-primary">
                 <i class="rex-icon fa-key"></i> ' . rex_i18n::msg('pushit_generate_vapid_keys') . '
             </a></p>
         ');
@@ -382,7 +404,7 @@ class BackendNotificationManager
             : null;
 
         $noCronjobHint = '';
-        if ($monitoringMode === 'cronjob' && $cronStats !== null && !$cronStats['is_configured']) {
+        if ($monitoringMode === 'cronjob' && !$cronStats['is_configured']) {
             $noCronjobHint = '<br><strong class="text-warning">&#9888; ' . rex_i18n::msg('pushit_monitor_no_cronjob_warning') . '</strong> '
                 . '<a href="/redaxo/index.php?page=cronjob">' . rex_i18n::msg('pushit_monitor_no_cronjob_setup') . '</a>';
         }
@@ -419,7 +441,7 @@ class BackendNotificationManager
                     <small>
                         <i class="rex-icon fa-warning"></i>
                         ' . rex_i18n::msg('pushit_monitor_disabled_info') . '
-                        <a href="' . rex_url::backendPage('push_it') . '">' . rex_i18n::msg('pushit_settings') . '</a>.
+                        <a href="' . rex_url::backendPage('push_it/settings') . '">' . rex_i18n::msg('pushit_settings') . '</a>.
                     </small>
                 </div>') . '
             </div>

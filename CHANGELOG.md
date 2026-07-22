@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] – 2026-07-21
+
+### Added
+- Neue Pivot-Tabelle `rex_push_it_subscription_topics` für performante Topic-Zuordnungen (Subscription ↔ Topic).
+- Idempotente Migration vorhandener CSV-Topics in die neue Topic-Tabelle beim Install/Update.
+
+### Changed
+- Service-Worker-Handling im Frontend vereinheitlicht: Registrierung und Lookup verwenden jetzt konsistent denselben Scope.
+- Topic-Filter beim Versand auf JOIN-basierte Abfragen gegen die neue Topic-Tabelle umgestellt (mit Fallback auf Legacy-CSV, falls die Tabelle noch nicht existiert).
+- Topic-Statistiken in Backend- und Monitoring-Bereichen auf die neue Topic-Tabelle umgestellt (mit Legacy-Fallback).
+- Send-Seite für Redakteure verbessert: klarer Schnellstart-Hinweis, Schnellvorlagen, Zeichenzähler und verständlichere Formularführung.
+- Panel-spezifische Assets für `push_it/send` werden zentral über `boot.php` geladen (inkl. robustem Seiten-Fallback über Request-Parameter).
+- Backend-Opt-in-Hinweis platzsparend überarbeitet: kompakter Einzeiler statt großem Block.
+
+### Fixed
+- Zustellhygiene verbessert: abgelaufene/ungültige Endpoints werden bei Delivery-Fehlern automatisch deaktiviert.
+- Monitoring-Dateizugriffe (Log-Lesen) robuster gemacht: sichere Stream-Guards für `fopen`/`fseek`/`fread` und Schutz bei leerem Inhalt.
+- RexStan-Fehler vollständig bereinigt: nullable User-Zugriffe in Backend-Seiten abgesichert, API-Execute-Signaturen auf `rex_api_result` ausgerichtet, Array-Typen in Service-Klassen präzisiert und SQL-/Payload-Werte konsequent typisiert.
+- History-Workflow stabilisiert: Wiederholversand nutzt korrekt typisierte Felder und konsistente Ergebnis-Keys (`failed` statt `errors`).
+- Backend-Statistik und Monitoring-Services mit präziseren Property-/Return-Typen versehen, inklusive PSR-3-konformer Logger-Placeholders.
+- Defekte Schaltflächen-Ziele im Backend korrigiert: „Einstellungen ändern“ verweist wieder auf `push_it/settings`.
+- Schnellvorlagen auf der Send-Seite funktionieren jetzt zuverlässig durch gehärtete Initialisierung (`DOMContentLoaded`, natives `rex:ready`, jQuery `rex:ready`) und idempotente Bindung.
+- Backend-Opt-in-Hinweis blockiert keine arbeitsintensiven Seiten mehr (`push_it/send`, `push_it/history`, `push_it/subscriptions`) und überschreibt nicht länger den gesamten Message-Container.
+
 ## [1.0.1] – 2026-05-28
 
 ### Security

@@ -4,6 +4,7 @@ namespace FriendsOfREDAXO\PushIt\Service;
 
 use FriendsOfREDAXO\PushIt\Service\NotificationService;
 use rex_addon;
+use rex_addon_interface;
 use rex_view;
 use rex_escape;
 use rex_url;
@@ -16,7 +17,7 @@ use rex_csrf_token;
  */
 class SendManager
 {
-    private rex_addon $addon;
+    private rex_addon_interface $addon;
     private NotificationService $notificationService;
     
     public function __construct()
@@ -28,9 +29,9 @@ class SendManager
     /**
      * Sendet eine Push-Notification basierend auf den übergebenen Daten
      * 
-     * @param array $data
+    * @param array<string, mixed> $data
      * @param bool $isAdmin
-     * @return array ['success' => bool, 'message' => string, 'result' => array|null]
+    * @return array{success: bool, message: string, result: array<string, mixed>|null}
      */
     public function sendNotification(array $data, bool $isAdmin): array
     {
@@ -85,7 +86,9 @@ class SendManager
     }
     
     /**
-     * Ermittelt verfügbare User-Typen basierend auf aktiven Subscriptions
+    * Ermittelt verfügbare User-Typen basierend auf aktiven Subscriptions.
+    *
+    * @return array<string, int>
      */
     private function getAvailableUserTypes(): array
     {
@@ -99,8 +102,8 @@ class SendManager
         
         $available = [];
         for ($i = 0; $i < $sql->getRows(); $i++) {
-            $userType = $sql->getValue('user_type');
-            $count = $sql->getValue('count');
+            $userType = (string) $sql->getValue('user_type');
+            $count = (int) $sql->getValue('count');
             $available[$userType] = $count;
             $sql->next();
         }
@@ -112,7 +115,7 @@ class SendManager
      * Parst den Topics-String in ein Array
      * 
      * @param string $topicsString
-     * @return array
+    * @return array<string>
      */
     private function parseTopics(string $topicsString): array
     {
@@ -122,9 +125,9 @@ class SendManager
     /**
      * Erstellt die Options für die Notification
      * 
-     * @param array $data
+    * @param array<string, mixed> $data
      * @param bool $isAdmin
-     * @return array
+    * @return array<string, string>
      */
     private function buildOptions(array $data, bool $isAdmin): array
     {
@@ -147,7 +150,10 @@ class SendManager
     }
     
     /**
-     * Sendet eine Test-Benachrichtigung an den aktuellen User mit den Formulardaten
+    * Sendet eine Test-Benachrichtigung an den aktuellen User mit den Formulardaten.
+    *
+    * @param array<string, mixed> $formData
+    * @return array<string, mixed>
      */
     public function sendTestNotification(array $formData = []): array
     {
@@ -220,7 +226,9 @@ class SendManager
     }
     
     /**
-     * Rendert das Send-Formular
+    * Rendert das Send-Formular.
+    *
+    * @param array<string, mixed> $formData
      */
     public function renderSendForm(array $formData, bool $isAdmin): string
     {
@@ -241,20 +249,35 @@ class SendManager
         $csrfValue = $csrfName !== '' ? (string) ($csrfParams[$csrfName] ?? '') : '';
         
         $content = '
-        <form action="' . rex_url::currentBackendPage() . '" method="post">
+        <div class="pushit-send-ux" data-is-admin="' . ($isAdmin ? '1' : '0') . '">
+        <div class="alert alert-info pushit-send-intro">
+            <strong>Schnellstart in 3 Schritten:</strong> 1) Vorlage wählen, 2) Empfänger prüfen, 3) Testversand nutzen und dann senden.
+        </div>
+
+        <div class="pushit-template-box">
+            <div class="pushit-template-title">Schnellvorlagen</div>
+            <div class="btn-group" role="group" aria-label="Schnellvorlagen">
+                <button type="button" class="btn btn-default btn-sm pushit-template-btn" data-title="Info" data-body="Kurze Information für alle Abonnenten." data-topics="updates">Info</button>
+                <button type="button" class="btn btn-default btn-sm pushit-template-btn" data-title="Wichtiger Hinweis" data-body="Bitte beachten Sie die aktuelle Änderung. Vielen Dank." data-topics="news,updates">Hinweis</button>
+                <button type="button" class="btn btn-default btn-sm pushit-template-btn" data-title="Wartung" data-body="Es gibt heute eine geplante Wartung. Details im Link." data-topics="system">Wartung</button>
+            </div>
+        </div>
+
+        <form id="pushit-send-form" action="' . rex_url::currentBackendPage() . '" method="post">
             <input type="hidden" name="page" value="' . rex_escape((string) \rex_be_controller::getCurrentPage()) . '">
             <input type="hidden" name="' . rex_escape($csrfName) . '" value="' . rex_escape($csrfValue) . '">
             <fieldset class="rex-form-col-1">
                 <div class="rex-form-group form-group">
                     <label class="control-label" for="title">' . rex_i18n::msg('pushit_title_required') . '</label>
-                    <input class="form-control" id="title" name="title" value="' . rex_escape($title) . '" required />
+                    <input class="form-control" id="title" name="title" value="' . rex_escape($title) . '" maxlength="80" required />
                     <p class="help-block">' . rex_i18n::msg('pushit_title_help') . '</p>
                 </div>
                 
                 <div class="rex-form-group form-group">
                     <label class="control-label" for="body">' . rex_i18n::msg('pushit_body_required') . '</label>
-                    <textarea class="form-control" id="body" name="body" rows="3" required>' . rex_escape($body) . '</textarea>
+                    <textarea class="form-control" id="body" name="body" rows="3" maxlength="240" required>' . rex_escape($body) . '</textarea>
                     <p class="help-block">' . rex_i18n::msg('pushit_body_help') . '</p>
+                    <p class="help-block"><span id="pushit-body-counter">0</span>/240 Zeichen</p>
                 </div>
                 
                 <div class="rex-form-group form-group">
@@ -295,6 +318,7 @@ class SendManager
             $content .= '
                     </select>
                     <p class="help-block">' . rex_i18n::msg('pushit_target_group_help') . '</p>
+                    <p class="help-block text-muted">Tipp: Für einfache Meldungen zuerst "Frontend" wählen und später gezielt über Topics eingrenzen.</p>
                 </div>';
         } else {
             // Warnung anzeigen, wenn keine Subscriptions vorhanden sind
@@ -344,7 +368,7 @@ class SendManager
                     <div class="rex-form-group form-group">
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" name="test_mode" value="1" />
+                                <input type="checkbox" name="test_mode" value="1" ' . (!$isAdmin ? 'checked' : '') . ' />
                                 <strong>Testversand:</strong> Nur an mich senden (ignoriert Empfängergruppe)
                             </label>
                             <p class="help-block text-info">
@@ -375,13 +399,16 @@ class SendManager
         }
 
         $content .= '
-        </form>';
+        </form>
+        </div>';
 
         return $content;
     }
     
     /**
-     * Rendert das Preview-Panel
+    * Rendert das Preview-Panel.
+    *
+    * @param array<string, mixed> $formData
      */
     public function renderPreviewPanel(array $formData): string
     {
@@ -436,7 +463,11 @@ class SendManager
         ];
 
         for ($i = 0; $i < $sql->getRows(); $i++) {
-            $subscriptionStats[$sql->getValue('user_type')] = $sql->getValue('count');
+            $userType = (string) $sql->getValue('user_type');
+            $count = (int) $sql->getValue('count');
+            if (array_key_exists($userType, $subscriptionStats)) {
+                $subscriptionStats[$userType] = $count;
+            }
             $sql->next();
         }
 
@@ -448,7 +479,7 @@ class SendManager
             WHERE created >= DATE_SUB(NOW(), INTERVAL 30 DAY)
         ");
 
-        $recentNotifications = $sqlNotif->getRows() > 0 ? $sqlNotif->getValue('total') : 0;
+        $recentNotifications = $sqlNotif->getRows() > 0 ? (int) $sqlNotif->getValue('total') : 0;
 
         return '
         <div class="row">
